@@ -1,0 +1,2410 @@
+{
+  "categories": [
+    {
+      "id": "icecream",
+      "name": "بستنی",
+      "emoji": "🍦"
+    },
+    {
+      "id": "fresh",
+      "name": "فِرِش اسپارک",
+      "emoji": "🍹"
+    },
+    {
+      "id": "arabica",
+      "name": "عربیکا ۱۰۰",
+      "emoji": "☕"
+    },
+    {
+      "id": "coffee5050",
+      "name": "قهوه ۵۰/۵۰",
+      "emoji": "☕"
+    },
+    {
+      "id": "herbal",
+      "name": "دمنوش",
+      "emoji": "🍵"
+    },
+    {
+      "id": "hotcup",
+      "name": "هات کاپ",
+      "emoji": "🍫"
+    },
+    {
+      "id": "breakfast",
+      "name": "صبحانه",
+      "emoji": "🥐"
+    },
+    {
+      "id": "waffle",
+      "name": "وافل",
+      "emoji": "🧇"
+    },
+    {
+      "id": "cake",
+      "name": "کیک و کوکی",
+      "emoji": "🍰"
+    },
+    {
+      "id": "salad",
+      "name": "سالاد",
+      "emoji": "🥗"
+    },
+    {
+      "id": "icedcoffee",
+      "name": "آیس کافی",
+      "emoji": "🧊"
+    },
+    {
+      "id": "shake",
+      "name": "شیک",
+      "emoji": "🥤"
+    },
+    {
+      "id": "milkmix",
+      "name": "میکس پایه شیر",
+      "emoji": "🥛"
+    }
+  ],
+  "items": [
+    {
+      "id": "fresh-1",
+      "name": "انبه - آناناس - پرتقال",
+      "price": 280,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "انبه - آناناس - پرتقال"
+    },
+    {
+      "id": "arabica-1",
+      "name": "اسپرسو",
+      "price": 185,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "اسپرسو"
+    },
+    {
+      "id": "coffee5050-1",
+      "name": "اسپرسو",
+      "price": 155,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "اسپرسو"
+    },
+    {
+      "id": "herbal-1",
+      "name": "چیل چای",
+      "price": 150,
+      "category": "herbal",
+      "categoryName": "دمنوش",
+      "emoji": "🍵",
+      "tags": {
+        "evening": 0.9,
+        "night": 0.95,
+        "cold": 0.7,
+        "hot": 0.6,
+        "relax": 0.9
+      },
+      "description": "چیل چای"
+    },
+    {
+      "id": "hotcup-1",
+      "name": "شیر کاکائو",
+      "price": 180,
+      "category": "hotcup",
+      "categoryName": "هات کاپ",
+      "emoji": "🍫",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.9,
+        "morning": 0.7,
+        "evening": 0.85,
+        "relax": 0.9
+      },
+      "description": "شیر کاکائو"
+    },
+    {
+      "id": "breakfast-1",
+      "name": "چاباتا املت( نان چاباتا - تخم مرغ - گوجه )",
+      "price": 170,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتا املت( نان چاباتا - تخم مرغ - گوجه )"
+    },
+    {
+      "id": "waffle-1",
+      "name": "سینی مخصوص(وافل+بستنی +توت فرنگی +موز+سس دلخواه)",
+      "price": 750,
+      "category": "waffle",
+      "categoryName": "وافل",
+      "emoji": "🧇",
+      "tags": {
+        "morning": 0.7,
+        "afternoon": 0.8,
+        "sweet": 0.9,
+        "fresh": 0.6
+      },
+      "description": "سینی مخصوص(وافل+بستنی +توت فرنگی +موز+سس دلخواه)"
+    },
+    {
+      "id": "cake-1",
+      "name": "خیس شکلاتی",
+      "price": 230,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "خیس شکلاتی"
+    },
+    {
+      "id": "salad-1",
+      "name": "سالاد سزار (فیله100g-پنیر پارمسان -نان سیر -کاهو - گوجه - زیتون)",
+      "price": 550,
+      "category": "salad",
+      "categoryName": "سالاد",
+      "emoji": "🥗",
+      "tags": {
+        "afternoon": 0.7,
+        "hot": 0.8,
+        "fresh": 0.9
+      },
+      "description": "سالاد سزار (فیله100g-پنیر پارمسان -نان سیر -کاهو - گوجه - زیتون)"
+    },
+    {
+      "id": "icedcoffee-1",
+      "name": "آیس آمریکانو 100",
+      "price": 205,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس آمریکانو 100"
+    },
+    {
+      "id": "shake-1",
+      "name": "شیک توت فرنگی(350g بستنی -100gشیر )",
+      "price": 455,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک توت فرنگی(350g بستنی -100gشیر )"
+    },
+    {
+      "id": "milkmix-1",
+      "name": "شیر توت فرنگی",
+      "price": 295,
+      "category": "milkmix",
+      "categoryName": "میکس پایه شیر",
+      "emoji": "🥛",
+      "tags": {
+        "morning": 0.6,
+        "sweet": 0.8,
+        "fresh": 1.2
+      },
+      "description": "شیر توت فرنگی"
+    },
+    {
+      "id": "icecream-1",
+      "name": "مینی پک 5 عددی",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "مینی پک 5 عددی"
+    },
+    {
+      "id": "fresh-2",
+      "name": "موز و توت فرنگی",
+      "price": 350,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "موز و توت فرنگی"
+    },
+    {
+      "id": "arabica-2",
+      "name": "لته",
+      "price": 235,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "لته"
+    },
+    {
+      "id": "coffee5050-2",
+      "name": "آمریکانو",
+      "price": 165,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "آمریکانو"
+    },
+    {
+      "id": "herbal-2",
+      "name": "اپل پارادایس",
+      "price": 220,
+      "category": "herbal",
+      "categoryName": "دمنوش",
+      "emoji": "🍵",
+      "tags": {
+        "evening": 0.9,
+        "night": 0.95,
+        "cold": 0.7,
+        "hot": 0.6,
+        "relax": 0.9
+      },
+      "description": "اپل پارادایس"
+    },
+    {
+      "id": "hotcup-2",
+      "name": "شیر نسکافه",
+      "price": 165,
+      "category": "hotcup",
+      "categoryName": "هات کاپ",
+      "emoji": "🍫",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.9,
+        "morning": 0.7,
+        "evening": 0.85,
+        "relax": 0.9
+      },
+      "description": "شیر نسکافه"
+    },
+    {
+      "id": "breakfast-2",
+      "name": "چاباتا نیمرو پنیر (نان چاباتا - پنیر خامه ای - تخم مرغ )",
+      "price": 190,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتا نیمرو پنیر (نان چاباتا - پنیر خامه ای - تخم مرغ )"
+    },
+    {
+      "id": "waffle-2",
+      "name": "ظرف کرافت اقتصادی (وافل+موز+ توت فرنگی + سس دالخواه )",
+      "price": 550,
+      "category": "waffle",
+      "categoryName": "وافل",
+      "emoji": "🧇",
+      "tags": {
+        "morning": 0.7,
+        "afternoon": 0.8,
+        "sweet": 0.9,
+        "fresh": 0.6
+      },
+      "description": "ظرف کرافت اقتصادی (وافل+موز+ توت فرنگی + سس دالخواه )"
+    },
+    {
+      "id": "cake-2",
+      "name": "بروانی",
+      "price": 220,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "بروانی"
+    },
+    {
+      "id": "salad-2",
+      "name": "سالاد ماکارونی ظرف بزرگ(ژامبون 90%مرغ - پاستا -خیارشور - ذرت - هویج)",
+      "price": 350,
+      "category": "salad",
+      "categoryName": "سالاد",
+      "emoji": "🥗",
+      "tags": {
+        "afternoon": 0.7,
+        "hot": 0.8,
+        "fresh": 0.9
+      },
+      "description": "سالاد ماکارونی ظرف بزرگ(ژامبون 90%مرغ - پاستا -خیارشور - ذرت - هویج)"
+    },
+    {
+      "id": "icedcoffee-2",
+      "name": "آیس لته100",
+      "price": 265,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس لته100"
+    },
+    {
+      "id": "shake-2",
+      "name": "شیک وانیل (350gبستنی -100gشیر)",
+      "price": 415,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک وانیل (350gبستنی -100gشیر)"
+    },
+    {
+      "id": "milkmix-2",
+      "name": "شیر انبه",
+      "price": 380,
+      "category": "milkmix",
+      "categoryName": "میکس پایه شیر",
+      "emoji": "🥛",
+      "tags": {
+        "morning": 0.6,
+        "sweet": 0.8,
+        "fresh": 1.2
+      },
+      "description": "شیر انبه"
+    },
+    {
+      "id": "icecream-2",
+      "name": "مینی پک 10 عددی",
+      "price": 450,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "مینی پک 10 عددی"
+    },
+    {
+      "id": "fresh-3",
+      "name": "آناناس و توت فرنگی",
+      "price": 300,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "آناناس و توت فرنگی"
+    },
+    {
+      "id": "arabica-3",
+      "name": "آمریکانو",
+      "price": 195,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "آمریکانو"
+    },
+    {
+      "id": "coffee5050-3",
+      "name": "ماکیاتو",
+      "price": 175,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "ماکیاتو"
+    },
+    {
+      "id": "herbal-3",
+      "name": "لمون گرس",
+      "price": 210,
+      "category": "herbal",
+      "categoryName": "دمنوش",
+      "emoji": "🍵",
+      "tags": {
+        "evening": 0.9,
+        "night": 0.95,
+        "cold": 0.7,
+        "hot": 0.6,
+        "relax": 0.9
+      },
+      "description": "لمون گرس"
+    },
+    {
+      "id": "hotcup-3",
+      "name": "هات چاکلت",
+      "price": 235,
+      "category": "hotcup",
+      "categoryName": "هات کاپ",
+      "emoji": "🍫",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.9,
+        "morning": 0.7,
+        "evening": 0.85,
+        "relax": 0.9
+      },
+      "description": "هات چاکلت"
+    },
+    {
+      "id": "breakfast-3",
+      "name": "چاباتا بیکن و تخم مرغ چیل بار (نان چاباتا -تخم مرغ- بیکن -پپرونی - پنیر گودا - هالوپینو - قارچ - سس چیلی تای )",
+      "price": 140,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتا بیکن و تخم مرغ چیل بار (نان چاباتا -تخم مرغ- بیکن -پپرونی - پنیر گودا - هالوپینو - قارچ - سس چیلی تای )"
+    },
+    {
+      "id": "waffle-3",
+      "name": "وافل قیفی",
+      "price": 500,
+      "category": "waffle",
+      "categoryName": "وافل",
+      "emoji": "🧇",
+      "tags": {
+        "morning": 0.7,
+        "afternoon": 0.8,
+        "sweet": 0.9,
+        "fresh": 0.6
+      },
+      "description": "وافل قیفی"
+    },
+    {
+      "id": "cake-3",
+      "name": "کروسان بستنی",
+      "price": 490,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کروسان بستنی"
+    },
+    {
+      "id": "salad-3",
+      "name": "سالاد ماکارونی ظرف کوچک (ژامبون 90%مرغ-پاستا -خیارشور -ذرت -هویج )",
+      "price": 220,
+      "category": "salad",
+      "categoryName": "سالاد",
+      "emoji": "🥗",
+      "tags": {
+        "afternoon": 0.7,
+        "hot": 0.8,
+        "fresh": 0.9
+      },
+      "description": "سالاد ماکارونی ظرف کوچک (ژامبون 90%مرغ-پاستا -خیارشور -ذرت -هویج )"
+    },
+    {
+      "id": "icedcoffee-3",
+      "name": "آیس موکا100",
+      "price": 265,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس موکا100"
+    },
+    {
+      "id": "shake-3",
+      "name": "شیک شکلات (350g بستنی -شیر 100g)",
+      "price": 455,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک شکلات (350g بستنی -شیر 100g)"
+    },
+    {
+      "id": "milkmix-3",
+      "name": "شیر موز",
+      "price": 265,
+      "category": "milkmix",
+      "categoryName": "میکس پایه شیر",
+      "emoji": "🥛",
+      "tags": {
+        "morning": 0.6,
+        "sweet": 0.8,
+        "fresh": 1.2
+      },
+      "description": "شیر موز"
+    },
+    {
+      "id": "icecream-3",
+      "name": "مینی پک 25 عددی",
+      "price": 875,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "مینی پک 25 عددی"
+    },
+    {
+      "id": "fresh-4",
+      "name": "موز وانبه",
+      "price": 400,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "موز وانبه"
+    },
+    {
+      "id": "arabica-4",
+      "name": "ماکیاتو",
+      "price": 205,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "ماکیاتو"
+    },
+    {
+      "id": "coffee5050-4",
+      "name": "لته",
+      "price": 205,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "لته"
+    },
+    {
+      "id": "herbal-4",
+      "name": "کوئین بری",
+      "price": 250,
+      "category": "herbal",
+      "categoryName": "دمنوش",
+      "emoji": "🍵",
+      "tags": {
+        "evening": 0.9,
+        "night": 0.95,
+        "cold": 0.7,
+        "hot": 0.6,
+        "relax": 0.9
+      },
+      "description": "کوئین بری"
+    },
+    {
+      "id": "hotcup-4",
+      "name": "آیس چاکلت",
+      "price": 235,
+      "category": "hotcup",
+      "categoryName": "هات کاپ",
+      "emoji": "🍫",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.9,
+        "morning": 0.7,
+        "evening": 0.85,
+        "relax": 0.9
+      },
+      "description": "آیس چاکلت"
+    },
+    {
+      "id": "breakfast-4",
+      "name": "چاباتا اسپشیال چیل بار (تخم مرغ -نان چاباتا - بیکن -پپرونی - پنیر گودا - هالوپینو - قارچ - سس چیلی تای )",
+      "price": 220,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتا اسپشیال چیل بار (تخم مرغ -نان چاباتا - بیکن -پپرونی - پنیر گودا - هالوپینو - قارچ - سس چیلی تای )"
+    },
+    {
+      "id": "cake-4",
+      "name": "کوکی رژیمی",
+      "price": 145,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کوکی رژیمی"
+    },
+    {
+      "id": "icedcoffee-4",
+      "name": "آیس چاکلت",
+      "price": 350,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس چاکلت"
+    },
+    {
+      "id": "shake-4",
+      "name": "شیک نوتلا (350gبستنی-100gشیر -کرم نوتلا )",
+      "price": 445,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک نوتلا (350gبستنی-100gشیر -کرم نوتلا )"
+    },
+    {
+      "id": "milkmix-4",
+      "name": "شیرموز و انبه",
+      "price": 450,
+      "category": "milkmix",
+      "categoryName": "میکس پایه شیر",
+      "emoji": "🥛",
+      "tags": {
+        "morning": 0.6,
+        "sweet": 0.8,
+        "fresh": 1.2
+      },
+      "description": "شیرموز و انبه"
+    },
+    {
+      "id": "fresh-5",
+      "name": "موز و آناناس",
+      "price": 150,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "موز و آناناس"
+    },
+    {
+      "id": "arabica-5",
+      "name": "موکا",
+      "price": 255,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "موکا"
+    },
+    {
+      "id": "coffee5050-5",
+      "name": "موکا",
+      "price": 225,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "موکا"
+    },
+    {
+      "id": "hotcup-5",
+      "name": "چای ماسالا",
+      "price": 230,
+      "category": "hotcup",
+      "categoryName": "هات کاپ",
+      "emoji": "🍫",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.9,
+        "morning": 0.7,
+        "evening": 0.85,
+        "relax": 0.9
+      },
+      "description": "چای ماسالا"
+    },
+    {
+      "id": "breakfast-5",
+      "name": "سمیت کره عسل و گردو(نان سمیت - کره- عسل - گردو)",
+      "price": 250,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "سمیت کره عسل و گردو(نان سمیت - کره- عسل - گردو)"
+    },
+    {
+      "id": "cake-5",
+      "name": "نون خامه ای",
+      "price": 60,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "نون خامه ای"
+    },
+    {
+      "id": "icedcoffee-5",
+      "name": "آیس لته شیر عسل",
+      "price": 275,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس لته شیر عسل"
+    },
+    {
+      "id": "shake-5",
+      "name": "شیک پسته (350gبستنی -100gشیر-کرم پسته )",
+      "price": 485,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک پسته (350gبستنی -100gشیر-کرم پسته )"
+    },
+    {
+      "id": "icecream-4",
+      "name": "جلاتو (توت فرنگی-نوتلا-وانیل-نسکافه-لوتوس-پسته- انبه)",
+      "price": 130,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "جلاتو (توت فرنگی-نوتلا-وانیل-نسکافه-لوتوس-پسته- انبه)"
+    },
+    {
+      "id": "fresh-6",
+      "name": "پاپایا و آناناس و پرتقال",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "پاپایا و آناناس و پرتقال"
+    },
+    {
+      "id": "arabica-6",
+      "name": "آفوگاتو",
+      "price": 280,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "آفوگاتو"
+    },
+    {
+      "id": "coffee5050-6",
+      "name": "آفوگاتو",
+      "price": 250,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "آفوگاتو"
+    },
+    {
+      "id": "breakfast-6",
+      "name": "سیمت پنیر خیار و گوجه و ریحون و گردو (نان سمیت - پنیر - خیار - گوجه - ریحون - گردو)",
+      "price": 250,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "سیمت پنیر خیار و گوجه و ریحون و گردو (نان سمیت - پنیر - خیار - گوجه - ریحون - گردو)"
+    },
+    {
+      "id": "cake-6",
+      "name": "کوکی فرانسوی بزرگ",
+      "price": 70,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کوکی فرانسوی بزرگ"
+    },
+    {
+      "id": "icedcoffee-6",
+      "name": "آیس کارامل ماکیاتو",
+      "price": 280,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس کارامل ماکیاتو"
+    },
+    {
+      "id": "shake-6",
+      "name": "شیک نسکافه (350g بستنی-100gشیر )",
+      "price": 440,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک نسکافه (350g بستنی-100gشیر )"
+    },
+    {
+      "id": "icecream-5",
+      "name": "جلاتو گاومیش",
+      "price": 170,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "جلاتو گاومیش"
+    },
+    {
+      "id": "fresh-7",
+      "name": "هندوانه و توت فرنگی - لیمو ترش - نعنا",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "هندوانه و توت فرنگی - لیمو ترش - نعنا"
+    },
+    {
+      "id": "arabica-7",
+      "name": "رومانو",
+      "price": 200,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "رومانو"
+    },
+    {
+      "id": "coffee5050-7",
+      "name": "رومانو",
+      "price": 170,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "رومانو"
+    },
+    {
+      "id": "breakfast-7",
+      "name": "چاباتای املت ایتالیایی (نان چاباتا 1 عدد - تخمم مرغ 2 عدد- پنیر موزارلا 30گرم -ئ گوجه حلقه 2 حلقه -ریحان تازه -د نمک و فلفل )",
+      "price": 350,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتای املت ایتالیایی (نان چاباتا 1 عدد - تخمم مرغ 2 عدد- پنیر موزارلا 30گرم -ئ گوجه حلقه 2 حلقه -ریحان تازه -د نمک و فلفل )"
+    },
+    {
+      "id": "cake-7",
+      "name": "کوکی نیویورکی",
+      "price": 80,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کوکی نیویورکی"
+    },
+    {
+      "id": "icedcoffee-7",
+      "name": "فراپاچینو",
+      "price": 475,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "فراپاچینو"
+    },
+    {
+      "id": "shake-7",
+      "name": "شیک لوتوس(350 gبستنی -100gشیر)",
+      "price": 470,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک لوتوس(350 gبستنی -100gشیر)"
+    },
+    {
+      "id": "fresh-8",
+      "name": "استوایی (توت فرنگی - کیوی- بلوبری) (کیوی - پرتقال - فیسالیس ) (پرتقال - کاکتوس )",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "استوایی (توت فرنگی - کیوی- بلوبری) (کیوی - پرتقال - فیسالیس ) (پرتقال - کاکتوس )"
+    },
+    {
+      "id": "arabica-8",
+      "name": "کارامل ماکیاتو",
+      "price": 260,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "کارامل ماکیاتو"
+    },
+    {
+      "id": "coffee5050-8",
+      "name": "کارامل ماکیاتو",
+      "price": 230,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "کارامل ماکیاتو"
+    },
+    {
+      "id": "breakfast-8",
+      "name": "چاباتای کره بادام زمینی و موز (چاباتا 1 عدد - کره بادام زمینی 30 g- موز 1 عدد - عسل 10 g- دارچین )",
+      "price": 350,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "چاباتای کره بادام زمینی و موز (چاباتا 1 عدد - کره بادام زمینی 30 g- موز 1 عدد - عسل 10 g- دارچین )"
+    },
+    {
+      "id": "cake-8",
+      "name": "کوکی کرینکل",
+      "price": 75,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کوکی کرینکل"
+    },
+    {
+      "id": "icedcoffee-8",
+      "name": "هایپ کافی",
+      "price": 380,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "هایپ کافی"
+    },
+    {
+      "id": "shake-8",
+      "name": "شیک گاومیش (350gبستنی-100gشیر )",
+      "price": 490,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک گاومیش (350gبستنی-100gشیر )"
+    },
+    {
+      "id": "icecream-6",
+      "name": "لوتوسیا نوتلا (پایه: نوتلا فیلینگ :کرم لوتوس-روکش :شکلات سفید )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "لوتوسیا نوتلا (پایه: نوتلا فیلینگ :کرم لوتوس-روکش :شکلات سفید )"
+    },
+    {
+      "id": "fresh-9",
+      "name": "تک میوه انبه",
+      "price": 350,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "تک میوه انبه"
+    },
+    {
+      "id": "arabica-9",
+      "name": "هانی کرم",
+      "price": 255,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "هانی کرم"
+    },
+    {
+      "id": "coffee5050-9",
+      "name": "هانی کرم",
+      "price": 225,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "هانی کرم"
+    },
+    {
+      "id": "breakfast-9",
+      "name": "تست تخم مرغ (نان تست2 برش -تخم مرغ 2 عدد - پنیر چدار 20 g-کره 5 g)",
+      "price": 250,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "تست تخم مرغ (نان تست2 برش -تخم مرغ 2 عدد - پنیر چدار 20 g-کره 5 g)"
+    },
+    {
+      "id": "cake-9",
+      "name": "کوکی پسته",
+      "price": 160,
+      "category": "cake",
+      "categoryName": "کیک و کوکی",
+      "emoji": "🍰",
+      "tags": {
+        "afternoon": 0.8,
+        "evening": 0.85,
+        "sweet": 1.25
+      },
+      "description": "کوکی پسته"
+    },
+    {
+      "id": "icedcoffee-9",
+      "name": "موهیتو",
+      "price": 275,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "موهیتو"
+    },
+    {
+      "id": "shake-9",
+      "name": "شیک کارامل(350gبستنی -100gبستنی )",
+      "price": 445,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک کارامل(350gبستنی -100gبستنی )"
+    },
+    {
+      "id": "icecream-7",
+      "name": "لوتوسیا توت فرنگی (پایه :توت فرنگی -فیلینگ: لوتوس-روکش :شکلات فندقی )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "لوتوسیا توت فرنگی (پایه :توت فرنگی -فیلینگ: لوتوس-روکش :شکلات فندقی )"
+    },
+    {
+      "id": "fresh-10",
+      "name": "تک میوه آناناس",
+      "price": 300,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "تک میوه آناناس"
+    },
+    {
+      "id": "arabica-10",
+      "name": "کورتادو",
+      "price": 215,
+      "category": "arabica",
+      "categoryName": "عربیکا ۱۰۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.95,
+        "afternoon": 0.7,
+        "evening": 0.4,
+        "hot": 0.8,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "کورتادو"
+    },
+    {
+      "id": "coffee5050-10",
+      "name": "کورتادو",
+      "price": 185,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "کورتادو"
+    },
+    {
+      "id": "breakfast-10",
+      "name": "تست کره بادوم زمینی (نان تست 2 برش - کره بادوم زمینی 30g- موز 1 عدد - عسل 10g-دارچین )",
+      "price": 250,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "تست کره بادوم زمینی (نان تست 2 برش - کره بادوم زمینی 30g- موز 1 عدد - عسل 10g-دارچین )"
+    },
+    {
+      "id": "icedcoffee-10",
+      "name": "کوک اسپرسو",
+      "price": 355,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "کوک اسپرسو"
+    },
+    {
+      "id": "shake-10",
+      "name": "شیک پینات(350gبستنی-100gشیر -کره بادوم زمینی )",
+      "price": 480,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک پینات(350gبستنی-100gشیر -کره بادوم زمینی )"
+    },
+    {
+      "id": "icecream-8",
+      "name": "لوتوسیا فندق (پایه :فندق - فیلینگ :لوتوس-روکش :پسته )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "لوتوسیا فندق (پایه :فندق - فیلینگ :لوتوس-روکش :پسته )"
+    },
+    {
+      "id": "coffee5050-11",
+      "name": "سیروپ",
+      "price": 30,
+      "category": "coffee5050",
+      "categoryName": "قهوه ۵۰/۵۰",
+      "emoji": "☕",
+      "tags": {
+        "morning": 0.9,
+        "afternoon": 0.8,
+        "evening": 0.5,
+        "energy": 0.9,
+        "sweet": 0.3
+      },
+      "description": "سیروپ"
+    },
+    {
+      "id": "breakfast-11",
+      "name": "تست آووکادو و تخم مرغ (نان تست2 عدد - آکاوودو70g- تخم مرغ نیم پز 1 عدد - فلفل سیاه و نمک )",
+      "price": 350,
+      "category": "breakfast",
+      "categoryName": "صبحانه",
+      "emoji": "🥐",
+      "tags": {
+        "morning": 1.0,
+        "afternoon": 0.3,
+        "fresh": 0.8999999999999999
+      },
+      "description": "تست آووکادو و تخم مرغ (نان تست2 عدد - آکاوودو70g- تخم مرغ نیم پز 1 عدد - فلفل سیاه و نمک )"
+    },
+    {
+      "id": "icedcoffee-11",
+      "name": "آفوگاتو پسته",
+      "price": 330,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آفوگاتو پسته"
+    },
+    {
+      "id": "shake-11",
+      "name": "شیک انبه(350gبستنی -100gشیر)",
+      "price": 465,
+      "category": "shake",
+      "categoryName": "شیک",
+      "emoji": "🥤",
+      "tags": {
+        "hot": 0.85,
+        "afternoon": 0.8,
+        "sweet": 2.1,
+        "fresh": 0.6
+      },
+      "description": "شیک انبه(350gبستنی -100gشیر)"
+    },
+    {
+      "id": "icecream-9",
+      "name": "لوتوسیا وانیل (پایه وانیل -فیلینگ :لوتوس- روکش : کرم پسته )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "لوتوسیا وانیل (پایه وانیل -فیلینگ :لوتوس- روکش : کرم پسته )"
+    },
+    {
+      "id": "fresh-11",
+      "name": "تک میوه هندوانه",
+      "price": 150,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "تک میوه هندوانه"
+    },
+    {
+      "id": "icedcoffee-12",
+      "name": "آفوگاتو شکلات",
+      "price": 315,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آفوگاتو شکلات"
+    },
+    {
+      "id": "icecream-10",
+      "name": "لوتوسیا پسته (پایه :پسته - فیلینگ : لوتوس - روکش شکلات فندق )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "لوتوسیا پسته (پایه :پسته - فیلینگ : لوتوس - روکش شکلات فندق )"
+    },
+    {
+      "id": "fresh-12",
+      "name": "تک میوه طالبی",
+      "price": 150,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "تک میوه طالبی"
+    },
+    {
+      "id": "icedcoffee-13",
+      "name": "لیموناد",
+      "price": 210,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "لیموناد"
+    },
+    {
+      "id": "icecream-11",
+      "name": "هانی فلو نوتلا (پایه توت فرنگی -فیلینگ :شیر عسل -روکش :شکلات سفید )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "هانی فلو نوتلا (پایه توت فرنگی -فیلینگ :شیر عسل -روکش :شکلات سفید )"
+    },
+    {
+      "id": "icedcoffee-14",
+      "name": "آیس لته با طعم دلخواه",
+      "price": 280,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس لته با طعم دلخواه"
+    },
+    {
+      "id": "icecream-12",
+      "name": "هانی فلو توت فرنگی (پایه توت فرنگی - فیلینگ :شیر عسل - روکش : شکلات سفید فندقی )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "هانی فلو توت فرنگی (پایه توت فرنگی - فیلینگ :شیر عسل - روکش : شکلات سفید فندقی )"
+    },
+    {
+      "id": "fresh-13",
+      "name": "زنجیل - کیوی -پرتقال",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "زنجیل - کیوی -پرتقال"
+    },
+    {
+      "id": "icedcoffee-15",
+      "name": "آیس لته 50/50",
+      "price": 235,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس لته 50/50"
+    },
+    {
+      "id": "icecream-13",
+      "name": "هانی فلو پسته (پایه پسته- روکش شکلاتی -فیلینگ : شیر عسل )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "هانی فلو پسته (پایه پسته- روکش شکلاتی -فیلینگ : شیر عسل )"
+    },
+    {
+      "id": "fresh-14",
+      "name": "زنجبیل - هندوانه -توت فرنگی",
+      "price": 330,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "زنجبیل - هندوانه -توت فرنگی"
+    },
+    {
+      "id": "icedcoffee-16",
+      "name": "آیس آمریکانو 50/50",
+      "price": 175,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس آمریکانو 50/50"
+    },
+    {
+      "id": "icecream-14",
+      "name": "هانی فلو فندق (پایه فندق - روکش :شکلات سفید -فیلینگ :شیر عسل )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "هانی فلو فندق (پایه فندق - روکش :شکلات سفید -فیلینگ :شیر عسل )"
+    },
+    {
+      "id": "fresh-15",
+      "name": "زنجیل- توت فرنگی",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "زنجیل- توت فرنگی"
+    },
+    {
+      "id": "icedcoffee-17",
+      "name": "آیس موکا 50/50",
+      "price": 235,
+      "category": "icedcoffee",
+      "categoryName": "آیس کافی",
+      "emoji": "🧊",
+      "tags": {
+        "hot": 0.9,
+        "afternoon": 0.9,
+        "cold": 0.95,
+        "energy": 0.9,
+        "sweet": 0.6
+      },
+      "description": "آیس موکا 50/50"
+    },
+    {
+      "id": "icecream-15",
+      "name": "هانی فلو وانیل (پایه :فندق -روکش کرم پسته - فیلینگ: شیر عسل )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "هانی فلو وانیل (پایه :فندق -روکش کرم پسته - فیلینگ: شیر عسل )"
+    },
+    {
+      "id": "fresh-16",
+      "name": "زنجبیل - پرتقال",
+      "price": 320,
+      "category": "fresh",
+      "categoryName": "فِرِش اسپارک",
+      "emoji": "🍹",
+      "tags": {
+        "cold": 0.95,
+        "hot": 0.5,
+        "fresh": 5.499999999999998
+      },
+      "description": "زنجبیل - پرتقال"
+    },
+    {
+      "id": "icecream-16",
+      "name": "پینا پسته (پایه :پسته -روکش:روکش شکلاتی - فیلینگ کرم پسته )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینا پسته (پایه :پسته -روکش:روکش شکلاتی - فیلینگ کرم پسته )"
+    },
+    {
+      "id": "icecream-17",
+      "name": "پینا نوتلا (پایه :نوتلا - روکش شکلات سفید فندقی - فیلینگ :کرم پسته )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینا نوتلا (پایه :نوتلا - روکش شکلات سفید فندقی - فیلینگ :کرم پسته )"
+    },
+    {
+      "id": "icecream-18",
+      "name": "پینا فندق (پایه : فندق - روکش: کرم پسته - فیلینگ کرم پسته )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینا فندق (پایه : فندق - روکش: کرم پسته - فیلینگ کرم پسته )"
+    },
+    {
+      "id": "icecream-19",
+      "name": "پینا وانیل (پایه : وانیل - روکش :روکش شکلاتی فندقی - فیلینگ :کرم پسته )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینا وانیل (پایه : وانیل - روکش :روکش شکلاتی فندقی - فیلینگ :کرم پسته )"
+    },
+    {
+      "id": "icecream-20",
+      "name": "پینا توت فرنگی (پایه :توت فرنگی - روکش : کرم پسته و مغز پسته- فیلینگ : کرم پسته )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینا توت فرنگی (پایه :توت فرنگی - روکش : کرم پسته و مغز پسته- فیلینگ : کرم پسته )"
+    },
+    {
+      "id": "icecream-21",
+      "name": "برانکو نوتلا ( پایه : وانیل - روکش شکلاتی فندقی - فیلینگ : نوتلا )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "برانکو نوتلا ( پایه : وانیل - روکش شکلاتی فندقی - فیلینگ : نوتلا )"
+    },
+    {
+      "id": "icecream-22",
+      "name": "برانکو توت فرنگی (پایه :توت فرنگی - روکش : شکلات فندقی -- فیلینگ : نوتلا )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "برانکو توت فرنگی (پایه :توت فرنگی - روکش : شکلات فندقی -- فیلینگ : نوتلا )"
+    },
+    {
+      "id": "icecream-23",
+      "name": "برانکو وانیل(پایه : وانیل - روکش شکلات سفید فندقی - فیلینگ نوتلا )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "برانکو وانیل(پایه : وانیل - روکش شکلات سفید فندقی - فیلینگ نوتلا )"
+    },
+    {
+      "id": "icecream-24",
+      "name": "برانکو پسته (پایه پسته - روکش : شکلات فندقی - فیلینگ : نوتلا )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "برانکو پسته (پایه پسته - روکش : شکلات فندقی - فیلینگ : نوتلا )"
+    },
+    {
+      "id": "icecream-25",
+      "name": "برانکو فندق (پایه : فندق - روکش : کرم پسته - فیلینگ : نوتلا )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "برانکو فندق (پایه : فندق - روکش : کرم پسته - فیلینگ : نوتلا )"
+    },
+    {
+      "id": "icecream-26",
+      "name": "نسکینو پسته (پایه : پسته - روکش : شکلاتی فندقی - فیلینگ :کرم نسکافه )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "نسکینو پسته (پایه : پسته - روکش : شکلاتی فندقی - فیلینگ :کرم نسکافه )"
+    },
+    {
+      "id": "icecream-27",
+      "name": "نسکینو فندق ( پایه: فندق - روکش : شکلات سفید فندقی - فیلینگ : نسکافه )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "نسکینو فندق ( پایه: فندق - روکش : شکلات سفید فندقی - فیلینگ : نسکافه )"
+    },
+    {
+      "id": "icecream-28",
+      "name": "نسکینو توت فرنگی (پایه : توت فرنگی - روکش : کرم پسته - فیلینگ : کرم نسکافه)",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "نسکینو توت فرنگی (پایه : توت فرنگی - روکش : کرم پسته - فیلینگ : کرم نسکافه)"
+    },
+    {
+      "id": "icecream-29",
+      "name": "نسکینو نوتلا ( پایه : نوتلا - روکش : شکلاتی فندق -فیلینگ : کرم نسکافه )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "نسکینو نوتلا ( پایه : نوتلا - روکش : شکلاتی فندق -فیلینگ : کرم نسکافه )"
+    },
+    {
+      "id": "icecream-30",
+      "name": "نسکینو وانیل( پایه : وانیل - روکش : شکلات فندقی - فیلینگ : کرم نسکافه )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "نسکینو وانیل( پایه : وانیل - روکش : شکلات فندقی - فیلینگ : کرم نسکافه )"
+    },
+    {
+      "id": "icecream-31",
+      "name": "کاراملو نوتلا ( پایه : نوتلا - روکش : شکلات فندقی - فیلینگ : تافی کارامل )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کاراملو نوتلا ( پایه : نوتلا - روکش : شکلات فندقی - فیلینگ : تافی کارامل )"
+    },
+    {
+      "id": "icecream-32",
+      "name": "کاراملو توت فرنگی(پایه :توت فرنگی - روکش : شکلات سفید فندقی- فیلینگ : تافی کارامل )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کاراملو توت فرنگی(پایه :توت فرنگی - روکش : شکلات سفید فندقی- فیلینگ : تافی کارامل )"
+    },
+    {
+      "id": "icecream-33",
+      "name": "کاراملو وانیل ( پایه :وانیل - روکش : کرم پسته و مغز پسته - فیلینگ : کارامل )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کاراملو وانیل ( پایه :وانیل - روکش : کرم پسته و مغز پسته - فیلینگ : کارامل )"
+    },
+    {
+      "id": "icecream-34",
+      "name": "کاراملو پسته ( پایه : پسته - روکش : شکلات فندقی - فیلینگ : تافی کارامل )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کاراملو پسته ( پایه : پسته - روکش : شکلات فندقی - فیلینگ : تافی کارامل )"
+    },
+    {
+      "id": "icecream-35",
+      "name": "کاراملو فندق ( پایه : فندق - روکش : کرم پسته و مغز پسته- فیلینگ :تافی کارامل )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کاراملو فندق ( پایه : فندق - روکش : کرم پسته و مغز پسته- فیلینگ :تافی کارامل )"
+    },
+    {
+      "id": "icecream-36",
+      "name": "کوکینو نوتلا ( پایه : نوتلا - روکش : شکلات فندقی - فیلینگ: کرم بسکویئت )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کوکینو نوتلا ( پایه : نوتلا - روکش : شکلات فندقی - فیلینگ: کرم بسکویئت )"
+    },
+    {
+      "id": "icecream-37",
+      "name": "کوکینو توت فرنگی ( پایه : توت فرنگی - روکش : کرم پسته و مغز پسته - فیلینگ : کرم دبسکویئت )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کوکینو توت فرنگی ( پایه : توت فرنگی - روکش : کرم پسته و مغز پسته - فیلینگ : کرم دبسکویئت )"
+    },
+    {
+      "id": "icecream-38",
+      "name": "کوکینو وانیل ( پایه : وانیل - روکش : شکلات سفید و مغز فندق- فیلینگ :کرم بسکوئیت )",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کوکینو وانیل ( پایه : وانیل - روکش : شکلات سفید و مغز فندق- فیلینگ :کرم بسکوئیت )"
+    },
+    {
+      "id": "icecream-39",
+      "name": "کوکینو پسته ( پایه : پسته - روکش : کرم پسته -فیلینگ: کرم بسکوئیت )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کوکینو پسته ( پایه : پسته - روکش : کرم پسته -فیلینگ: کرم بسکوئیت )"
+    },
+    {
+      "id": "icecream-40",
+      "name": "کوکینو فندق ( پایه : فندق- روکش شکلات سفید و مغز فندق - فیلینگ : کرم بسکوئیت )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "کوکینو فندق ( پایه : فندق- روکش شکلات سفید و مغز فندق - فیلینگ : کرم بسکوئیت )"
+    },
+    {
+      "id": "icecream-41",
+      "name": "پینوتا نوتلا ( پایه : نوتلا - روکش : روکش شکلات و مغز فندق - فیلینگ : کره بادام زمینی )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینوتا نوتلا ( پایه : نوتلا - روکش : روکش شکلات و مغز فندق - فیلینگ : کره بادام زمینی )"
+    },
+    {
+      "id": "icecream-42",
+      "name": "پینوتا توت فرنگی ( پایه : توت فرنگی - روکش: شکلات سفید و مغز فندق - فیلینگ کرم بادام زمینی )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینوتا توت فرنگی ( پایه : توت فرنگی - روکش: شکلات سفید و مغز فندق - فیلینگ کرم بادام زمینی )"
+    },
+    {
+      "id": "icecream-43",
+      "name": "پینوتا وانیل (پایه : وانیل - روکش : کرم پسته و مغز پسته - فیلینگ : کرم بادام زمینی",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینوتا وانیل (پایه : وانیل - روکش : کرم پسته و مغز پسته - فیلینگ : کرم بادام زمینی"
+    },
+    {
+      "id": "icecream-44",
+      "name": "پینوتا پسته ( پایه : پسته - روکش :شکلات سفید و مغز فندق - فیلینگ : کرم بادام زمینی )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینوتا پسته ( پایه : پسته - روکش :شکلات سفید و مغز فندق - فیلینگ : کرم بادام زمینی )"
+    },
+    {
+      "id": "icecream-45",
+      "name": "پینوتا فندق ( پایه : فندق - روکش : کرم پسته و مغز پسته - فیلینگ: کرم بادام زمینی )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "پینوتا فندق ( پایه : فندق - روکش : کرم پسته و مغز پسته - فیلینگ: کرم بادام زمینی )"
+    },
+    {
+      "id": "icecream-46",
+      "name": "بری فلو نوتلا ( پایه : نوتلا - روکش : شکلات سفید و مغز فندق - فیلینگ: توت فرنگی )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "بری فلو نوتلا ( پایه : نوتلا - روکش : شکلات سفید و مغز فندق - فیلینگ: توت فرنگی )"
+    },
+    {
+      "id": "icecream-47",
+      "name": "بری فلو توت فرنگی ( پایه : توت فرنگی -روکش:شکلات ومغز فندق -فیلینگ: توت فرنگی )",
+      "price": 260,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "بری فلو توت فرنگی ( پایه : توت فرنگی -روکش:شکلات ومغز فندق -فیلینگ: توت فرنگی )"
+    },
+    {
+      "id": "icecream-48",
+      "name": "بری فلو وانیل (پایه :وانیل-روکش :کرم پسته و مغز سته - فیلینگ: توت فرنگی)",
+      "price": 250,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "بری فلو وانیل (پایه :وانیل-روکش :کرم پسته و مغز سته - فیلینگ: توت فرنگی)"
+    },
+    {
+      "id": "icecream-49",
+      "name": "بری فلو پسته (پایه:پسته -روکش :کرم پسته و مغز پسته - فیلینگ:توت فرنگی )",
+      "price": 280,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "بری فلو پسته (پایه:پسته -روکش :کرم پسته و مغز پسته - فیلینگ:توت فرنگی )"
+    },
+    {
+      "id": "icecream-50",
+      "name": "بری فلو فندق (پایه:فندق - روکش شکلات سفید و مغز فندق - فیلینگ : توت فرنگی )",
+      "price": 285,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "بری فلو فندق (پایه:فندق - روکش شکلات سفید و مغز فندق - فیلینگ : توت فرنگی )"
+    },
+    {
+      "id": "icecream-51",
+      "name": "protein whey(پایه : whey - فیلینگ: کرم بادام زمینی و مغزی جات )",
+      "price": 500,
+      "category": "icecream",
+      "categoryName": "بستنی",
+      "emoji": "🍦",
+      "tags": {
+        "cold": 0.9,
+        "hot": 0.2,
+        "sweet": 12.350000000000007,
+        "fresh": 4.499999999999999
+      },
+      "description": "protein whey(پایه : whey - فیلینگ: کرم بادام زمینی و مغزی جات )"
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  MANAGER
+  STAFF
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderChannel {
+  MOBILE
+  KIOSK
+}
+
+enum IceOptionType {
+  BASE
+  COATING
+  FILLING
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String
+  role      UserRole @default(STAFF)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id              String     @id
+  name            String
+  emoji           String     @default("🍽️")
+  sortOrder       Int        @default(0)
+  accentColor     String     @default("#F26522")
+  isIceCreamHub   Boolean    @default(false)
+  showCustomBadge Boolean    @default(false)
+  items           MenuItem[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  price       Int
+  emoji       String   @default("🍽️")
+  description String   @default("")
+  tags        Json     @default("{}")
+  modifiers   Json     @default("[]")
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+}
+
+model IceCreamOption {
+  id        String        @id
+  type      IceOptionType
+  name      String
+  color     String        @default("#ffffff")
+  texture   String?
+  priceMod  Int           @default(0)
+  emoji     String        @default("🍦")
+  hotBoost  Float?
+  coldBoost Float?
+  isActive  Boolean       @default(true)
+  sortOrder Int           @default(0)
+  visualProfile Json?
+
+  @@unique([type, id])
+}
+
+model PhoneOtp {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  purpose   String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone, purpose])
+  @@index([expiresAt])
+}
+
+model Customer {
+  id            String               @id @default(cuid())
+  phone         String?              @unique
+  name          String?
+  isRegistered  Boolean              @default(false)
+  preferences   Json                 @default("{}")
+  chillPoints   Int                  @default(0)
+  orders        Order[]
+  loyaltyLedger LoyaltyTransaction[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([isRegistered])
+}
+
+model LoyaltyTransaction {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  orderId    String?
+  type       String
+  points     Int
+  meta       Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model WaitGameSession {
+  id           String    @id @default(cuid())
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String    @unique
+  customerId   String?
+  pointsEarned Int       @default(0)
+  rounds       Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  closedAt     DateTime?
+
+  @@index([customerId])
+}
+
+model Order {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  status       OrderStatus  @default(PENDING)
+  channel      OrderChannel @default(MOBILE)
+  customerName String?
+  note         String?
+  total        Int          @default(0)
+  customerId   String?
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items        OrderItem[]
+  waitGame     WaitGameSession?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String
+  menuItemId   String?
+  name         String
+  emoji        String  @default("🍦")
+  unitPrice    Int
+  quantity     Int
+  lineTotal    Int
+  customConfig Json?
+
+  @@index([orderId])
+}
+
+model Setting {
+  key   String @id
+  value Json
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}

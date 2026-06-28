@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/.vite
+**/.tmp
+**/*.log
+.git
+.gitignore
+*.md
+photo_*.jpg
+docker-compose*.yml
+**/.env

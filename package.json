@@ -1,0 +1,28 @@
+{
+  "name": "chill-bar",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/api",
+    "apps/web",
+    "apps/admin"
+  ],
+  "overrides": {
+    "ajv": "^8.17.1",
+    "eslint": {
+      "ajv": "^6.12.6"
+    }
+  },
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w @chill-bar/api",
+    "dev:web": "npm run dev -w @chill-bar/web",
+    "dev:admin": "npm run dev -w @chill-bar/admin",
+    "build": "npm run build -w @chill-bar/shared && npm run build --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @chill-bar/api",
+    "db:seed": "npm run db:seed -w @chill-bar/api",
+    "db:generate": "npm run db:generate -w @chill-bar/api"
+  }
+}

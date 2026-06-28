@@ -1,0 +1,393 @@
+/* ═══════════════════════════════════════════
+   Chill Bar — Checkout, Orders, Kiosk, Polish
+   ═══════════════════════════════════════════ */
+
+/* ── Buttons ── */
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 18px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-orange);
+}
+.cart-clear {
+  margin-bottom: 10px;
+  color: var(--text-muted);
+}
+
+/* ── Checkout form ── */
+.checkout-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+.checkout-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.checkout-field > span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.checkout-field input,
+.checkout-field textarea {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.checkout-field input:focus,
+.checkout-field textarea:focus {
+  outline: none;
+  border-color: var(--orange);
+}
+.checkout-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--gradient-subtle);
+  border: 1px solid var(--border-orange);
+  border-radius: var(--radius);
+  margin-top: 4px;
+}
+.checkout-summary strong {
+  font-size: 1.2rem;
+  color: var(--orange-light);
+}
+.checkout-error {
+  background: rgba(255, 45, 123, 0.12);
+  border: 1px solid rgba(255, 45, 123, 0.3);
+  color: #ff9bc0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ── Order confirmation ── */
+.order-confirm {
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  overflow-y: auto;
+}
+.order-confirm-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #34d27b, #15a35a);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 30px rgba(21, 163, 90, 0.4);
+  animation: confirmPop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes confirmPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.order-confirm-check {
+  font-size: 2.4rem;
+  color: #fff;
+  font-weight: 800;
+}
+.order-confirm h4 {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.order-code {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--orange-light);
+  font-family: 'Vazirmatn', monospace;
+}
+.order-confirm-sub {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.order-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  margin: 18px 0;
+  padding: 0 12px;
+}
+.order-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  padding: 8px 0;
+}
+.order-step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 28px;
+  bottom: -8px;
+  width: 2px;
+  background: var(--border);
+}
+.order-step.active:not(:last-child)::before {
+  background: var(--orange);
+}
+.order-step-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  z-index: 1;
+  transition: all 0.3s;
+}
+.order-step.active .order-step-dot {
+  background: var(--orange);
+  border-color: var(--orange);
+  box-shadow: 0 0 0 4px rgba(242, 101, 34, 0.2);
+}
+.order-step-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.order-step.active .order-step-label {
+  color: var(--text);
+  font-weight: 600;
+}
+.order-cancelled {
+  background: rgba(255, 45, 123, 0.12);
+  border: 1px solid rgba(255, 45, 123, 0.3);
+  color: #ff9bc0;
+  padding: 14px;
+  border-radius: var(--radius);
+  width: 100%;
+  margin: 16px 0;
+}
+.order-confirm-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  margin-top: 8px;
+}
+.order-confirm-total strong {
+  font-size: 1.2rem;
+  color: var(--orange-light);
+}
+.order-confirm-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 6px 0 14px;
+}
+
+/* ── Connection / live badge ── */
+.live-badge {
+  position: fixed;
+  top: 70px;
+  left: 12px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 45, 123, 0.14);
+  border: 1px solid rgba(255, 45, 123, 0.3);
+  color: #ff9bc0;
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  border-radius: 100px;
+  backdrop-filter: blur(10px);
+}
+
+/* ── Error boundary ── */
+.error-fallback {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+.error-fallback-emoji {
+  font-size: 4rem;
+}
+.error-fallback h2 {
+  font-size: 1.3rem;
+}
+.error-fallback p {
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+/* ── Product image in detail / grid ── */
+.detail-hero-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+/* ── 3D canvas fallback ── */
+.canvas-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 280px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px;
+}
+.canvas-fallback span {
+  font-size: 4rem;
+}
+.ice-bar-3d-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 3rem;
+}
+
+/* ── Menu skeleton ── */
+.menu-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+}
+.menu-skeleton-card {
+  height: 150px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  position: relative;
+  overflow: hidden;
+}
+.menu-skeleton-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: skeletonShimmer 1.4s infinite;
+}
+@keyframes skeletonShimmer {
+  100% { transform: translateX(-100%); }
+}
+
+/* ═══════════════════════════════════════════
+   Kiosk mode — larger touch targets, screensaver
+   ═══════════════════════════════════════════ */
+.app--kiosk {
+  font-size: 1.08rem;
+}
+.app--kiosk .bottom-nav {
+  padding: 12px 8px calc(12px + var(--safe-bottom));
+}
+.app--kiosk .nav-btn {
+  min-height: 64px;
+  font-size: 0.92rem;
+}
+.app--kiosk .nav-btn span:first-child {
+  font-size: 1.7rem;
+}
+.app--kiosk .btn-primary,
+.app--kiosk .btn-secondary,
+.app--kiosk .btn-ice-order,
+.app--kiosk .btn-scoop-order {
+  min-height: 58px;
+  font-size: 1.05rem;
+}
+.app--kiosk .fab-cart,
+.app--kiosk .fab-ai {
+  width: 68px;
+  height: 68px;
+}
+.app--kiosk .ice-option,
+.app--kiosk .scoop-palette-item {
+  min-height: 80px;
+}
+
+.kiosk-screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+.kiosk-screensaver-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 30%, rgba(242, 101, 34, 0.25), transparent),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(255, 45, 123, 0.15), transparent),
+    #060608;
+}
+.kiosk-screensaver-content {
+  position: relative;
+  text-align: center;
+  color: #fff;
+}
+.kiosk-ss-logo {
+  font-size: 7rem;
+  filter: drop-shadow(0 12px 30px rgba(242, 101, 34, 0.5));
+}
+.kiosk-ss-logo-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+.kiosk-screensaver-content h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  margin: 12px 0 8px;
+  background: linear-gradient(135deg, #fff, var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.kiosk-screensaver-content > p {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+.kiosk-ss-pulse {
+  display: inline-block;
+  padding: 14px 32px;
+  border-radius: 100px;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-orange);
+}

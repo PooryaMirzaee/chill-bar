@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chillbar-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chillbar
+      POSTGRES_PASSWORD: chillbar
+      POSTGRES_DB: chillbar
+    ports:
+      - "5433:5432"
+    volumes:
+      - chillbar_pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chillbar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  chillbar_pgdata_dev:
