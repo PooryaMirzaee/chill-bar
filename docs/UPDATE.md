@@ -110,6 +110,25 @@ docker compose logs admin --tail=50
 docker compose up -d --build
 ```
 
+### خطای `binaries.prisma.sh` / `EAI_AGAIN` هنگام build
+
+موقع `prisma generate` داخل Docker، سرور باید به `binaries.prisma.sh` وصل شود. اگر DNS لحظه‌ای قطع باشد build می‌افتد؛ **کد قدیمی همچنان Up می‌ماند** تا build موفق شود.
+
+```bash
+# تست DNS از خود سرور
+ping -c 2 binaries.prisma.sh
+
+# دوباره build (معمولاً بار دوم درست می‌شود)
+docker compose up -d --build
+```
+
+اگر چند بار پشت‌سرهم شکست خورد، DNS را در `/etc/resolv.conf` موقتاً عوض کن (مثلاً `nameserver 8.8.8.8`) یا از VPN/شبکه پایدارتر build بگیر.
+
+```bash
+docker compose build --no-cache api
+docker compose up -d
+```
+
 ### admin در حلقه Restarting
 
 ```bash

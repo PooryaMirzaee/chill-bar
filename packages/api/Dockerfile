@@ -16,8 +16,14 @@ RUN npm ci
 COPY packages/shared packages/shared
 COPY packages/api packages/api
 
-# Generate Prisma client
-RUN npm run db:generate -w @chill-bar/api
+# Generate Prisma client (retry: binaries.prisma.sh may fail on transient DNS)
+RUN set -e; \
+  for attempt in 1 2 3 4 5; do \
+    npm run db:generate -w @chill-bar/api && exit 0; \
+    echo "prisma generate attempt $attempt failed, retrying in 15s..."; \
+    sleep 15; \
+  done; \
+  exit 1
 
 ENV NODE_ENV=production
 EXPOSE 4000
