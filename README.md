@@ -27,6 +27,21 @@ chill-bar/
                          └─ WebSocket ─→ پنل مدیریت (اعلان زنده + صدا)
 ```
 
+## استقرار پروداکشن (Docker)
+
+```bash
+cp .env.example .env   # رمزها و CORS را تنظیم کنید
+docker compose up -d --build
+```
+
+- مشتری: پورت `8080` (یا Reverse Proxy روی 80/443)
+- ادمین: پورت `8081`
+- API: فقط `127.0.0.1:4000` (از طریق nginx پروکسی می‌شود)
+
+راهنماها:
+- [docs/DEPLOY-1PANEL.md](docs/DEPLOY-1PANEL.md) — نصب اول روی 1Panel
+- [docs/UPDATE.md](docs/UPDATE.md) — آپدیت بعدی روی سرور
+
 ## راه‌اندازی توسعه (Local)
 
 پیش‌نیاز: Node 22+، Docker

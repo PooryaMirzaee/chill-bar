@@ -40,7 +40,7 @@ sudo mkdir -p /opt/chill-bar
 sudo chown $USER:$USER /opt/chill-bar
 cd /opt/chill-bar
 
-git clone <آدرس-ریپوی-شما> .
+git clone https://github.com/PooryaMirzaee/chill-bar.git .
 ```
 
 ### روش B: آپلود ZIP
@@ -79,8 +79,8 @@ SEED_ADMIN_PASSWORD=رمز-قوی-ادمین
 # اگر فقط با IP و پورت کار می‌کنید:
 CORS_ORIGINS=http://YOUR_SERVER_IP:8080,http://YOUR_SERVER_IP:8081
 
-# اگر دامنه دارید (بعد از SSL هم همین http کافی است چون nginx پروکسی می‌کند):
-# CORS_ORIGINS=https://order.example.com,https://admin.example.com
+# Production با دامنه (مثال chill-bar.ir):
+# CORS_ORIGINS=https://chill-bar.ir,https://www.chill-bar.ir,https://admin.chill-bar.ir
 ```
 
 تولید `JWT_SECRET`:
@@ -132,7 +132,7 @@ curl -I http://127.0.0.1:8081
 | `443` | HTTPS (بعداً) |
 | `80` | HTTP (بعداً) |
 
-**پورت 4000 و 5432 را به اینترنت باز نکنید** — فقط داخل Docker استفاده می‌شوند.
+**پورت 4000 فقط روی localhost** باز است (`127.0.0.1:4000`) — از اینترنت مستقیم در دسترس نیست. پورت 5432 هم فقط داخل Docker است.
 
 بعد از تنظیم:
 
@@ -144,35 +144,40 @@ curl -I http://127.0.0.1:8081
 
 ---
 
-## مرحله ۵ — اتصال دامنه و SSL (توصیه‌شده)
+## مرحله ۵ — اتصال دامنه و SSL (1Panel + پارس‌پک)
 
-### ۵.۱ DNS
+### ۵.۱ DNS (پارس‌پک)
 
-دو رکورد `A` به IP سرور:
+| رکورد | نوع | مقدار |
+|--------|-----|--------|
+| `@` | A | IP سرور |
+| `www` | A | IP سرور |
+| `admin` | A | IP سرور |
 
-- `order.example.com`
-- `admin.example.com`
+### ۵.۲ OpenResty + Reverse Proxy
 
-### ۵.۲ سایت در 1Panel
+1. App Store → **OpenResty** → Start
+2. Website → Create → **Reverse Proxy**
 
-**سایت ۱ — اپ مشتری**
+| سایت | Domain | Proxy |
+|------|--------|-------|
+| مشتری | `chill-bar.ir`, `www.chill-bar.ir` | `127.0.0.1:8080` |
+| ادمین | `admin.chill-bar.ir` | `127.0.0.1:8081` |
 
-1. 1Panel → **وب‌سایت** → **ایجاد وب‌سایت**
-2. نوع: **پروکسی معکوس (Reverse Proxy)**
-3. دامنه: `order.example.com`
-4. آدرس مقصد: `127.0.0.1:8080`
-5. فعال‌سازی **HTTPS** (Let's Encrypt)
+### ۵.۳ SSL (گواهی Let's Encrypt)
 
-**سایت ۲ — پنل ادمین**
+1. Website → **Certificate** (نه داخل تب HTTPS سایت)
+2. **ACME Account** → Create (email + Let's Encrypt)
+3. **Create / Request** → روش **HTTP** (نه Manual DNS)
+4. Domain: `chill-bar.ir` (+ `www` اگر لازم بود) → Confirm
+5. همین کار برای `admin.chill-bar.ir`
+6. برگرد به Website → سایت → تب **HTTPS** → Enable → Certificate را از لیست انتخاب → Save
+7. HTTP Options → **Auto redirect to HTTPS**
 
-- دامنه: `admin.example.com`
-- مقصد: `127.0.0.1:8081`
-- HTTPS فعال
-
-### ۵.۳ به‌روز CORS (در `.env`)
+### ۵.۴ به‌روز CORS (در `.env`)
 
 ```env
-CORS_ORIGINS=https://order.example.com,https://admin.example.com
+CORS_ORIGINS=https://chill-bar.ir,https://www.chill-bar.ir,https://admin.chill-bar.ir
 ```
 
 سپس:
@@ -198,22 +203,14 @@ docker compose up -d api
 
 ---
 
-## آپدیت بعدی (ساده)
+## آپدیت بعدی
 
-هر بار که کد جدید دارید:
+راهنمای کامل: **[docs/UPDATE.md](./UPDATE.md)**
 
 ```bash
 cd /opt/chill-bar
-git pull                    # اگر با Git کار می‌کنید
+git pull
 docker compose up -d --build
-```
-
-فقط همین. migration خودکار روی استارت API اجرا می‌شود.
-
-بررسی لاگ:
-
-```bash
-docker compose logs -f api --tail=100
 ```
 
 ---
@@ -247,6 +244,8 @@ docker run --rm -v chill-bar_chillbar_uploads:/data -v $(pwd):/backup alpine \
 
 | مشکل | کار |
 |------|-----|
+| `npm ci` شکست — puppeteer/chrome | در نسخه فعلی رفع شده (`PUPPETEER_SKIP_DOWNLOAD` + حذف puppeteer) |
+| `admin` Restarting — duplicate `/ws/` | `docker compose logs admin` — بعد از `git pull` دوباره build |
 | `api` بالا نمی‌آید | `docker compose logs api` — معمولاً `DATABASE_URL` یا رمز Postgres |
 | صفحه سفید web/admin | `docker compose logs web` — build شکست خورده؟ دوباره `--build` |
 | عکس منو لود نمی‌شود | مطمئن شوید nginx `/uploads/` را پروکسی می‌کند (در نسخه فعلی پروژه هست) |

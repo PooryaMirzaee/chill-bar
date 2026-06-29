@@ -5,7 +5,13 @@
 **/*.log
 .git
 .gitignore
+docs
 *.md
+!README.md
 photo_*.jpg
+*.jpeg
+*.mp4
+coming soon.mp4
 docker-compose*.yml
 **/.env
+.vscode

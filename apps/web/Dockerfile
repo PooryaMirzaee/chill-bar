@@ -6,6 +6,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/api/package.json packages/api/
 COPY apps/web/package.json apps/web/
 COPY apps/admin/package.json apps/admin/
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm ci
 COPY packages/shared packages/shared
 COPY apps/web apps/web
