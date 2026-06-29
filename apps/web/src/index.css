@@ -49,6 +49,7 @@
   --input: oklch(0.91 0.01 75);
   --ring: oklch(0.62 0.19 45);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 }
 
 .dark {
@@ -102,5 +103,20 @@
     display: block !important;
     width: 100% !important;
     height: 100% !important;
+  }
+
+  /* Sonner — زیر هدر، بالای محتوا (نه پشت ناوبار پایین) */
+  [data-sonner-toaster] {
+    z-index: 70 !important;
+    --width: min(22rem, calc(100vw - 2rem));
+  }
+
+  [data-sonner-toaster][data-x-position='center'][data-y-position='top'] {
+    top: calc(4.25rem + var(--safe-top, 0px)) !important;
+  }
+
+  .cart-add-toast {
+    width: min(22rem, calc(100vw - 2rem)) !important;
+    max-width: min(22rem, calc(100vw - 2rem)) !important;
   }
 }

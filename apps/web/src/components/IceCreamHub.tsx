@@ -1,4 +1,4 @@
-import type { WeatherData, MenuItem } from '../types'
+import type { MenuItem } from '../types'
 import type { IceCreamOptions, StoreCopy } from '@chill-bar/shared'
 import { IceCreamBuilder } from './IceCreamBuilder'
 
@@ -15,22 +15,13 @@ type IceCopy = Pick<
 >
 
 interface Props {
-  weather: WeatherData | null
   onOrder: (item: MenuItem) => void
-  presetItems: MenuItem[]
   iceOptions: IceCreamOptions | undefined
   iceCopy: IceCopy
   iceCreamCategoryId?: string | null
 }
 
-export function IceCreamHub({
-  weather,
-  onOrder,
-  presetItems,
-  iceOptions,
-  iceCopy,
-  iceCreamCategoryId,
-}: Props) {
+export function IceCreamHub({ onOrder, iceOptions, iceCopy, iceCreamCategoryId }: Props) {
   if (!iceOptions?.enabled) {
     return (
       <div className="px-4 py-12 text-center text-sm text-muted-foreground">
@@ -53,9 +44,7 @@ export function IceCreamHub({
 
   return (
     <IceCreamBuilder
-      weather={weather}
       onOrder={onOrder}
-      presetItems={presetItems}
       iceOptions={iceOptions}
       copy={iceCopy}
       iceCreamCategoryId={iceCreamCategoryId}

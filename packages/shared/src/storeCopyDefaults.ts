@@ -102,7 +102,7 @@ export const DEFAULT_STORE_COPY: StoreCopy = {
   scratchSubtitle: 'بخراش و جایزه بگیر!',
   scratchCanvasHint: 'بخراش و ببین!',
   scratchRewardCheckoutLabel: 'جایزه کارت شانس (با ثبت سفارش اضافه می‌شود)',
-  scratchRewardSuccess: 'جایزه ثبت شد — در مرحله تکمیل سفارش نمایش داده می‌شود',
+  scratchRewardSuccess: 'جایزه ذخیره شد — با اضافه کردن حداقل یک محصول دیگر می‌توانید سفارش دهید',
   navWaitLounge: 'سالن انتظار',
   waitLoungeTitle: 'سالن انتظار چیل',
   waitLoungeSubtitle: 'تا آماده شدن سفارش بازی کن و امتیاز جمع کن!',

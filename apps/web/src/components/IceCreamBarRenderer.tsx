@@ -98,9 +98,13 @@ export function IceCreamBarRenderer({ build, mode = 'full', size = 'lg' }: Props
         <filter id={`${uid}-sh`}>
           <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="rgba(0,0,0,0.38)" />
         </filter>
+        <filter id={`${uid}-coatWave`} x="-8%" y="-8%" width="116%" height="116%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="2" seed="4" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
       </defs>
 
-      {size === 'lg' && <ellipse cx={CX} cy={248} rx="30" ry="5.5" fill="rgba(0,0,0,0.16)" />}
+      {size === 'lg' && <ellipse cx={CX} cy={248} rx="30" ry="5.5" fill="rgba(0,0,0,0.14)" />}
 
       <g filter={size === 'lg' ? `url(#${uid}-sh)` : undefined}>
         {/* wooden stick */}
@@ -125,7 +129,6 @@ export function IceCreamBarRenderer({ build, mode = 'full', size = 'lg' }: Props
             {baseP.texture === 'speckle' && texDots.map((d, i) => (
               <circle key={i} cx={d.cx} cy={d.cy} r={d.r} fill={baseP.speckleColor} opacity="0.35" />
             ))}
-            <rect x={CX - RX + 4} y={TOP_Y + 10} width="3.5" height={BOT_Y - TOP_Y - 20} rx="1.5" fill="rgba(255,255,255,0.1)" />
           </g>
         )}
 
@@ -135,15 +138,22 @@ export function IceCreamBarRenderer({ build, mode = 'full', size = 'lg' }: Props
             <rect x={CX - RX} y={baseBandTop} width={RX * 2} height={BASE_BAND_H} fill={`url(#${uid}-baseBand)`} />
             <ellipse cx={CX} cy={baseBandTop} rx={RX} ry={RY - 1} fill={darken(baseP.colors[1], 10)} />
             <ellipse cx={CX} cy={BOT_Y} rx={RX} ry={RY} fill={darken(baseP.colors[2], 4)} />
-            <rect x={CX - RX + 3} y={baseBandTop + 6} width="3" height={BASE_BAND_H - 12} rx="1.5" fill="rgba(255,255,255,0.06)" />
           </g>
         )}
 
         {/* coating shell — روکش */}
         {showCoat && (
-          <g clipPath={`url(#${uid}-cyl)`}>
+          <g clipPath={`url(#${uid}-cyl)`} filter={`url(#${uid}-coatWave)`}>
             <rect x={CX - RX - 1} y={coatStartY} width={RX * 2 + 2} height={TOP_Y - coatStartY + RY + 2} fill={`url(#${uid}-coat)`} />
-            <ellipse cx={CX} cy={TOP_Y - 1} rx={RX + 1} ry={RY + 1.5} fill={coatStyle.highlight} />
+            <path
+              d={`M ${CX - RX - 1} ${TOP_Y + 4}
+                  Q ${CX - 10} ${TOP_Y - 5} ${CX} ${TOP_Y - 3}
+                  Q ${CX + 11} ${TOP_Y - 6} ${CX + RX + 1} ${TOP_Y + 3}
+                  L ${CX + RX + 1} ${coatStartY}
+                  L ${CX - RX - 1} ${coatStartY} Z`}
+              fill={coatStyle.highlight}
+              opacity="0.92"
+            />
             {coatP.style.includes('gloss') && (
               <ellipse cx={CX - 7} cy={TOP_Y + 6} rx="9" ry="3.5" fill="rgba(255,255,255,0.38)" />
             )}

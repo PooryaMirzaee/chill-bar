@@ -84,20 +84,6 @@ function AppContent() {
 
   const iceCreamCategoryId = useMemo(() => findIceCreamCategoryId(categories), [categories])
 
-  const PRESET_ICECREAM = useMemo(
-    () => {
-      if (!iceCreamCategoryId) return []
-      return items.filter(
-        (i) =>
-          i.category === iceCreamCategoryId &&
-          (settings.iceCreamPresetTag
-            ? (i.tags[settings.iceCreamPresetTag] ?? 0) > 0.3
-            : true),
-      )
-    },
-    [items, settings.iceCreamPresetTag, iceCreamCategoryId],
-  )
-
   const scoreOpts = useMemo(
     () => ({ moods: settings.moods, defaultReason: formatCopy(copy.smartPickReason, vars) }),
     [settings.moods, copy.smartPickReason, vars],
@@ -249,6 +235,7 @@ function AppContent() {
         description: needsModifierSetup
           ? 'آپشن‌های این آیتم را در سبد انتخاب کنید'
           : 'برای تکمیل سفارش روی دکمه سبد پایین صفحه بزنید',
+        duration: 3200,
         action: {
           label: 'مشاهده سبد',
           onClick: () => setCartOpen(true),
@@ -269,6 +256,7 @@ function AppContent() {
       })
       toast.success(copy.comboOrderToast, {
         description: `${comboItems.length} آیتم به سبد اضافه شد`,
+        duration: 3200,
         action: {
           label: 'مشاهده سبد',
           onClick: () => setCartOpen(true),
@@ -496,12 +484,10 @@ function AppContent() {
               className="pt-0 pb-4"
             >
               <IceCreamHub
-                weather={weather}
                 onOrder={(item) => {
                   handleAdd(item)
                   setCartOpen(true)
                 }}
-                presetItems={PRESET_ICECREAM}
                 iceOptions={iceOptions}
                 iceCopy={copy}
                 iceCreamCategoryId={iceCreamCategoryId}

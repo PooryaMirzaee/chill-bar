@@ -155,6 +155,18 @@ export function Cart({
         ) : stage === 'cart' ? (
           <>
             <ScrollArea className="flex-1 px-4">
+              {items.length === 0 && pendingReward ? (
+                <div className="space-y-4 py-6 text-center">
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+                    <p className="text-3xl">{pendingReward.emoji}</p>
+                    <p className="mt-2 font-semibold">{pendingReward.name}</p>
+                    <p className="mt-1 text-sm text-primary">جایزه کارت شانس شما</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    جایزه به‌تنهایی قابل سفارش نیست. از منو حداقل یک محصول دیگر انتخاب کنید تا بتوانید سفارش را ثبت کنید.
+                  </p>
+                </div>
+              ) : (
               <ul className="space-y-3 py-4">
                 {items.map((item) => {
                   const modifierGroups = cartLineModifiers(item, menuItems)
@@ -213,23 +225,34 @@ export function Cart({
                   )
                 })}
               </ul>
+              )}
             </ScrollArea>
             <div className="space-y-3 border-t p-4">
-              {pendingReward && (
+              {pendingReward && items.length > 0 && (
                 <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
-                  🎁 جایزه کارت شانس در مرحله «تکمیل سفارش» اضافه می‌شود
+                  🎁 جایزه کارت شانس در مرحله «تکمیل سفارش» به سفارش اضافه می‌شود
                 </div>
               )}
+              {items.length > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">جمع کل ({count} آیتم)</span>
                 <strong className="text-lg">{formatPrice(total)}</strong>
               </div>
+              )}
+              {items.length > 0 && (
               <Button variant="outline" className="w-full" onClick={clearCart}>
                 خالی کردن سبد
               </Button>
-              <Button className="w-full" size="lg" onClick={() => setStage('checkout')}>
-                ادامه و تکمیل سفارش
-                {pendingReward ? ' (+ جایزه)' : ''}
+              )}
+              <Button
+                className="w-full"
+                size="lg"
+                disabled={items.length === 0}
+                onClick={() => setStage('checkout')}
+              >
+                {items.length === 0
+                  ? 'ابتدا یک محصول اضافه کنید'
+                  : `ادامه و تکمیل سفارش${pendingReward ? ' (+ جایزه)' : ''}`}
               </Button>
             </div>
           </>
@@ -285,8 +308,8 @@ export function Cart({
             )}
 
             {items.length === 0 && pendingReward && (
-              <div className="rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                برای ثبت سفارش، حداقل یک آیتم از منو به سبد اضافه کنید. جایزه با ثبت سفارش اعمال می‌شود.
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+                جایزه به‌تنهایی قابل ثبت نیست. به سبد برگردید و حداقل یک محصول دیگر اضافه کنید.
               </div>
             )}
 

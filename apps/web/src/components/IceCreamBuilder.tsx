@@ -1,32 +1,24 @@
 import { Fragment, useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Shuffle, Check, ShoppingBag } from 'lucide-react'
-import type { WeatherData, MenuItem } from '../types'
+import { Check, ShoppingBag, ChevronRight, ChevronLeft, Shuffle } from 'lucide-react'
+import type { MenuItem } from '../types'
 import type { IceCreamOptions, StoreCopy } from '@chill-bar/shared'
 import {
   type IceCreamBuild,
   type IceCreamOption,
   calcPrice,
   buildName,
-  getSmartIceCreamSuggestion,
-  scoreOption,
 } from '../data/iceCreamBuilder'
 import { formatPrice } from '../lib/comboBuilder'
-import { getBuildProgress } from '../lib/iceCreamGraphics'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { IceCreamPreview } from './IceCreamPreview'
 import { MiniIceSwatch } from './MiniIceSwatch'
 import { useCustomer } from '../lib/customerAuth'
 
 interface Props {
-  weather: WeatherData | null
   onOrder: (item: MenuItem) => void
-  presetItems: MenuItem[]
   iceOptions: IceCreamOptions
   copy: Pick<
     StoreCopy,
@@ -48,14 +40,12 @@ function OptionCard({
   option,
   selected,
   onSelect,
-  recommended,
   optionType,
   currentBuild,
 }: {
   option: IceCreamOption
   selected: boolean
   onSelect: () => void
-  recommended?: boolean
   optionType: 'base' | 'coating' | 'filling'
   currentBuild: IceCreamBuild
 }) {
@@ -63,33 +53,32 @@ function OptionCard({
     <motion.button
       type="button"
       onClick={onSelect}
-      whileTap={{ scale: 0.97 }}
-      className="w-full"
+      whileTap={{ scale: 0.98 }}
+      className="w-full text-start"
     >
       <Card
         className={cn(
-          'relative flex flex-col items-center gap-2 p-3 transition-all duration-200',
+          'relative flex h-full flex-col gap-2 overflow-hidden p-2.5 transition-all duration-200',
           selected
-            ? 'border-primary ring-2 ring-primary/30 shadow-lg shadow-primary/10'
-            : 'border-border/60 hover:border-primary/40 hover:bg-accent/30',
-          recommended && !selected && 'border-primary/30',
+            ? 'border-primary bg-primary/5 ring-2 ring-primary/25 shadow-md'
+            : 'border-border/60 hover:border-primary/35 hover:bg-accent/20',
         )}
       >
-        {recommended && (
-          <Badge className="absolute -top-2 start-2 px-1.5 py-0 text-[9px]">پیشنهاد</Badge>
-        )}
-        <div className="flex h-[72px] items-center justify-center">
-          <MiniIceSwatch option={option} type={optionType} selectedBuild={currentBuild} />
-        </div>
-        <span className="line-clamp-2 text-center text-xs font-medium leading-snug">{option.name}</span>
-        {option.priceMod !== 0 && (
-          <span className="text-[10px] font-semibold text-primary">
-            {option.priceMod > 0 ? '+' : ''}
-            {option.priceMod.toLocaleString('fa-IR')} تومان
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted/80 text-lg">
+            {option.emoji}
           </span>
-        )}
+          <div className="flex h-[68px] flex-1 items-center justify-center rounded-lg bg-muted/40">
+            <MiniIceSwatch option={option} type={optionType} selectedBuild={currentBuild} />
+          </div>
+        </div>
+
+        <p className="line-clamp-2 px-0.5 text-center text-xs font-semibold leading-snug">
+          {option.name}
+        </p>
+
         {selected && (
-          <div className="absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <div className="absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
             <Check className="h-3 w-3" />
           </div>
         )}
@@ -98,16 +87,8 @@ function OptionCard({
   )
 }
 
-export function IceCreamBuilder({
-  weather,
-  onOrder,
-  presetItems,
-  iceOptions,
-  copy,
-  iceCreamCategoryId,
-}: Props) {
-  const { bases, coatings, fillings, basePrice, minPrice, smartSuggestions } = iceOptions
-  const catalog = useMemo(() => ({ bases, coatings, fillings }), [bases, coatings, fillings])
+export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId }: Props) {
+  const { bases, coatings, fillings, basePrice, minPrice } = iceOptions
   const steps = useMemo(
     () =>
       [
@@ -117,17 +98,19 @@ export function IceCreamBuilder({
       ] as const,
     [copy],
   )
+  const stepLabels = useMemo(
+    () => [copy.iceStep1Label, copy.iceStep2Label, copy.iceStep3Label] as [string, string, string],
+    [copy],
+  )
 
   const [step, setStep] = useState<Step>(1)
   const [build, setBuild] = useState<IceCreamBuild>({ base: null, coating: null, filling: null })
   const [shaking, setShaking] = useState(false)
   const { isRegistered, syncPreferences } = useCustomer()
   const syncRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const suggestion = useMemo(
-    () => (smartSuggestions ? getSmartIceCreamSuggestion(weather, catalog) : {}),
-    [weather, catalog, smartSuggestions],
-  )
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const orderBarRef = useRef<HTMLDivElement>(null)
+  const wasCompleteRef = useRef(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('chill-ice-build')
@@ -167,48 +150,29 @@ export function IceCreamBuilder({
     }, 1200)
   }, [build, isRegistered, syncPreferences])
 
-  const getRecommended = (options: IceCreamOption[], stepName: 'base' | 'coating' | 'filling') => {
-    if (!weather) return null
-    const scored = options.map((o) => ({ o, s: scoreOption(o, weather, stepName) }))
-    const best = scored.sort((a, b) => b.s - a.s)[0]
-    return (
-      best && best.s > 0.5
-        ? best.o.id
-        : suggestion[stepName === 'base' ? 'base' : stepName === 'coating' ? 'coating' : 'filling']?.id
-    )
-  }
-
-  const applySmart = () => {
-    setBuild({
-      base: suggestion.base || null,
-      coating: suggestion.coating || null,
-      filling: suggestion.filling || null,
-    })
-    setStep(3)
+  const select = (key: keyof IceCreamBuild, option: IceCreamOption) => {
+    setBuild((b) => ({ ...b, [key]: option }))
+    if (navigator.vibrate) navigator.vibrate(12)
+    if (key === 'base') setStep(2)
+    else if (key === 'coating') setStep(3)
   }
 
   const surpriseMe = () => {
+    if (bases.length === 0 || coatings.length === 0 || fillings.length === 0) return
     setShaking(true)
-    setTimeout(() => {
+    window.setTimeout(() => {
       setBuild({
         base: bases[Math.floor(Math.random() * bases.length)],
-        coating: coatings[Math.floor(Math.random() * Math.max(coatings.length - 1, 1))],
+        coating: coatings[Math.floor(Math.random() * coatings.length)],
         filling: fillings[Math.floor(Math.random() * fillings.length)],
       })
       setStep(3)
       setShaking(false)
-    }, 500)
+    }, 420)
   }
 
-  const select = (key: keyof IceCreamBuild, option: IceCreamOption) => {
-    setBuild((b) => ({ ...b, [key]: option }))
-    if (key === 'base') setStep(2)
-    if (key === 'coating') setStep(3)
-  }
-
-  const isComplete = build.base && build.coating && build.filling
+  const isComplete = !!(build.base && build.coating && build.filling)
   const price = calcPrice(build, basePrice, minPrice)
-  const progress = getBuildProgress(build)
   const customLabel = copy.iceCustomName
 
   const handleOrder = () => {
@@ -232,177 +196,173 @@ export function IceCreamBuilder({
     })
   }
 
+  useEffect(() => {
+    if (!isComplete) {
+      wasCompleteRef.current = false
+      return
+    }
+    if (wasCompleteRef.current) return
+    wasCompleteRef.current = true
+    const t = window.setTimeout(() => {
+      orderBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 120)
+    return () => window.clearTimeout(t)
+  }, [isComplete])
+
   const currentOptions = step === 1 ? bases : step === 2 ? coatings : fillings
   const currentKey = step === 1 ? 'base' : step === 2 ? 'coating' : 'filling'
   const stepName = currentKey as 'base' | 'coating' | 'filling'
-  const recId = getRecommended(currentOptions, stepName)
 
   const stepDone = (n: Step) =>
     (n === 1 && !!build.base) || (n === 2 && !!build.coating) || (n === 3 && !!build.filling)
 
+  const goBack = () => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))
+  const goNext = () => {
+    if (step === 1 && build.base) setStep(2)
+    else if (step === 2 && build.coating) setStep(3)
+  }
+
   return (
-    <section className="pb-28">
-      <IceCreamPreview build={build} activeStep={step} />
+    <section className="pb-24">
+      <IceCreamPreview build={build} activeStep={step} stepLabels={stepLabels} />
 
-      <div className="mt-3 space-y-5 px-4">
-        {/* build summary — static row, no overlap with 3D */}
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {build.base ? (
-            <Badge variant="secondary" className="border-border/50">
-              پایه: {build.base.name}
-            </Badge>
-          ) : (
-            <Badge variant="outline">پایه را انتخاب کنید</Badge>
-          )}
-          {build.coating && build.coating.id !== 'none' && (
-            <Badge variant="secondary" className="border-border/50">
-              روکش: {build.coating.name}
-            </Badge>
-          )}
-          {build.filling && (
-            <Badge variant="secondary" className="border-border/50">
-              فیلینگ: {build.filling.name}
-            </Badge>
-          )}
-          {isComplete && <Badge>آماده سفارش ✨</Badge>}
-        </div>
+      <div
+        ref={sheetRef}
+        className="relative z-10 mt-2 rounded-t-[1.75rem] border border-border/60 border-b-0 bg-background/95 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] backdrop-blur-xl"
+      >
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-muted-foreground/20" />
 
-        {progress < 100 && (
-          <p className="text-center text-[11px] text-muted-foreground">
-            {progress}% تکمیل شده
-          </p>
-        )}
-        {weather && (
-          <p className="text-center text-xs text-muted-foreground">
-            {weather.icon} {weather.location} · {weather.temperature}° · {weather.description}
-          </p>
-        )}
-
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 gap-2" onClick={applySmart}>
-            <Sparkles className="h-4 w-4 text-primary" />
-            پیشنهاد هوشمند
-          </Button>
+        <div className="space-y-4 px-4 pb-4 pt-4">
           <Button
             variant="outline"
-            className={cn('flex-1 gap-2', shaking && 'animate-pulse')}
+            className={cn(
+              'h-10 w-full gap-2 rounded-xl border-dashed text-sm font-semibold',
+              shaking && 'animate-pulse border-primary/40 bg-primary/5',
+            )}
             onClick={surpriseMe}
           >
             <Shuffle className="h-4 w-4" />
-            شانسی!
+            شانسی انتخاب کن!
           </Button>
-        </div>
 
-        {/* stepper */}
-        <div className="flex w-full items-start">
-          {steps.map((s, i) => (
-            <Fragment key={s.num}>
-              <button
-                type="button"
-                onClick={() => setStep(s.num)}
-                className="flex shrink-0 flex-col items-center gap-1.5 px-0.5"
-              >
-                <div
+          <div className="flex w-full items-center gap-1">
+            {steps.map((s, i) => (
+              <Fragment key={s.num}>
+                <button
+                  type="button"
+                  onClick={() => setStep(s.num)}
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-bold transition-all',
-                    step === s.num
-                      ? 'border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25'
-                      : stepDone(s.num)
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border bg-muted text-muted-foreground',
+                    'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 transition-colors',
+                    step === s.num ? 'bg-primary/10' : 'hover:bg-muted/50',
                   )}
                 >
-                  {stepDone(s.num) && step !== s.num ? <Check className="h-4 w-4" /> : s.num}
-                </div>
-                <span
-                  className={cn(
-                    'whitespace-nowrap text-[10px] font-medium',
-                    step === s.num ? 'text-primary' : 'text-muted-foreground',
-                  )}
-                >
-                  {s.label}
-                </span>
-              </button>
-              {i < steps.length - 1 && (
-                <div
-                  className={cn(
-                    'mt-[18px] h-0.5 min-w-4 flex-1 rounded-full transition-colors',
-                    stepDone(s.num) ? 'bg-primary/40' : 'bg-border',
-                  )}
-                />
-              )}
-            </Fragment>
-          ))}
+                  <div
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all',
+                      step === s.num
+                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                        : stepDone(s.num)
+                          ? 'bg-primary/15 text-primary'
+                          : 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {stepDone(s.num) && step !== s.num ? <Check className="h-3.5 w-3.5" /> : s.num}
+                  </div>
+                  <span
+                    className={cn(
+                      'truncate text-[10px] font-medium',
+                      step === s.num ? 'text-primary' : 'text-muted-foreground',
+                    )}
+                  >
+                    {s.label}
+                  </span>
+                </button>
+                {i < steps.length - 1 && (
+                  <div
+                    className={cn(
+                      'h-0.5 w-3 shrink-0 rounded-full',
+                      stepDone(s.num) ? 'bg-primary/50' : 'bg-border',
+                    )}
+                  />
+                )}
+              </Fragment>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-xs"
+              onClick={goBack}
+              disabled={step === 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+              قبلی
+            </Button>
+            <div className="min-w-0 flex-1 text-center">
+              <p className="truncate text-sm font-bold">{steps[step - 1].title}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-xs"
+              onClick={goNext}
+              disabled={step === 3 || !stepDone(step)}
+            >
+              بعدی
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.22 }}
+            >
+              <div className="grid grid-cols-2 gap-2.5">
+                {currentOptions.map((opt) => (
+                  <OptionCard
+                    key={opt.id}
+                    option={opt}
+                    selected={build[currentKey]?.id === opt.id}
+                    onSelect={() => select(currentKey, opt)}
+                    optionType={stepName}
+                    currentBuild={build}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-          >
-            <h3 className="mb-3 text-sm font-semibold">{steps[step - 1].title}</h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {currentOptions.map((opt) => (
-                <OptionCard
-                  key={opt.id}
-                  option={opt}
-                  selected={build[currentKey]?.id === opt.id}
-                  onSelect={() => select(currentKey, opt)}
-                  recommended={recId === opt.id}
-                  optionType={stepName}
-                  currentBuild={build}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {presetItems.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <h4 className="mb-2.5 text-xs font-semibold text-muted-foreground">بستنی‌های آماده</h4>
-              <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-2 pb-1">
-                  {presetItems.slice(0, 12).map((item) => (
-                    <Button
-                      key={item.id}
-                      variant="outline"
-                      size="sm"
-                      className="h-auto shrink-0 flex-col gap-0.5 px-3 py-2"
-                      onClick={() => onOrder(item)}
-                    >
-                      <span className="text-base">🍦</span>
-                      <span className="max-w-[88px] truncate text-[10px]">{item.name.split('(')[0].trim()}</span>
-                      <span className="text-[10px] font-bold text-primary">{formatPrice(item.price)}</span>
-                    </Button>
-                  ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </div>
-          </>
-        )}
       </div>
 
-      {/* sticky order bar */}
       <AnimatePresence>
         {isComplete && (
           <motion.div
-            className="fixed start-16 end-4 bottom-[calc(4.25rem+var(--safe-bottom))] z-40 mx-auto max-w-lg"
-            initial={{ opacity: 0, y: 24 }}
+            ref={orderBarRef}
+            className="fixed inset-x-4 bottom-[calc(4.25rem+var(--safe-bottom,0px))] z-40 mx-auto max-w-lg"
+            initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24 }}
+            exit={{ opacity: 0, y: 28 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
           >
-            <Card className="flex items-center gap-3 border-primary/30 bg-background/95 p-3 shadow-2xl backdrop-blur-xl">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs text-muted-foreground">{buildName(build, customLabel)}</p>
-                <p className="text-lg font-bold text-primary">{formatPrice(price, copy.currencySuffix)}</p>
+            <Card className="flex items-center gap-3 border-primary/35 bg-background/98 p-3 shadow-2xl backdrop-blur-xl">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl">
+                🍦
               </div>
-              <Button size="lg" className="shrink-0 gap-2" onClick={handleOrder}>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-muted-foreground">
+                  {build.base?.name} · {build.coating?.name} · {build.filling?.name}
+                </p>
+                <p className="text-lg font-black text-primary">
+                  {formatPrice(price, copy.currencySuffix)}
+                </p>
+              </div>
+              <Button size="lg" className="shrink-0 gap-2 rounded-xl px-5" onClick={handleOrder}>
                 <ShoppingBag className="h-4 w-4" />
                 سفارش
               </Button>

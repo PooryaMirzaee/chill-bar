@@ -14,7 +14,13 @@ export function applyScratchRewardRules(
   const rewards = items.filter(isScratchReward)
 
   if (paid.length === 0) {
-    return { items: paid, error: 'سبد خرید خالی است' }
+    if (rewards.length > 0) {
+      return {
+        items: [],
+        error: 'جایزه کارت شانس باید همراه با حداقل یک محصول دیگر ثبت شود',
+      }
+    }
+    return { items: [], error: 'سبد خرید خالی است' }
   }
 
   if (rewards.length > 1) {

@@ -1,81 +1,82 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { RotateCcw } from 'lucide-react'
 import type { IceCreamBuild } from '../data/iceCreamBuilder'
-import { getBuildProgress } from '../lib/iceCreamGraphics'
 import { IceCreamBar3D } from './IceCreamBar3D'
+import { cn } from '@/lib/utils'
 
 interface Props {
   build: IceCreamBuild
   activeStep?: 1 | 2 | 3
+  stepLabels?: [string, string, string]
 }
 
-export function IceCreamPreview({ build, activeStep = 1 }: Props) {
-  const progress = getBuildProgress(build)
+export function IceCreamPreview({ build, activeStep = 1, stepLabels }: Props) {
+  const labels = stepLabels ?? ['پایه', 'روکش', 'فیلینگ']
 
   return (
-    <div className="relative w-screen max-w-[100vw] ms-[calc(50%-50vw)]">
-      <div className="relative h-[calc(100dvh-9rem-env(safe-bottom))] min-h-[460px] w-full">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-background" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_35%,rgba(242,101,34,0.16),transparent_70%)] [.accent-glow-off_&]:hidden" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+    <div className="relative w-full overflow-hidden bg-white dark:bg-background">
+      <div className="relative mx-auto h-[min(52dvh,440px)] min-h-[300px] w-full max-w-lg bg-white dark:bg-background">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-14 bg-white dark:bg-background" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[4.5rem] bg-white dark:bg-background" />
 
-        {/* top toolbar — single row, no overlap */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-4 pt-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="relative h-11 w-11 shrink-0">
-              <svg className="h-11 w-11 -rotate-90" viewBox="0 0 100 100" aria-hidden>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted/25" />
-                <motion.circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  className="text-primary"
-                  strokeDasharray={`${progress * 2.64} 264`}
-                  animate={{ strokeDasharray: `${progress * 2.64} 264` }}
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
-                {progress}%
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">استودیو بستنی</p>
-              <p className="text-[11px] text-muted-foreground">بستنی چوبدار سفارشی</p>
-            </div>
+        <div className="absolute inset-x-0 top-0 z-20 px-4 pt-3">
+          <div className="mx-auto w-fit rounded-2xl border border-border/40 bg-white px-4 py-2 text-center shadow-sm dark:bg-background">
+            <p className="text-sm font-bold tracking-tight">بستنی سفارشی</p>
+            <p className="text-[11px] text-muted-foreground">پایه · روکش · فیلینگ</p>
           </div>
-
-          <p className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/50 bg-background/70 px-2.5 py-1 text-[11px] text-muted-foreground backdrop-blur-sm">
-            <RotateCcw className="h-3.5 w-3.5" />
-            بچرخانید
-          </p>
         </div>
 
-        {/* 3D */}
         <motion.div
-          className="absolute inset-0 z-10"
+          className="absolute inset-x-0 top-14 bottom-14 z-10"
           key={`${build.base?.id}-${build.coating?.id}-${build.filling?.id}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.35 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
         >
           <IceCreamBar3D build={build} mode="full" size="fill" fitFrame interactive />
-
-          <AnimatePresence>
-            {activeStep === 2 && build.coating && build.coating.id !== 'none' && (
-              <motion.div
-                className="pointer-events-none absolute left-1/2 top-[18%] h-20 w-5 -translate-x-1/2 rounded-b-full opacity-80"
-                style={{ background: build.coating.color }}
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: [0, 0.85, 0], y: [-50, 30, 80] }}
-                transition={{ duration: 1.2 }}
-              />
-            )}
-          </AnimatePresence>
         </motion.div>
+
+        <AnimatePresence>
+          {activeStep === 2 && build.coating && build.coating.id !== 'none' && (
+            <motion.div
+              className="pointer-events-none absolute left-1/2 top-[22%] z-20 h-16 w-4 -translate-x-1/2 rounded-b-full opacity-90"
+              style={{ background: build.coating.color }}
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ opacity: [0, 0.9, 0], y: [-40, 24, 72] }}
+              transition={{ duration: 1.1 }}
+            />
+          )}
+        </AnimatePresence>
+
+        <div className="absolute inset-x-0 bottom-2 z-20 flex justify-center gap-1.5 px-4">
+          {labels.map((label, i) => {
+            const n = (i + 1) as 1 | 2 | 3
+            const done =
+              (n === 1 && !!build.base) ||
+              (n === 2 && !!build.coating) ||
+              (n === 3 && !!build.filling)
+            return (
+              <span
+                key={label}
+                className={cn(
+                  'rounded-full px-2.5 py-1 text-[10px] font-semibold backdrop-blur-md transition-colors',
+                  activeStep === n
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : done
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-white text-muted-foreground ring-1 ring-border/50 dark:bg-background',
+                )}
+              >
+                {label}
+              </span>
+            )
+          })}
+        </div>
+
+        <p className="pointer-events-none absolute bottom-9 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 bg-white px-2 py-0.5 text-[10px] text-muted-foreground dark:bg-background">
+          <RotateCcw className="h-3 w-3" />
+          بچرخانید
+        </p>
       </div>
     </div>
   )

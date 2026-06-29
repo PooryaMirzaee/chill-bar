@@ -197,6 +197,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const submitOrder = useCallback(
     async (info: CheckoutInfo): Promise<Order> => {
+      if (items.length === 0 && pendingReward) {
+        throw new Error('جایزه باید همراه با حداقل یک محصول دیگر ثبت شود')
+      }
+
       if (items.length === 0) {
         throw new Error('سبد خرید خالی است')
       }

@@ -32,7 +32,12 @@ interface StageConfig {
   cols: number
 }
 
-function buildDeck(items: MenuItem[], pairCount: number, stageSeed: number): CardFace[] {
+interface BuiltDeck {
+  cards: CardFace[]
+  pairCount: number
+}
+
+function buildDeck(items: MenuItem[], pairCount: number, stageSeed: number): BuiltDeck {
   const withImages = items
     .filter((i) => i.isAvailable !== false && i.imageUrl)
     .sort((a, b) => {
@@ -41,7 +46,10 @@ function buildDeck(items: MenuItem[], pairCount: number, stageSeed: number): Car
       return ha - hb
     })
 
-  const selected = withImages.slice(0, pairCount)
+  const actualPairs = Math.min(pairCount, withImages.length)
+  if (actualPairs < 2) return { cards: [], pairCount: 0 }
+
+  const selected = withImages.slice(0, actualPairs)
   const cards = selected.flatMap((item) => {
     const imageUrl = item.imageUrl!
     return [
@@ -50,7 +58,14 @@ function buildDeck(items: MenuItem[], pairCount: number, stageSeed: number): Car
     ]
   })
 
-  return cards.sort(() => Math.random() - 0.5)
+  return { cards: cards.sort(() => Math.random() - 0.5), pairCount: actualPairs }
+}
+
+function gridCols(cardCount: number): number {
+  if (cardCount <= 6) return 3
+  if (cardCount <= 8) return 4
+  if (cardCount <= 12) return 4
+  return 5
 }
 
 function getStageConfig(
@@ -63,8 +78,7 @@ function getStageConfig(
   const pairs = Math.min(tuning.pairs, maxAvailable, startPairs + stage - 1)
   const peekMs = Math.max(1100, 3200 - (stage - 1) * 550)
   const missHideMs = Math.max(400, 850 - (stage - 1) * 130)
-  const cols = pairs <= 4 ? 4 : pairs <= 6 ? 4 : 4
-  return { stage, totalStages, pairs, peekMs, missHideMs, cols }
+  return { stage, totalStages, pairs, peekMs, missHideMs, cols: 4 }
 }
 
 function stagePoints(
@@ -92,6 +106,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
   const [stage, setStage] = useState(1)
   const [phase, setPhase] = useState<Phase>('intro')
   const [deck, setDeck] = useState<CardFace[]>([])
+  const [activePairs, setActivePairs] = useState(0)
   const [flipped, setFlipped] = useState<number[]>([])
   const [matched, setMatched] = useState<Set<number>>(new Set())
   const [moves, setMoves] = useState(0)
@@ -105,46 +120,69 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
 
   const stageStartRef = useRef(Date.now())
   const gameStartRef = useRef(Date.now())
-  const peekTimerRef = useRef<number>(0)
+  const peekTimerRef = useRef(0)
+  const stageScoreRef = useRef(0)
+  const totalScoreRef = useRef(0)
+  const finishLockRef = useRef(false)
+  const stageRef = useRef(1)
 
   const config = useMemo(
     () => getStageConfig(stage, tuning, poolSize),
     [stage, tuning, poolSize],
   )
 
+  const cols = deck.length > 0 ? gridCols(deck.length) : config.cols
   const won = deck.length > 0 && matched.size === deck.length
+
+  const clearPeekTimer = useCallback(() => {
+    window.clearTimeout(peekTimerRef.current)
+    peekTimerRef.current = 0
+  }, [])
 
   const loadStage = useCallback(
     (nextStage: number) => {
+      clearPeekTimer()
       const cfg = getStageConfig(nextStage, tuning, poolSize)
       if (cfg.pairs < 2) return false
-      setDeck(buildDeck(menuItems, cfg.pairs, nextStage * 97))
+
+      const built = buildDeck(menuItems, cfg.pairs, nextStage * 97)
+      if (built.pairCount < 2 || built.cards.length === 0) return false
+
+      setDeck(built.cards)
+      setActivePairs(built.pairCount)
       setFlipped([])
       setMatched(new Set())
       setMoves(0)
       setStage(nextStage)
+      stageRef.current = nextStage
       setPeekLeft(Math.ceil(cfg.peekMs / 1000))
       stageStartRef.current = Date.now()
       return true
     },
-    [menuItems, poolSize, tuning],
+    [clearPeekTimer, menuItems, poolSize, tuning],
   )
 
   const beginPeek = useCallback(() => {
+    clearPeekTimer()
     setPhase('peek')
-    const cfg = getStageConfig(stage, tuning, poolSize)
+    const cfg = getStageConfig(stageRef.current, tuning, poolSize)
     setPeekLeft(Math.ceil(cfg.peekMs / 1000))
-    peekTimerRef.current = window.setTimeout(() => setPhase('play'), cfg.peekMs)
-  }, [stage, tuning, poolSize])
+    peekTimerRef.current = window.setTimeout(() => {
+      peekTimerRef.current = 0
+      setPhase('play')
+    }, cfg.peekMs)
+  }, [clearPeekTimer, tuning, poolSize])
 
   useEffect(() => {
-    if (poolSize < 2) return
+    if (poolSize < 2 || deck.length > 0) return
     gameStartRef.current = Date.now()
+    totalScoreRef.current = 0
+    finishLockRef.current = false
     if (loadStage(1)) {
       setPhase('intro')
       setTotalScore(0)
     }
-  }, [loadStage, poolSize])
+  }, [deck.length, loadStage, poolSize])
 
   useEffect(() => {
     if (phase !== 'intro') return
@@ -160,76 +198,120 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
     return () => window.clearInterval(id)
   }, [phase])
 
-  useEffect(() => () => window.clearTimeout(peekTimerRef.current), [])
+  useEffect(() => () => clearPeekTimer(), [clearPeekTimer])
 
   useEffect(() => {
-    if (flipped.length !== 2 || lockBoard) return
+    if (flipped.length !== 2) return
+
     const [a, b] = flipped
+    if (!deck[a] || !deck[b]) {
+      setFlipped([])
+      return
+    }
+
     if (deck[a].pairId === deck[b].pairId) {
       setMatched((m) => new Set([...m, a, b]))
       setFlipped([])
       return
     }
+
     setLockBoard(true)
     setShakeIdx(b)
-    const cfg = getStageConfig(stage, tuning, poolSize)
+    const cfg = getStageConfig(stageRef.current, tuning, poolSize)
+    let cancelled = false
     const t = window.setTimeout(() => {
+      if (cancelled) return
       setFlipped([])
       setShakeIdx(null)
       setLockBoard(false)
     }, cfg.missHideMs)
-    return () => window.clearTimeout(t)
-  }, [flipped, deck, lockBoard, stage, tuning, poolSize])
+    return () => {
+      cancelled = true
+      window.clearTimeout(t)
+    }
+  }, [flipped, deck, tuning, poolSize])
 
   const flip = (idx: number) => {
     if (disabled || submitting || phase !== 'play' || lockBoard) return
-    if (matched.has(idx) || flipped.includes(idx) || flipped.length >= 2) return
-    setFlipped((f) => [...f, idx])
-    if (flipped.length === 1) setMoves((m) => m + 1)
+    if (matched.has(idx)) return
+
+    setFlipped((current) => {
+      if (current.includes(idx) || current.length >= 2) return current
+      const next = [...current, idx]
+      if (next.length === 2) setMoves((m) => m + 1)
+      return next
+    })
   }
 
-  const finishGame = useCallback(async () => {
-    setSubmitting(true)
-    try {
-      const durationMs = Date.now() - gameStartRef.current
-      await submit('memoryBrew', totalScore + stageScore, durationMs)
-      setPhase('finished')
-      onDone?.(totalScore + stageScore)
-    } finally {
-      setSubmitting(false)
+  const finishGame = useCallback(
+    async (finalScore: number) => {
+      if (finishLockRef.current) return
+      finishLockRef.current = true
+      setSubmitting(true)
+      try {
+        const durationMs = Date.now() - gameStartRef.current
+        await submit('memoryBrew', finalScore, durationMs)
+        setTotalScore(finalScore)
+        totalScoreRef.current = finalScore
+        setPhase('finished')
+        onDone?.(finalScore)
+      } finally {
+        setSubmitting(false)
+      }
+    },
+    [onDone, submit],
+  )
+
+  const advanceAfterStage = useCallback(async () => {
+    const pts = stageScoreRef.current
+    const nextTotal = totalScoreRef.current + pts
+    totalScoreRef.current = nextTotal
+    setTotalScore(nextTotal)
+
+    const currentStage = stageRef.current
+    const totalStages = tuning.stages ?? 4
+
+    if (currentStage >= totalStages) {
+      await finishGame(nextTotal)
+      return
     }
-  }, [onDone, stageScore, submit, totalScore])
+
+    if (loadStage(currentStage + 1)) {
+      setPhase('intro')
+      return
+    }
+
+    await finishGame(nextTotal)
+  }, [finishGame, loadStage, tuning.stages])
 
   useEffect(() => {
     if (!won || phase !== 'play' || submitting) return
     const elapsed = (Date.now() - stageStartRef.current) / 1000
-    const pts = stagePoints(tuning, stage, moves, config.pairs, elapsed)
+    const pts = stagePoints(tuning, stageRef.current, moves, activePairs, elapsed)
+    stageScoreRef.current = pts
     setLastStagePts(pts)
     setStageScore(pts)
     setPhase('stageDone')
-  }, [won, phase, submitting, tuning, stage, moves, config.pairs])
+  }, [won, phase, submitting, tuning, moves, activePairs])
 
   useEffect(() => {
-    if (phase !== 'stageDone') return
+    if (phase !== 'stageDone' || submitting) return
     const t = window.setTimeout(() => {
-      setTotalScore((s) => s + stageScore)
-      if (stage >= config.totalStages) {
-        void finishGame()
-        return
-      }
-      if (loadStage(stage + 1)) {
-        setPhase('intro')
-      }
+      void advanceAfterStage()
     }, 1400)
     return () => window.clearTimeout(t)
-  }, [phase, stage, stageScore, config.totalStages, loadStage, finishGame])
+  }, [phase, submitting, advanceAfterStage])
 
   const restart = () => {
-    window.clearTimeout(peekTimerRef.current)
+    clearPeekTimer()
+    finishLockRef.current = false
     setTotalScore(0)
+    totalScoreRef.current = 0
     setStageScore(0)
+    stageScoreRef.current = 0
     setSubmitting(false)
     gameStartRef.current = Date.now()
+    setDeck([])
     if (loadStage(1)) setPhase('intro')
   }
 
@@ -242,7 +324,9 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
   }
 
   const showFaces = phase === 'peek' || phase === 'intro'
-  const progressPct = config.totalStages > 0 ? ((stage - 1) / config.totalStages) * 100 : 0
+  const progressPct =
+    config.totalStages > 0 ? (Math.min(stage, config.totalStages) / config.totalStages) * 100 : 0
+  const displayScore = phase === 'stageDone' ? totalScore + stageScore : totalScore
 
   return (
     <div className="space-y-4 py-1">
@@ -252,7 +336,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
             مرحله <strong className="text-foreground">{stage}</strong> از {config.totalStages}
           </span>
           <span>
-            امتیاز: <strong className="text-primary">{totalScore + (phase === 'play' ? 0 : stageScore)}</strong>
+            امتیاز: <strong className="text-primary">{displayScore}</strong>
           </span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -267,7 +351,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
       <div className="flex items-center justify-between rounded-xl border bg-card/60 px-3 py-2.5 text-sm backdrop-blur-sm">
         <div className="flex gap-4">
           <span>
-            جفت: <strong>{matched.size / 2}</strong>/{config.pairs}
+            جفت: <strong>{matched.size / 2}</strong>/{activePairs || config.pairs}
           </span>
           <span>
             حرکت: <strong>{moves}</strong>
@@ -292,7 +376,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
               animate={{ opacity: 1 }}
               className="text-xs text-muted-foreground"
             >
-              {config.pairs} جفت · سخت‌تر!
+              {activePairs || config.pairs} جفت · سخت‌تر!
             </motion.span>
           )}
         </AnimatePresence>
@@ -300,7 +384,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
 
       <div
         className="grid gap-2"
-        style={{ gridTemplateColumns: `repeat(${config.cols}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
         {deck.map((card, idx) => {
           const isFlipped = flipped.includes(idx)
@@ -312,15 +396,14 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
             <motion.button
               key={card.key}
               type="button"
-              layout
-              animate={shakeIdx === idx ? { x: [-5, 5, -5, 5, 0] } : {}}
+              animate={shakeIdx === idx ? { x: [-5, 5, -5, 5, 0] } : { x: 0 }}
               transition={{ duration: 0.35 }}
               className={cn(
                 'relative aspect-square [perspective:800px]',
                 (disabled || phase === 'finished') && 'pointer-events-none',
               )}
               onClick={() => flip(idx)}
-              disabled={disabled || phase !== 'play'}
+              disabled={disabled || phase !== 'play' || lockBoard}
             >
               <motion.div
                 className="relative h-full w-full"

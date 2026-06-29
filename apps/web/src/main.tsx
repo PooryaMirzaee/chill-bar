@@ -31,7 +31,20 @@ createRoot(document.getElementById('root')!).render(
           <App />
         </CustomerProvider>
       </ErrorBoundary>
-      <Toaster position="bottom-center" dir="rtl" richColors closeButton />
+      <Toaster
+        position="top-center"
+        dir="rtl"
+        richColors
+        closeButton
+        expand
+        visibleToasts={2}
+        toastOptions={{
+          classNames: {
+            toast: 'cart-add-toast',
+            actionButton: 'cart-add-toast-action',
+          },
+        }}
+      />
     </QueryClientProvider>
   </StrictMode>,
 )

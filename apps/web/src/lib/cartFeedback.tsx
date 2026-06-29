@@ -57,11 +57,24 @@ export function resolveAddOrigin(
 }
 
 function getCartTarget(fab: HTMLButtonElement | null): AddOrigin {
-  if (!fab) {
-    return { x: 48, y: window.innerHeight - 120 }
+  if (fab) {
+    const rect = fab.getBoundingClientRect()
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
   }
-  const rect = fab.getBoundingClientRect()
-  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+
+  const root = document.documentElement
+  const rtl = root.dir === 'rtl'
+  const safeBottom = Number.parseFloat(
+    getComputedStyle(root).getPropertyValue('--safe-bottom') || '0',
+  ) || 0
+  const fabSize = 48
+  const edgeInset = 16
+  const bottomOffset = 5.5 * 16 + safeBottom + fabSize / 2
+
+  return {
+    x: rtl ? window.innerWidth - edgeInset - fabSize / 2 : edgeInset + fabSize / 2,
+    y: window.innerHeight - bottomOffset,
+  }
 }
 
 function FlyLayer({
@@ -78,15 +91,15 @@ function FlyLayer({
       {flies.map((fly) => (
         <motion.div
           key={fly.id}
-          className="pointer-events-none fixed z-[200] flex items-center justify-center"
-          style={{ left: fly.from.x, top: fly.from.y, x: '-50%', y: '-50%' }}
-          initial={{ scale: 0.4, opacity: 0, rotate: -12 }}
+          className="pointer-events-none fixed start-0 top-0 z-[200] flex items-center justify-center"
+          style={{ translate: '-50% -50%' }}
+          initial={{ x: fly.from.x, y: fly.from.y, scale: 0.4, opacity: 0, rotate: -12 }}
           animate={{
-            left: fly.to.x,
-            top: fly.to.y,
+            x: fly.to.x,
+            y: fly.to.y,
             scale: [0.4, 1.15, 0.55],
             opacity: [0, 1, 0.95],
-            rotate: [ -12, 8, 0 ],
+            rotate: [-12, 8, 0],
           }}
           exit={{ scale: 0.2, opacity: 0 }}
           transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
@@ -127,9 +140,12 @@ export function CartFeedbackProvider({ children }: { children: ReactNode }) {
   const notifyItemAdded = useCallback(
     (item: MenuItem, origin?: AddOrigin | ReactMouseEvent | ReactTouchEvent) => {
       const from = resolveAddOrigin(origin)
-      const to = getCartTarget(cartFabRef.current)
       const id = ++flyId
-      setFlies((prev) => [...prev, { id, emoji: item.emoji, from, to }])
+
+      requestAnimationFrame(() => {
+        const to = getCartTarget(cartFabRef.current)
+        setFlies((prev) => [...prev, { id, emoji: item.emoji, from, to }])
+      })
     },
     [],
   )

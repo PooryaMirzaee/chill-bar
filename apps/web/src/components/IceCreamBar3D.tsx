@@ -9,6 +9,8 @@ import {
   makeChocolateMaterial,
   makeFillingMaterial,
   makeIceMaterial,
+  makeWavyCoatCap,
+  makeWavyCoatCylinder,
 } from '../lib/iceCream3D'
 import { getBaseProfile, getCoatingProfile } from '../lib/iceCreamVisualProfiles'
 import { darken, lighten } from '../lib/iceCreamGraphics'
@@ -107,18 +109,23 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
   const coatYMin = -H / 2 + BASE_H + 0.02
   const coatYMax = H / 2 - 0.06
 
+  const coatSeed = useMemo(
+    () => (build.coating?.id || 'coat').split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 0.017,
+    [build.coating?.id],
+  )
+
   const coreGeo = useMemo(() => new THREE.CylinderGeometry(R * 0.98, R * 0.98, H - 0.04, 48, 1, false), [])
   const baseBandGeo = useMemo(
     () => new THREE.CylinderGeometry(R, R * 1.02, BASE_H, 48, 1, false),
     [],
   )
   const coatGeo = useMemo(
-    () => new THREE.CylinderGeometry(R + COAT_SHELL, R + COAT_SHELL, coatYMax - coatYMin + 0.04, 48, 1, false),
-    [coatYMax, coatYMin],
+    () => makeWavyCoatCylinder(R + COAT_SHELL, coatYMax - coatYMin + 0.04, coatSeed),
+    [coatYMax, coatYMin, coatSeed],
   )
   const coatCapGeo = useMemo(
-    () => new THREE.SphereGeometry(R + COAT_SHELL, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2),
-    [],
+    () => makeWavyCoatCap(R + COAT_SHELL, coatSeed),
+    [coatSeed],
   )
   const collarGeo = useMemo(() => new THREE.CylinderGeometry(COLLAR_R, COLLAR_R * 1.04, 0.045, 48), [])
 
@@ -154,10 +161,6 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
         : null,
     [build.filling?.id, build.filling?.color],
   )
-  const glossMat = useMemo(
-    () => makeIceMaterial('#ffffff', { roughness: 0.04, clearcoat: 1 }),
-    [],
-  )
 
   const fillHighlightMat = useMemo(
     () =>
@@ -187,8 +190,8 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
   const baseBandY = -H / 2 + BASE_H / 2
   const coatCenterY = (coatYMin + coatYMax) / 2
   const stickY = -H / 2 - STICK_H / 2 - 0.02
-  const frameScale = fitFrame ? 0.78 : 1
-  const frameY = fitFrame ? 0.05 : GROUP_Y
+  const frameScale = fitFrame ? 0.92 : 1
+  const frameY = fitFrame ? 0.14 : GROUP_Y
 
   return (
     <group ref={groupRef} position={[0, frameY, 0]} scale={frameScale}>
@@ -226,16 +229,6 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
             position={[0, coatYMax - 0.01, 0]}
             rotation={[0, 0, 0]}
           />
-          {/* specular highlight streak */}
-          {coatProfile.style !== 'dark-matte' && (
-            <mesh
-              material={glossMat}
-              position={[-R * 0.55, coatCenterY + 0.08, R + COAT_SHELL + 0.008]}
-              rotation={[0, 0, 0.08]}
-            >
-              <planeGeometry args={[0.035, coatYMax - coatYMin - 0.1]} />
-            </mesh>
-          )}
         </group>
       )}
 
@@ -312,9 +305,9 @@ export function IceCreamBar3D({
         : { w: 48, h: 72 }
 
   const useFit = isFill || fitFrame
-  const cameraZ = useFit ? 3.38 : size === 'lg' ? 2.85 : 3.2
-  const cameraY = useFit ? -0.06 : 0.06
-  const cameraFov = useFit ? 36 : size === 'lg' ? 32 : 38
+  const cameraZ = useFit ? 3.05 : size === 'lg' ? 2.85 : 3.2
+  const cameraY = useFit ? 0.02 : 0.06
+  const cameraFov = useFit ? 34 : size === 'lg' ? 32 : 38
 
   return (
     <div
@@ -340,9 +333,9 @@ export function IceCreamBar3D({
             />
             {(isFill || size === 'lg') && (
               <ContactShadows
-                position={[0, useFit ? -0.55 : -0.72, 0]}
-                opacity={0.45}
-                scale={useFit ? 2.8 : 2.4}
+                position={[0, useFit ? -0.48 : -0.72, 0]}
+                opacity={0.28}
+                scale={useFit ? 2.4 : 2.4}
                 blur={2.8}
                 far={2.2}
                 color="#3d2314"
@@ -357,7 +350,7 @@ export function IceCreamBar3D({
               maxPolarAngle={useFit ? Math.PI / 1.55 : Math.PI / 1.7}
               minAzimuthAngle={-Math.PI / 2.2}
               maxAzimuthAngle={Math.PI / 2.2}
-              target={[0, useFit ? 0.05 : 0.1, 0]}
+              target={[0, useFit ? 0.12 : 0.1, 0]}
             />
           )}
         </Canvas>
