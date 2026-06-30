@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { homeAppearanceSchema } from './homeAppearance'
 import { menuAppearanceSchema } from './menuAppearance'
+import { comboRecommendationSettingsSchema } from './comboSettings'
 
 export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK'])
 
@@ -236,6 +237,9 @@ export const storeCopySchema = z.object({
   waitLoungeEnter: z.string().max(60),
   waitLoungePlayTeaser: z.string().max(80),
   waitLoungePlayTitle: z.string().max(80),
+  waitLoungeOrderSuccessTitle: z.string().max(80),
+  waitLoungeOrderSuccessBody: z.string().max(200),
+  waitLoungeOrderSuccessLater: z.string().max(60),
   waitLoungeReadyTitle: z.string().max(80),
   waitLoungeReadyMessage: z.string().max(160),
   waitLoungePointsLabel: z.string().max(40),
@@ -341,6 +345,7 @@ export const settingsInputSchema = z.object({
   showInstallBanner: z.boolean().default(true),
   scratchReward: scratchRewardSettingsSchema.default({}),
   waitLounge: waitLoungeSettingsSchema.default({}),
+  comboRecommendations: comboRecommendationSettingsSchema.default({}),
 })
 
 export const uploadImageSchema = z.object({
@@ -468,11 +473,14 @@ export const iceCreamOptionInputSchema = z.object({
   sortOrder: z.number().int().min(0).max(999).optional(),
 })
 
+export const iceCreamBuilderModeSchema = z.enum(['classic', 'studio'])
+
 export const iceCreamBuilderSettingsSchema = z.object({
   basePrice: z.number().int().min(0).max(10_000_000),
   minPrice: z.number().int().min(0).max(10_000_000),
   enabled: z.boolean(),
   smartSuggestions: z.boolean(),
+  builderMode: iceCreamBuilderModeSchema.default('studio'),
 })
 
 export type IceCreamOptionInput = z.infer<typeof iceCreamOptionInputSchema>

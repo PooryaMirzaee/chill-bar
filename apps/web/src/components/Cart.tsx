@@ -28,6 +28,7 @@ import { useStoreSettings } from '../hooks/useStoreSettings'
 import { useLoyalty } from '../hooks/useLoyalty'
 import { useWaitLounge } from '../store/waitLounge'
 import { WaitLoungePromoCard } from './wait-lounge/WaitLoungeEntry'
+import { WaitLoungeCelebrationPopup } from './wait-lounge/WaitLoungeCelebrationPopup'
 import { orderToActive } from '../store/activeOrder'
 
 interface Props {
@@ -465,6 +466,9 @@ function OrderConfirmation({
   loungeFeatureOn: boolean
 }) {
   const [status, setStatus] = useState<OrderStatus>(order.status)
+  const [celebrationOpen, setCelebrationOpen] = useState(
+    loungeFeatureOn && order.status !== 'CANCELLED' && order.status !== 'DELIVERED',
+  )
   const { setActiveOrder, setLoungeOpen, loungeCopy, sessionPoints } = useWaitLounge()
   const { settings } = useStoreSettings()
   const { waitLounge } = settings
@@ -472,8 +476,11 @@ function OrderConfirmation({
   const openLounge = () => {
     setActiveOrder(orderToActive({ ...order, status }))
     setLoungeOpen(true)
+    setCelebrationOpen(false)
     onClose()
   }
+
+  const dismissCelebration = () => setCelebrationOpen(false)
 
   useEffect(() => {
     if (status === 'DELIVERED' || status === 'CANCELLED') return
@@ -491,7 +498,21 @@ function OrderConfirmation({
   const currentIdx = ORDER_STATUS_FLOW.indexOf(status)
 
   return (
-    <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
+    <>
+      <WaitLoungeCelebrationPopup
+        open={celebrationOpen}
+        orderCode={order.code}
+        title={loungeCopy.waitLoungeOrderSuccessTitle}
+        body={loungeCopy.waitLoungeOrderSuccessBody}
+        cta={loungeCopy.waitLoungeEnter}
+        laterLabel={loungeCopy.waitLoungeOrderSuccessLater}
+        maxPoints={waitLounge.maxPointsPerOrder}
+        pointsLabel={loungeCopy.waitLoungePointsLabel}
+        onPlay={openLounge}
+        onDismiss={dismissCelebration}
+      />
+
+      <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
         <CheckCircle2 className="h-8 w-8 text-primary" />
       </div>
@@ -531,7 +552,7 @@ function OrderConfirmation({
 
       <QuickSignupPrompt defaultName={name} onDone={() => undefined} />
 
-      {loungeFeatureOn && status !== 'CANCELLED' && status !== 'DELIVERED' && (
+      {loungeFeatureOn && status !== 'CANCELLED' && status !== 'DELIVERED' && !celebrationOpen && (
         <WaitLoungePromoCard
           className="w-full"
           title={loungeCopy.waitLoungePlayTitle}
@@ -547,6 +568,7 @@ function OrderConfirmation({
       <Button className="mt-auto w-full" size="lg" variant="outline" onClick={onClose}>
         بستن
       </Button>
-    </div>
+      </div>
+    </>
   )
 }

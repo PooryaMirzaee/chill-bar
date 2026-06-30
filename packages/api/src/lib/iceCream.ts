@@ -56,6 +56,9 @@ export async function loadIceCreamBuilderSettings(): Promise<IceCreamBuilderSett
   const merged: IceCreamBuilderSettings = {
     ...DEFAULT_ICE_CREAM_BUILDER_SETTINGS,
     ...(stored?.value as Partial<IceCreamBuilderSettings> | undefined),
+    builderMode:
+      (stored?.value as Partial<IceCreamBuilderSettings> | undefined)?.builderMode ??
+      DEFAULT_ICE_CREAM_BUILDER_SETTINGS.builderMode,
   }
 
   if (typeof legacyPrice?.value === 'number' && !stored) {

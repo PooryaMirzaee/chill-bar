@@ -124,6 +124,7 @@ export const DEFAULT_ICE_CREAM_BUILDER_SETTINGS = {
   minPrice: 230,
   enabled: true,
   smartSuggestions: true,
+  builderMode: 'studio' as const,
 }
 
 export const ICE_CREAM_NUT_TEXTURES = ['hazelnut', 'almond', 'pistachio', 'walnut'] as const

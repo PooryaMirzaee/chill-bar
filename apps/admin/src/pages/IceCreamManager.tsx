@@ -66,6 +66,7 @@ export function IceCreamManager() {
         minPrice: data.minPrice,
         enabled: data.enabled,
         smartSuggestions: data.smartSuggestions,
+        builderMode: data.builderMode ?? 'studio',
       })
     }
   }, [data])
@@ -220,6 +221,21 @@ export function IceCreamManager() {
               onChange={(e) => setSettings({ ...settings, smartSuggestions: e.target.checked })}
             />
             <span>پیشنهاد هوشمند بر اساس آب‌وهوا</span>
+          </label>
+          <label className="field field-full">
+            <span>حالت ساخت در اپ</span>
+            <select
+              value={settings.builderMode}
+              onChange={(e) =>
+                setSettings({ ...settings, builderMode: e.target.value as 'classic' | 'studio' })
+              }
+            >
+              <option value="studio">استودیو — پیش‌نمایش ثابت، انتخاب افقی، بدون اسکرول صفحه (پیشنهادی)</option>
+              <option value="classic">کلاسیک — حالت قبلی با شیت اسکرول‌شونده</option>
+            </select>
+            <p className="field-hint" style={{ marginTop: 6 }}>
+              در حالت استودیو، پیش‌نمایش ۳D همیشه بالا می‌ماند و دکمه سفارش همیشه پایین پنل دیده می‌شود.
+            </p>
           </label>
           <label className="field">
             <span>قیمت پایه (تومان)</span>

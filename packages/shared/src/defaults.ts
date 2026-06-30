@@ -1,4 +1,5 @@
 import type { StoreAppearance, StoreSettings, WaitLoungeSettings } from './types'
+import { DEFAULT_COMBO_RECOMMENDATIONS } from './comboSettings'
 import { DEFAULT_STORE_COPY, DEFAULT_LOCATION, DEFAULT_MOODS } from './storeCopyDefaults'
 import { DEFAULT_HOME_APPEARANCE } from './homeAppearance'
 import { DEFAULT_MENU_APPEARANCE } from './menuAppearance'
@@ -80,4 +81,5 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     rewardPrice: 0,
   },
   waitLounge: DEFAULT_WAIT_LOUNGE,
+  comboRecommendations: DEFAULT_COMBO_RECOMMENDATIONS,
 }

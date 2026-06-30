@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home } from 'lucide-react'
+import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles } from 'lucide-react'
 import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings } from '@chill-bar/shared'
 import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS } from '@chill-bar/shared'
 import { api } from '../lib/api'
@@ -14,6 +14,7 @@ import { AlertSettingsPanel } from '../components/AlertSettingsPanel'
 import { HomeAppearancePanel } from '../components/HomeAppearancePanel'
 import { MenuAppearancePanel } from '../components/MenuAppearancePanel'
 import { WaitLoungeSettingsPanel } from '../components/WaitLoungeSettingsPanel'
+import { ComboRecommendationSettingsPanel } from '../components/ComboRecommendationSettingsPanel'
 
 const FEATURE_LABELS: Record<string, string> = {
   spinWheel: 'گردونه شانس',
@@ -24,7 +25,7 @@ const FEATURE_LABELS: Record<string, string> = {
   smartCombo: 'کمبو هوشمند',
 }
 
-type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'features' | 'ai' | 'sms' | 'alerts'
+type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'features' | 'ai' | 'sms' | 'alerts'
 
 export function Settings() {
   const queryClient = useQueryClient()
@@ -169,6 +170,9 @@ export function Settings() {
         <button type="button" className={tab === 'moods' ? 'active' : ''} onClick={() => setTab('moods')}>
           <Smile size={16} /> مودها
         </button>
+        <button type="button" className={tab === 'combo' ? 'active' : ''} onClick={() => setTab('combo')}>
+          <Sparkles size={16} /> پیشنهاد ترکیب
+        </button>
         <button type="button" className={tab === 'ai' ? 'active' : ''} onClick={() => setTab('ai')}>
           <Bot size={16} /> هوش مصنوعی
         </button>
@@ -308,6 +312,13 @@ export function Settings() {
 
       {tab === 'moods' && (
         <MoodsSettingsPanel moods={form.moods} onChange={(moods) => setForm({ ...form, moods })} />
+      )}
+
+      {tab === 'combo' && (
+        <ComboRecommendationSettingsPanel
+          settings={form.comboRecommendations}
+          onChange={(comboRecommendations) => setForm({ ...form, comboRecommendations })}
+        />
       )}
 
       {tab === 'appearance' && (

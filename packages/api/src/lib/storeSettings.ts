@@ -30,6 +30,18 @@ export function mergeSettings(raw: Partial<StoreSettings> | null | undefined): S
           : DEFAULT_STORE_SETTINGS.waitLounge.allowedStatuses,
       rewards: raw?.waitLounge?.rewards ?? DEFAULT_STORE_SETTINGS.waitLounge.rewards,
     },
+    comboRecommendations: {
+      ...DEFAULT_STORE_SETTINGS.comboRecommendations,
+      ...raw?.comboRecommendations,
+      categoryPairs:
+        raw?.comboRecommendations?.categoryPairs?.length
+          ? raw.comboRecommendations.categoryPairs
+          : DEFAULT_STORE_SETTINGS.comboRecommendations.categoryPairs,
+      templates:
+        raw?.comboRecommendations?.templates?.length
+          ? raw.comboRecommendations.templates
+          : DEFAULT_STORE_SETTINGS.comboRecommendations.templates,
+    },
   }
 }
 

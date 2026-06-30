@@ -87,6 +87,7 @@ export interface IceCreamBuilderSettings {
   minPrice: number
   enabled: boolean
   smartSuggestions: boolean
+  builderMode: 'classic' | 'studio'
 }
 
 export interface IceCreamOptions extends IceCreamBuilderSettings {
@@ -286,6 +287,9 @@ export interface StoreCopy {
   waitLoungeEnter: string
   waitLoungePlayTeaser: string
   waitLoungePlayTitle: string
+  waitLoungeOrderSuccessTitle: string
+  waitLoungeOrderSuccessBody: string
+  waitLoungeOrderSuccessLater: string
   waitLoungeReadyTitle: string
   waitLoungeReadyMessage: string
   waitLoungePointsLabel: string
@@ -378,6 +382,10 @@ export interface MoodDefinition {
   tagWeights: Record<string, number>
 }
 
+import type { ComboRecommendationSettings } from './comboSettings'
+
+export type { CategoryPairRule, ComboTemplate } from './comboSettings'
+
 export interface StoreSettings {
   storeName: string
   storeSubtitle: string
@@ -400,6 +408,7 @@ export interface StoreSettings {
   showInstallBanner: boolean
   scratchReward: ScratchRewardSettings
   waitLounge: WaitLoungeSettings
+  comboRecommendations: ComboRecommendationSettings
 }
 
 export interface AiSettings {

@@ -1,6 +1,7 @@
 import type { MenuItem } from '../types'
 import type { IceCreamOptions, StoreCopy } from '@chill-bar/shared'
 import { IceCreamBuilder } from './IceCreamBuilder'
+import { IceCreamBuilderStudio } from './IceCreamBuilderStudio'
 
 type IceCopy = Pick<
   StoreCopy,
@@ -42,8 +43,11 @@ export function IceCreamHub({ onOrder, iceOptions, iceCopy, iceCreamCategoryId }
     )
   }
 
+  const Builder =
+    iceOptions.builderMode === 'classic' ? IceCreamBuilder : IceCreamBuilderStudio
+
   return (
-    <IceCreamBuilder
+    <Builder
       onOrder={onOrder}
       iceOptions={iceOptions}
       copy={iceCopy}

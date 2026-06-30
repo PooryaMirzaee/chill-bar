@@ -115,12 +115,3 @@ export function getMoodItems(
   }
   return getSmartPicks(items, ctx, limit, opts)
 }
-
-export function getPairing(item: MenuItem, allItems: MenuItem[]): MenuItem | null {
-  const otherCategories = [...new Set(allItems.map((i) => i.category).filter((c) => c !== item.category))]
-  const preferred = otherCategories.sort(() => Math.random() - 0.5).slice(0, 3)
-  const candidates = allItems.filter(
-    (i) => i.id !== item.id && (preferred.includes(i.category) || i.category !== item.category),
-  )
-  return candidates[Math.floor(Math.random() * candidates.length)] || null
-}

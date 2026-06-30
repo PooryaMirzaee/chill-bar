@@ -93,9 +93,10 @@ interface BarModelProps {
   size?: 'lg' | 'sm' | 'xs'
   autoRotate?: boolean
   fitFrame?: boolean
+  displayScale?: number
 }
 
-function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFrame = false }: BarModelProps) {
+function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFrame = false, displayScale = 1 }: BarModelProps) {
   const groupRef = useRef<Group>(null)
   const coatProfile = getCoatingProfile(build.coating || null)
   const baseProfile = getBaseProfile(build.base || null)
@@ -190,8 +191,8 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
   const baseBandY = -H / 2 + BASE_H / 2
   const coatCenterY = (coatYMin + coatYMax) / 2
   const stickY = -H / 2 - STICK_H / 2 - 0.02
-  const frameScale = fitFrame ? 0.92 : 1
-  const frameY = fitFrame ? 0.14 : GROUP_Y
+  const frameScale = (fitFrame ? 0.86 : 1) * displayScale
+  const frameY = fitFrame ? 0.1 : GROUP_Y
 
   return (
     <group ref={groupRef} position={[0, frameY, 0]} scale={frameScale}>
@@ -286,6 +287,7 @@ interface Props {
   size?: 'lg' | 'sm' | 'xs' | 'fill'
   interactive?: boolean
   fitFrame?: boolean
+  displayScale?: number
 }
 
 export function IceCreamBar3D({
@@ -294,6 +296,7 @@ export function IceCreamBar3D({
   size = 'lg',
   interactive = true,
   fitFrame = false,
+  displayScale = 1,
 }: Props) {
   const isFill = size === 'fill'
   const dims = isFill
@@ -305,7 +308,7 @@ export function IceCreamBar3D({
         : { w: 48, h: 72 }
 
   const useFit = isFill || fitFrame
-  const cameraZ = useFit ? 3.05 : size === 'lg' ? 2.85 : 3.2
+  const cameraZ = (useFit ? 3.15 : size === 'lg' ? 2.85 : 3.2) / displayScale
   const cameraY = useFit ? 0.02 : 0.06
   const cameraFov = useFit ? 34 : size === 'lg' ? 32 : 38
 
@@ -330,6 +333,7 @@ export function IceCreamBar3D({
               size={isFill ? 'lg' : size}
               autoRotate={isFill || size === 'lg'}
               fitFrame={useFit}
+              displayScale={displayScale}
             />
             {(isFill || size === 'lg') && (
               <ContactShadows

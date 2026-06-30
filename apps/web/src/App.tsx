@@ -20,8 +20,9 @@ import { WaitLoungeProvider, useWaitLounge } from './store/waitLounge'
 import { CartFeedbackProvider, useCartFeedback, type AddToCartHandler } from './lib/cartFeedback'
 import { CartFab } from './components/CartFab'
 import { fetchWeather, getTimeOfDay } from './lib/weather'
-import { getSmartPicks, getPairing } from './lib/recommendations'
+import { getSmartPicks } from './lib/recommendations'
 import { buildSmartCombo } from './lib/comboBuilder'
+import { suggestPairing } from '@chill-bar/shared'
 import { useIceCreamOptions } from './hooks/useIceCreamOptions'
 import type { HomeSectionId } from '@chill-bar/shared'
 import { formatCopy, copyVars, findIceCreamCategoryId } from '@chill-bar/shared'
@@ -93,8 +94,9 @@ function AppContent() {
     () => ({
       comboTitle: formatCopy(copy.smartComboTitle, vars),
       scoreOpts,
+      settings: settings.comboRecommendations,
     }),
-    [copy.smartComboTitle, vars, scoreOpts],
+    [copy.smartComboTitle, vars, scoreOpts, settings.comboRecommendations],
   )
 
   const navItems = useMemo(() => {
@@ -142,6 +144,8 @@ function AppContent() {
   const hidePreOrderGames = loungeOpen || inWaitSession
   const logoUrl = getBrandLogoUrl(appearance)
   const brandFallback = getBrandFallback(appearance, settings.storeName)
+  const iceCreamImmersive =
+    activeTab === 'icecream' && iceOptions?.enabled && iceOptions.builderMode !== 'classic'
 
   const rewardPool = useMemo(() => {
     const available = items.filter((i) => i.isAvailable !== false)
@@ -190,7 +194,7 @@ function AppContent() {
       return
     }
     setCombo((prev) => {
-      const next = buildSmartCombo(items, ctx, comboOpts)
+      const next = buildSmartCombo(items, ctx, comboOpts.settings, comboOpts)
       if (
         prev &&
         prev.title === next.title &&
@@ -276,7 +280,7 @@ function AppContent() {
   }, [isRegistered, syncPreferences])
 
   const refreshCombo = useCallback(() => {
-    setCombo(buildSmartCombo(items, { ...ctx, mood: mood || settings.moods[0]?.id || 'adventurous' }, comboOpts))
+    setCombo(buildSmartCombo(items, { ...ctx, mood: mood || settings.moods[0]?.id || 'adventurous' }, comboOpts.settings, comboOpts))
   }, [items, ctx, mood, comboOpts, settings.moods])
 
   const handleCategorySelect = useCallback(
@@ -369,7 +373,16 @@ function AppContent() {
     refreshCombo,
   ])
 
-  const pairing = selectedItem ? getPairing(selectedItem, items) : null
+  const pairing = useMemo(() => {
+    if (!selectedItem) return null
+    return suggestPairing(selectedItem, items, settings.comboRecommendations, {
+      timeOfDay: ctx.timeOfDay,
+      weather: ctx.weather
+        ? { isHot: ctx.weather.isHot, isCold: ctx.weather.isCold, weatherCode: ctx.weather.weatherCode }
+        : null,
+      mood: ctx.mood,
+    })
+  }, [selectedItem, items, settings.comboRecommendations, ctx])
 
   const installPWA = async () => {
     if (deferredPrompt) {
@@ -399,6 +412,7 @@ function AppContent() {
         </div>
       )}
 
+      {!iceCreamImmersive && (
       <header
         className={cn(
           'sticky top-0 z-50 border-b',
@@ -440,8 +454,9 @@ function AppContent() {
           </Button>
         </div>
       </header>
+      )}
 
-      {settings.showInstallBanner && showInstall && (
+      {settings.showInstallBanner && showInstall && !iceCreamImmersive && (
         <motion.div
           className="mx-auto flex max-w-lg items-center gap-2 border-b bg-primary/10 px-4 py-2.5"
           initial={{ height: 0, opacity: 0 }}
@@ -481,8 +496,21 @@ function AppContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="pt-0 pb-4"
+              className={iceCreamImmersive ? 'relative pt-0 pb-0' : 'pt-0 pb-4'}
             >
+              {iceCreamImmersive && (
+                <div className="absolute end-3 top-[max(0.5rem,var(--safe-top,0px))] z-50">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-9 w-9 rounded-full bg-background/80 shadow-md backdrop-blur"
+                    onClick={() => setProfileOpen(true)}
+                    aria-label="پروفایل"
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <IceCreamHub
                 onOrder={(item) => {
                   handleAdd(item)
@@ -623,6 +651,7 @@ function AppContent() {
       <ItemDetail
         item={selectedItem}
         pairing={pairing}
+        pairingSectionTitle={settings.comboRecommendations.pairingSectionTitle}
         onClose={() => setSelectedItem(null)}
         onAdd={(item, origin) => {
           handleAdd(item, origin)

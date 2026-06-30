@@ -7,6 +7,7 @@ import {
   validateModifierSelection,
   type ModifierSelectionState,
 } from '@chill-bar/shared'
+import type { PairingResult } from '@chill-bar/shared'
 import type { MenuItem } from '../types'
 import { formatPrice } from '../lib/comboBuilder'
 import { resolveAssetUrl } from '../lib/branding'
@@ -25,12 +26,13 @@ import type { AddToCartHandler } from '../lib/cartFeedback'
 
 interface Props {
   item: MenuItem | null
-  pairing: MenuItem | null
+  pairing: PairingResult | null
+  pairingSectionTitle?: string
   onClose: () => void
   onAdd: AddToCartHandler
 }
 
-export function ItemDetail({ item, pairing, onClose, onAdd }: Props) {
+export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنهاد ترکیب', onClose, onAdd }: Props) {
   const [selection, setSelection] = useState<ModifierSelectionState>({})
   const [selectionError, setSelectionError] = useState('')
 
@@ -130,15 +132,16 @@ export function ItemDetail({ item, pairing, onClose, onAdd }: Props) {
 
               {pairing && (
                 <div className="space-y-2 rounded-xl border bg-card p-4">
-                  <h4 className="text-sm font-semibold">پیشنهاد ترکیب</h4>
+                  <h4 className="text-sm font-semibold">{pairingSectionTitle}</h4>
+                  <p className="text-xs text-muted-foreground">{pairing.reason}</p>
                   <button
                     type="button"
                     className="flex w-full items-center gap-3 rounded-lg border bg-background p-3 text-right transition-colors hover:bg-accent"
-                    onClick={(e) => onAdd(pairing, e)}
+                    onClick={(e) => onAdd(pairing.item, e)}
                   >
-                    <span className="text-2xl">{pairing.emoji}</span>
-                    <span className="flex-1 text-sm font-medium">{pairing.name}</span>
-                    <span className="text-sm font-semibold text-primary">{formatPrice(pairing.price)}</span>
+                    <span className="text-2xl">{pairing.item.emoji}</span>
+                    <span className="flex-1 text-sm font-medium">{pairing.item.name}</span>
+                    <span className="text-sm font-semibold text-primary">{formatPrice(pairing.item.price)}</span>
                   </button>
                 </div>
               )}
