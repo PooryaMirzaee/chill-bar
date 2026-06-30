@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp, Plus, Save, Trash2 } from 'lucide-react'
-import type { IceCreamOption, IceCreamOptions, IceCreamVisualProfile } from '@chill-bar/shared'
+import type { IceCreamBuilderSettings, IceCreamOption, IceCreamOptions, IceCreamVisualProfile } from '@chill-bar/shared'
 import {
   DEFAULT_ICE_CREAM_BUILDER_SETTINGS,
   ICE_CREAM_COATING_STYLES,
@@ -54,7 +54,7 @@ export function IceCreamManager() {
     queryFn: () => api<IceCreamOptions>('/api/admin/ice-cream'),
   })
 
-  const [settings, setSettings] = useState(DEFAULT_ICE_CREAM_BUILDER_SETTINGS)
+  const [settings, setSettings] = useState<IceCreamBuilderSettings>(DEFAULT_ICE_CREAM_BUILDER_SETTINGS)
   const [tab, setTab] = useState<OptionType>('BASE')
   const [editing, setEditing] = useState<(IceCreamOption & { type?: OptionType }) | null>(null)
   const [saved, setSaved] = useState(false)

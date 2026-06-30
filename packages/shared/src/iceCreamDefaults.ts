@@ -119,12 +119,14 @@ export const SEED_VISUAL_PROFILES: Record<string, IceCreamVisualProfile> = {
   },
 }
 
-export const DEFAULT_ICE_CREAM_BUILDER_SETTINGS = {
+import type { IceCreamBuilderSettings } from './types'
+
+export const DEFAULT_ICE_CREAM_BUILDER_SETTINGS: IceCreamBuilderSettings = {
   basePrice: 240,
   minPrice: 230,
   enabled: true,
   smartSuggestions: true,
-  builderMode: 'studio' as const,
+  builderMode: 'studio',
 }
 
 export const ICE_CREAM_NUT_TEXTURES = ['hazelnut', 'almond', 'pistachio', 'walnut'] as const
