@@ -1,15 +1,20 @@
-import type { PosSettings } from '@chill-bar/shared'
-import { PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
+import type { PosSettings, ReceiptTemplateId, StoreSettings } from '@chill-bar/shared'
+import { PAYMENT_METHOD_LABEL, RECEIPT_TEMPLATES } from '@chill-bar/shared'
+import { ThermalReceipt } from './receipt/ThermalReceipt'
+import { buildSampleReceiptProps, printSampleReceipt } from '../lib/printReceipt'
 
 interface PosSettingsPanelProps {
   value: PosSettings
   onChange: (next: PosSettings) => void
+  store?: StoreSettings | null
 }
 
-export function PosSettingsPanel({ value, onChange }: PosSettingsPanelProps) {
+export function PosSettingsPanel({ value, onChange, store }: PosSettingsPanelProps) {
   const set = <K extends keyof PosSettings>(key: K, val: PosSettings[K]) => {
     onChange({ ...value, [key]: val })
   }
+
+  const previewProps = buildSampleReceiptProps(store ?? { storeName: 'Chill Bar' }, value)
 
   return (
     <div className="settings-panel pos-settings-panel">
@@ -36,7 +41,7 @@ export function PosSettingsPanel({ value, onChange }: PosSettingsPanelProps) {
       <section className="settings-section">
         <h3>رسید و چاپ</h3>
         <label>
-          عرض رسید
+          عرض رسید (لیبل پرینتر)
           <select
             value={value.receiptWidthMm}
             onChange={(e) => set('receiptWidthMm', Number(e.target.value) as 58 | 80)}
@@ -45,6 +50,55 @@ export function PosSettingsPanel({ value, onChange }: PosSettingsPanelProps) {
             <option value={80}>۸۰ میلی‌متر</option>
           </select>
         </label>
+
+        <label className="toggle-row">
+          <span>کنتراست بالا (پررنگ‌تر برای پرینتر حرارتی)</span>
+          <input
+            type="checkbox"
+            checked={value.receiptHighContrast}
+            onChange={(e) => set('receiptHighContrast', e.target.checked)}
+          />
+        </label>
+
+        <div>
+          <span>طرح رسید</span>
+          <div className="receipt-template-grid" role="radiogroup" aria-label="طرح رسید">
+            {RECEIPT_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                role="radio"
+                aria-checked={value.receiptTemplateId === template.id}
+                className={`receipt-template-card${value.receiptTemplateId === template.id ? ' is-active' : ''}`}
+                onClick={() => set('receiptTemplateId', template.id as ReceiptTemplateId)}
+              >
+                <div
+                  className={`receipt-template-preview receipt-template-preview--${template.id}`}
+                  aria-hidden
+                />
+                <strong>{template.name}</strong>
+                <span>{template.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="receipt-preview-panel">
+          <strong>پیش‌نمایش زنده</strong>
+          <ThermalReceipt {...previewProps} preview />
+        </div>
+
+        <div className="receipt-settings-actions">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => printSampleReceipt(store ?? { storeName: 'Chill Bar' }, value)}
+            disabled={false}
+          >
+            چاپ نمونه
+          </button>
+        </div>
+
         <label>
           متن بالای رسید
           <textarea

@@ -497,7 +497,11 @@ export type CustomerOtpVerifyInput = z.infer<typeof customerOtpVerifySchema>
 export const posSettingsSchema = z.object({
   enabled: z.boolean().default(true),
   requireShiftOpen: z.boolean().default(true),
-  receiptWidthMm: z.union([z.literal(58), z.literal(80)]).default(58),
+  receiptWidthMm: z.union([z.literal(58), z.literal(80)]).default(80),
+  receiptTemplateId: z
+    .enum(['classic', 'bold', 'minimal', 'boxed', 'stripe', 'ticket'])
+    .default('bold'),
+  receiptHighContrast: z.boolean().default(true),
   receiptHeaderText: z.string().max(300).default(''),
   receiptFooterText: z.string().max(300).default('از خرید شما سپاسگزاریم 🍦'),
   showLogoOnReceipt: z.boolean().default(true),

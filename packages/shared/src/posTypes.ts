@@ -1,4 +1,5 @@
 import type { Order, OrderItemPayload, PaymentMethod, PaymentStatus } from './types'
+import type { ReceiptTemplateId } from './receiptTemplates'
 
 export type { PaymentMethod, PaymentStatus }
 
@@ -10,6 +11,8 @@ export interface PosSettings {
   enabled: boolean
   requireShiftOpen: boolean
   receiptWidthMm: 58 | 80
+  receiptTemplateId: ReceiptTemplateId
+  receiptHighContrast: boolean
   receiptHeaderText: string
   receiptFooterText: string
   showLogoOnReceipt: boolean

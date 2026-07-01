@@ -7,7 +7,6 @@ import {
   DEFAULT_POS_SETTINGS,
   ORDER_CHANNEL_LABEL,
   ORDER_STATUS_LABEL,
-  PAYMENT_METHOD_LABEL,
   PAYMENT_STATUS_LABEL,
 } from '@chill-bar/shared'
 import { api } from '../lib/api'
@@ -15,7 +14,7 @@ import { useAdminSocket } from '../lib/useOrdersSocket'
 import { formatPrice, timeAgo } from '../lib/format'
 import { OrderItemExtras, OrderItemExtrasCompact } from '../components/OrderItemExtras'
 import { isAlertMuted, setAlertMuted, subscribeAlertMute } from '../lib/alertMute'
-import { buildReceiptItemsFromOrder, printThermalReceipt } from '../lib/printReceipt'
+import { buildThermalReceiptProps, printThermalReceipt } from '../lib/printReceipt'
 import { useAuth } from '../lib/auth'
 import { PosCheckoutModal } from './pos/PosCheckoutModal'
 
@@ -234,32 +233,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
   const printOrderReceipt = (o: Order = order) => {
     if (!store) return
-    printThermalReceipt({
-      storeName: store.storeName,
-      storeSubtitle: store.storeSubtitle,
-      address: store.address,
-      phone: store.phone,
-      openingHours: store.openingHours,
-      logoUrl: store.appearance.logoUrl,
-      headerText: posSettings.receiptHeaderText,
-      footerText: posSettings.receiptFooterText,
-      widthMm: posSettings.receiptWidthMm,
-      orderCode: o.code,
-      receiptNumber: o.receiptNumber,
-      createdAt: o.createdAt,
-      cashierName: o.createdByName ?? user?.name,
-      customerName: o.customerName,
-      note: o.note,
-      channelLabel: ORDER_CHANNEL_LABEL[o.channel],
-      items: buildReceiptItemsFromOrder(o.items),
-      subtotal: o.subtotal ?? o.total,
-      discountAmount: o.discountAmount ?? 0,
-      total: o.total,
-      paymentMethodLabel: PAYMENT_METHOD_LABEL[o.paymentMethod ?? 'UNPAID'],
-      paidAmount: o.paidAmount,
-      changeAmount: o.changeAmount,
-      showQr: posSettings.showQrOnReceipt,
-    })
+    printThermalReceipt(buildThermalReceiptProps(o, store, posSettings, { cashierName: user?.name }))
   }
 
   const unpaid = order.paymentStatus === 'UNPAID' || !order.paymentStatus

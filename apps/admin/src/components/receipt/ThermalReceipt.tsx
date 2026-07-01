@@ -1,3 +1,4 @@
+import type { ReceiptTemplateId } from '@chill-bar/shared'
 import './receipt.css'
 
 export interface ReceiptItemLine {
@@ -16,9 +17,12 @@ export interface ThermalReceiptProps {
   phone?: string
   openingHours?: string
   logoUrl?: string | null
+  showLogo?: boolean
   headerText?: string
   footerText?: string
   widthMm?: 58 | 80
+  templateId?: ReceiptTemplateId
+  highContrast?: boolean
   orderCode: string
   receiptNumber?: number | null
   createdAt: string
@@ -36,6 +40,7 @@ export interface ThermalReceiptProps {
   paidAmount?: number
   changeAmount?: number
   showQr?: boolean
+  preview?: boolean
 }
 
 function formatReceiptPrice(value: number): string {
@@ -49,6 +54,10 @@ function formatReceiptDate(iso: string): string {
   }).format(new Date(iso))
 }
 
+function Divider({ style }: { style?: 'dashed' | 'solid' | 'double' | 'dots' }) {
+  return <div className={`tr-divider tr-divider--${style ?? 'solid'}`} aria-hidden />
+}
+
 export function ThermalReceipt({
   storeName,
   storeSubtitle,
@@ -56,9 +65,12 @@ export function ThermalReceipt({
   phone,
   openingHours,
   logoUrl,
+  showLogo = true,
   headerText,
   footerText,
-  widthMm = 58,
+  widthMm = 80,
+  templateId = 'bold',
+  highContrast = true,
   orderCode,
   receiptNumber,
   createdAt,
@@ -75,21 +87,46 @@ export function ThermalReceipt({
   paidAmount,
   changeAmount = 0,
   showQr = true,
+  preview = false,
 }: ThermalReceiptProps) {
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(orderCode)}`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(orderCode)}&bgcolor=ffffff&color=000000`
+  const dividerStyle =
+    templateId === 'minimal' ? 'dashed' : templateId === 'ticket' ? 'double' : 'solid'
+  const showBrandEmoji = templateId !== 'minimal'
+
+  const rootClass = [
+    'thermal-receipt',
+    `thermal-receipt--${templateId}`,
+    highContrast ? 'thermal-receipt--high-contrast' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div
-      id="receipt-root"
-      className="thermal-receipt"
-      style={{ ['--receipt-width' as string]: `${widthMm}mm` }}
+      id={preview ? 'receipt-preview' : 'receipt-root'}
+      className={rootClass}
+      data-width={widthMm}
+      data-template={templateId}
+      style={{
+        ['--receipt-width' as string]: `${widthMm}mm`,
+        ['--receipt-page-width' as string]: `${widthMm}mm`,
+      }}
     >
+      {templateId === 'ticket' && <div className="tr-ticket-frame" />}
+
+      {templateId === 'stripe' && (
+        <div className="tr-stripe-banner" aria-hidden>
+          ═══ ✦ ═══
+        </div>
+      )}
+
       <header className="tr-header">
-        {logoUrl ? (
+        {showLogo && logoUrl ? (
           <img src={logoUrl} alt="" className="tr-logo" />
-        ) : (
+        ) : showBrandEmoji ? (
           <div className="tr-brand-emoji">🍦</div>
-        )}
+        ) : null}
         <h1 className="tr-store-name">{storeName}</h1>
         {storeSubtitle && <p className="tr-subtitle">{storeSubtitle}</p>}
         {headerText && <p className="tr-header-text">{headerText}</p>}
@@ -100,15 +137,15 @@ export function ThermalReceipt({
         </div>
       </header>
 
-      <div className="tr-divider" />
+      <Divider style={dividerStyle} />
 
       <section className="tr-order-meta">
+        {templateId === 'ticket' && receiptNumber != null && (
+          <div className="tr-ticket-number">#{receiptNumber}</div>
+        )}
         <div className="tr-row">
           <span>فیش</span>
-          <strong>
-            {orderCode}
-            {receiptNumber != null && <span className="tr-receipt-no"> #{receiptNumber}</span>}
-          </strong>
+          <strong className="tr-order-code">{orderCode}</strong>
         </div>
         <div className="tr-row">
           <span>تاریخ</span>
@@ -141,14 +178,15 @@ export function ThermalReceipt({
         {note && <p className="tr-note">یادداشت: {note}</p>}
       </section>
 
-      <div className="tr-divider" />
+      <Divider style={dividerStyle} />
 
       <section className="tr-items">
         {items.map((item, i) => (
           <div key={i} className="tr-item">
             <div className="tr-item-head">
               <span className="tr-item-name">
-                {item.emoji} {item.quantity}× {item.name}
+                {templateId !== 'minimal' && `${item.emoji} `}
+                {item.quantity}× {item.name}
               </span>
               <span className="tr-item-price">{formatReceiptPrice(item.lineTotal)}</span>
             </div>
@@ -161,7 +199,7 @@ export function ThermalReceipt({
         ))}
       </section>
 
-      <div className="tr-divider" />
+      <Divider style={dividerStyle} />
 
       <section className="tr-totals">
         <div className="tr-row">
@@ -174,7 +212,7 @@ export function ThermalReceipt({
             <span>−{formatReceiptPrice(discountAmount)}</span>
           </div>
         )}
-        <div className="tr-row tr-total">
+        <div className={`tr-row tr-total ${templateId === 'bold' ? 'tr-total--inverted' : ''}`}>
           <strong>جمع کل</strong>
           <strong>{formatReceiptPrice(total)}</strong>
         </div>
@@ -196,14 +234,17 @@ export function ThermalReceipt({
         )}
       </section>
 
-      <div className="tr-divider" />
+      <Divider style={dividerStyle} />
 
       <footer className="tr-footer">
         {footerText && <p className="tr-footer-text">{footerText}</p>}
-        {showQr && (
-          <img src={qrUrl} alt="" className="tr-qr" width={96} height={96} />
+        {showQr && <img src={qrUrl} alt="" className="tr-qr" width={104} height={104} />}
+        {templateId === 'stripe' && (
+          <div className="tr-stripe-banner tr-stripe-banner--footer" aria-hidden>
+            ═══ ✦ ═══
+          </div>
         )}
-        <p className="tr-thanks">Chill Bar</p>
+        <p className="tr-thanks">{storeName}</p>
       </footer>
     </div>
   )

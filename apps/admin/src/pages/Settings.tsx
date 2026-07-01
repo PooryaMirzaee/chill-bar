@@ -385,7 +385,7 @@ export function Settings() {
 
       {tab === 'alerts' && <AlertSettingsPanel settings={alertForm} onChange={setAlertForm} />}
 
-      {tab === 'pos' && <PosSettingsPanel value={posForm} onChange={setPosForm} />}
+      {tab === 'pos' && <PosSettingsPanel value={posForm} onChange={setPosForm} store={form} />}
 
       {tab === 'features' && (
         <div className="settings-grid">

@@ -5,12 +5,10 @@ import { ArrowRight, History } from 'lucide-react'
 import type { PosCheckoutPayment, PosMenuData, PosOrder, PosSettings, PosShift, StoreSettings } from '@chill-bar/shared'
 import {
   DEFAULT_POS_SETTINGS,
-  ORDER_CHANNEL_LABEL,
-  PAYMENT_METHOD_LABEL,
 } from '@chill-bar/shared'
 import { api } from '../../lib/api'
 import { usePosCart } from '../../lib/usePosCart'
-import { buildReceiptItemsFromOrder, printThermalReceipt } from '../../lib/printReceipt'
+import { buildThermalReceiptProps, printThermalReceipt } from '../../lib/printReceipt'
 import { useAuth } from '../../lib/auth'
 import { PosShiftBar } from './PosShiftBar'
 import { PosItemGrid } from './PosItemGrid'
@@ -122,33 +120,7 @@ export function PosRegister() {
 
   const printReceiptForOrder = (order: PosOrder) => {
     if (!store) return
-    printThermalReceipt({
-      storeName: store.storeName,
-      storeSubtitle: store.storeSubtitle,
-      address: store.address,
-      phone: store.phone,
-      openingHours: store.openingHours,
-      logoUrl: store.appearance.logoUrl,
-      headerText: posSettings.receiptHeaderText,
-      footerText: posSettings.receiptFooterText,
-      widthMm: posSettings.receiptWidthMm,
-      orderCode: order.code,
-      receiptNumber: order.receiptNumber,
-      createdAt: order.createdAt,
-      cashierName: order.createdByName ?? user?.name,
-      customerName: order.customerName,
-      customerPhone: order.customerPhone,
-      note: order.note,
-      channelLabel: ORDER_CHANNEL_LABEL[order.channel],
-      items: buildReceiptItemsFromOrder(order.items),
-      subtotal: order.subtotal ?? order.total,
-      discountAmount: order.discountAmount ?? 0,
-      total: order.total,
-      paymentMethodLabel: PAYMENT_METHOD_LABEL[order.paymentMethod ?? 'CASH'],
-      paidAmount: order.paidAmount,
-      changeAmount: order.changeAmount,
-      showQr: posSettings.showQrOnReceipt,
-    })
+    printThermalReceipt(buildThermalReceiptProps(order, store, posSettings, { cashierName: user?.name }))
   }
 
   const handleSelectItem = (item: PosMenuItem) => {

@@ -3,7 +3,9 @@ import type { PosSettings } from './posTypes'
 export const DEFAULT_POS_SETTINGS: PosSettings = {
   enabled: true,
   requireShiftOpen: true,
-  receiptWidthMm: 58,
+  receiptWidthMm: 80,
+  receiptTemplateId: 'bold',
+  receiptHighContrast: true,
   receiptHeaderText: '',
   receiptFooterText: 'از خرید شما سپاسگزاریم 🍦',
   showLogoOnReceipt: true,
