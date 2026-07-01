@@ -104,7 +104,11 @@ export type OrderStatus =
   | 'DELIVERED'
   | 'CANCELLED'
 
-export type OrderChannel = 'MOBILE' | 'KIOSK'
+export type OrderChannel = 'MOBILE' | 'KIOSK' | 'POS'
+
+export type PaymentMethod = 'CASH' | 'CARD' | 'MIXED' | 'UNPAID'
+
+export type PaymentStatus = 'UNPAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
 
 export const ORDER_STATUS_FLOW: OrderStatus[] = [
   'PENDING',
@@ -144,7 +148,20 @@ export interface Order {
   channel: OrderChannel
   customerName?: string | null
   note?: string | null
+  subtotal?: number
+  discountAmount?: number
+  discountNote?: string | null
   total: number
+  paymentStatus?: PaymentStatus
+  paymentMethod?: PaymentMethod
+  paidAmount?: number
+  changeAmount?: number
+  receiptNumber?: number | null
+  createdByUserId?: string | null
+  createdByName?: string | null
+  shiftId?: string | null
+  paidAt?: string | null
+  completedAt?: string | null
   items: OrderItem[]
   createdAt: string
   updatedAt: string
@@ -206,6 +223,11 @@ export interface DashboardStats {
   popularItems: { name: string; emoji: string; count: number }[]
   hourlyOrders: { hour: number; count: number }[]
   revenueLast7Days: { date: string; revenue: number; orders: number }[]
+  posSalesToday?: number
+  posRevenueToday?: number
+  onlineRevenueToday?: number
+  unpaidOrdersCount?: number
+  openShift?: { id: string; openedAt: string; openedByName: string | null } | null
 }
 
 import type { HomeAppearance } from './homeAppearance'

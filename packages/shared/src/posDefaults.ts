@@ -1,0 +1,24 @@
+import type { PosSettings } from './posTypes'
+
+export const DEFAULT_POS_SETTINGS: PosSettings = {
+  enabled: true,
+  requireShiftOpen: true,
+  receiptWidthMm: 58,
+  receiptHeaderText: '',
+  receiptFooterText: 'از خرید شما سپاسگزاریم 🍦',
+  showLogoOnReceipt: true,
+  showQrOnReceipt: true,
+  showShiftOnReceipt: true,
+  autoPrintOnSale: true,
+  autoPrintOnOnlineSettle: true,
+  defaultPaymentMethod: 'CASH',
+  allowMixedPayment: true,
+  allowManualDiscount: true,
+  maxDiscountPercentStaff: 10,
+  maxDiscountPercentManager: 50,
+  allowRefunds: true,
+  requireRefundReason: true,
+  requireManagerForRefund: false,
+  shiftRoles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'],
+  discountRoles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'],
+}

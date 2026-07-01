@@ -7,6 +7,7 @@ import {
   Settings as SettingsIcon,
   Users as UsersIcon,
   LogOut,
+  Calculator,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { useOrderAlerts } from '../lib/useOrderAlerts'
@@ -14,6 +15,7 @@ import { useOrderAlerts } from '../lib/useOrderAlerts'
 const NAV = [
   { to: '/', label: 'داشبورد', icon: LayoutDashboard, end: true },
   { to: '/orders', label: 'سفارش‌ها', icon: ClipboardList },
+  { to: '/pos', label: 'صندوق', icon: Calculator },
   { to: '/menu', label: 'منو', icon: UtensilsCrossed },
   { to: '/ice-cream', label: 'گزینه‌های بستنی', icon: IceCreamCone },
   { to: '/settings', label: 'تنظیمات', icon: SettingsIcon },

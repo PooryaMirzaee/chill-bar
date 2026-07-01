@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BellOff, Printer, RefreshCw } from 'lucide-react'
-import type { Order, OrderStatus } from '@chill-bar/shared'
-import { ORDER_STATUS_LABEL } from '@chill-bar/shared'
+import { Bell, BellOff, Calculator, Printer, RefreshCw } from 'lucide-react'
+import type { Order, OrderStatus, PosOrder, PosSettings, StoreSettings } from '@chill-bar/shared'
+import {
+  DEFAULT_POS_SETTINGS,
+  ORDER_CHANNEL_LABEL,
+  ORDER_STATUS_LABEL,
+  PAYMENT_METHOD_LABEL,
+  PAYMENT_STATUS_LABEL,
+} from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { useAdminSocket } from '../lib/useOrdersSocket'
 import { formatPrice, timeAgo } from '../lib/format'
 import { OrderItemExtras, OrderItemExtrasCompact } from '../components/OrderItemExtras'
 import { isAlertMuted, setAlertMuted, subscribeAlertMute } from '../lib/alertMute'
+import { buildReceiptItemsFromOrder, printThermalReceipt } from '../lib/printReceipt'
+import { useAuth } from '../lib/auth'
+import { PosCheckoutModal } from './pos/PosCheckoutModal'
 
 const COLUMNS: { status: OrderStatus; next?: OrderStatus }[] = [
   { status: 'PENDING', next: 'CONFIRMED' },
@@ -30,10 +40,16 @@ export function Orders() {
 
   const handleSocket = useCallback(
     (msg: { type: string }) => {
-      if (msg.type === 'order:new' || msg.type === 'order:updated' || msg.type === 'order:status') {
+      if (
+        msg.type === 'order:new' ||
+        msg.type === 'order:updated' ||
+        msg.type === 'order:status' ||
+        msg.type === 'order:paid'
+      ) {
         queryClient.invalidateQueries({ queryKey: ['orders'] })
         queryClient.invalidateQueries({ queryKey: ['orders', 'pending'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['pos-incoming'] })
       }
     },
     [queryClient],
@@ -77,6 +93,9 @@ export function Orders() {
           </p>
         </div>
         <div className="page-actions">
+          <Link to="/pos" className="btn-ghost">
+            <Calculator size={16} /> صندوق
+          </Link>
           <button
             className={`icon-btn ${!sessionMuted ? 'active' : ''}`}
             onClick={() => setAlertMuted(!sessionMuted)}
@@ -116,13 +135,19 @@ export function Orders() {
                   >
                     <div className="order-card-head">
                       <strong>{order.code}</strong>
-                      <span className="order-channel">
-                        {order.channel === 'KIOSK' ? 'کیوسک' : 'موبایل'}
-                      </span>
+                      <span className="order-channel">{ORDER_CHANNEL_LABEL[order.channel]}</span>
                     </div>
                     <div className="order-card-meta">
                       {order.customerName && <span>{order.customerName}</span>}
                       <span>{timeAgo(order.createdAt)}</span>
+                      {order.paymentStatus && order.paymentStatus !== 'UNPAID' && (
+                        <span className="payment-badge paid">
+                          {PAYMENT_STATUS_LABEL[order.paymentStatus]}
+                        </span>
+                      )}
+                      {order.paymentStatus === 'UNPAID' && order.channel !== 'POS' && (
+                        <span className="payment-badge unpaid">پرداخت نشده</span>
+                      )}
                     </div>
                     <ul className="order-card-items">
                       {order.items.slice(0, 3).map((item) => (
@@ -181,46 +206,125 @@ export function Orders() {
 }
 
 function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const [showCheckout, setShowCheckout] = useState(false)
+
+  const { data: store } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api<StoreSettings>('/api/settings'),
+  })
+  const { data: posSettings = DEFAULT_POS_SETTINGS } = useQuery({
+    queryKey: ['pos-settings'],
+    queryFn: () => api<PosSettings>('/api/admin/pos/settings'),
+  })
+
+  const checkoutMutation = useMutation({
+    mutationFn: (payment: { method: string; cashReceived?: number }) =>
+      api<PosOrder>(`/api/admin/orders/${order.id}/checkout`, {
+        method: 'POST',
+        body: JSON.stringify({ payment, discountAmount: 0, markDelivered: true }),
+      }),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      setShowCheckout(false)
+      printOrderReceipt(updated)
+    },
+  })
+
+  const printOrderReceipt = (o: Order = order) => {
+    if (!store) return
+    printThermalReceipt({
+      storeName: store.storeName,
+      storeSubtitle: store.storeSubtitle,
+      address: store.address,
+      phone: store.phone,
+      openingHours: store.openingHours,
+      logoUrl: store.appearance.logoUrl,
+      headerText: posSettings.receiptHeaderText,
+      footerText: posSettings.receiptFooterText,
+      widthMm: posSettings.receiptWidthMm,
+      orderCode: o.code,
+      receiptNumber: o.receiptNumber,
+      createdAt: o.createdAt,
+      cashierName: o.createdByName ?? user?.name,
+      customerName: o.customerName,
+      note: o.note,
+      channelLabel: ORDER_CHANNEL_LABEL[o.channel],
+      items: buildReceiptItemsFromOrder(o.items),
+      subtotal: o.subtotal ?? o.total,
+      discountAmount: o.discountAmount ?? 0,
+      total: o.total,
+      paymentMethodLabel: PAYMENT_METHOD_LABEL[o.paymentMethod ?? 'UNPAID'],
+      paidAmount: o.paidAmount,
+      changeAmount: o.changeAmount,
+      showQr: posSettings.showQrOnReceipt,
+    })
+  }
+
+  const unpaid = order.paymentStatus === 'UNPAID' || !order.paymentStatus
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <header className="modal-head">
-          <h3>سفارش {order.code}</h3>
-          <button className="icon-btn" onClick={onClose}>
-            ✕
-          </button>
-        </header>
-        <div className="modal-body">
-          <div className="order-detail-meta">
-            <span>{ORDER_STATUS_LABEL[order.status]}</span>
-            <span>{order.channel === 'KIOSK' ? 'کیوسک' : 'موبایل'}</span>
-            {order.customerName && <span>{order.customerName}</span>}
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <header className="modal-head">
+            <h3>سفارش {order.code}</h3>
+            <button className="icon-btn" onClick={onClose}>
+              ✕
+            </button>
+          </header>
+          <div className="modal-body">
+            <div className="order-detail-meta">
+              <span>{ORDER_STATUS_LABEL[order.status]}</span>
+              <span>{ORDER_CHANNEL_LABEL[order.channel]}</span>
+              {order.paymentStatus && (
+                <span>{PAYMENT_STATUS_LABEL[order.paymentStatus]}</span>
+              )}
+              {order.customerName && <span>{order.customerName}</span>}
+            </div>
+            {order.note && <p className="order-note">یادداشت: {order.note}</p>}
+            <ul className="order-detail-items">
+              {order.items.map((item) => (
+                <li key={item.id}>
+                  <span className="odi-emoji">{item.emoji}</span>
+                  <div className="odi-info">
+                    <strong>{item.name}</strong>
+                    <OrderItemExtras item={item} />
+                  </div>
+                  <span className="odi-qty">×{item.quantity}</span>
+                  <span className="odi-price">{formatPrice(item.lineTotal)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="order-detail-total">
+              <span>جمع کل</span>
+              <strong>{formatPrice(order.total)}</strong>
+            </div>
           </div>
-          {order.note && <p className="order-note">یادداشت: {order.note}</p>}
-          <ul className="order-detail-items">
-            {order.items.map((item) => (
-              <li key={item.id}>
-                <span className="odi-emoji">{item.emoji}</span>
-                <div className="odi-info">
-                  <strong>{item.name}</strong>
-                  <OrderItemExtras item={item} />
-                </div>
-                <span className="odi-qty">×{item.quantity}</span>
-                <span className="odi-price">{formatPrice(item.lineTotal)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="order-detail-total">
-            <span>جمع کل</span>
-            <strong>{formatPrice(order.total)}</strong>
-          </div>
+          <footer className="modal-foot">
+            {unpaid && order.channel !== 'POS' && (
+              <button className="btn-primary" onClick={() => setShowCheckout(true)}>
+                <Calculator size={16} /> تسویه در صندوق
+              </button>
+            )}
+            <button className="btn-ghost" onClick={() => printOrderReceipt()}>
+              <Printer size={16} /> چاپ رسید
+            </button>
+          </footer>
         </div>
-        <footer className="modal-foot">
-          <button className="btn-ghost" onClick={() => window.print()}>
-            <Printer size={16} /> چاپ رسید
-          </button>
-        </footer>
       </div>
-    </div>
+
+      {showCheckout && (
+        <PosCheckoutModal
+          total={order.total}
+          settings={posSettings}
+          title={`تسویه ${order.code}`}
+          onClose={() => setShowCheckout(false)}
+          loading={checkoutMutation.isPending}
+          onConfirm={(payment) => checkoutMutation.mutate(payment)}
+        />
+      )}
+    </>
   )
 }

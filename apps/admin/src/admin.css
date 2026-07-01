@@ -1411,3 +1411,32 @@ textarea {
     display: none !important;
   }
 }
+
+.payment-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.payment-badge.paid {
+  background: rgba(60, 180, 120, 0.15);
+  color: #6dcea0;
+}
+
+.payment-badge.unpaid {
+  background: rgba(200, 120, 60, 0.15);
+  color: #e0a060;
+}
+
+.dash-shift-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dash-shift-banner a {
+  margin-right: auto;
+  color: var(--primary);
+}

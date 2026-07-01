@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles } from 'lucide-react'
-import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings } from '@chill-bar/shared'
-import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS } from '@chill-bar/shared'
+import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator } from 'lucide-react'
+import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
+import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { AppearanceSettings } from '../components/AppearanceSettings'
 import { AiSettingsPanel } from '../components/AiSettingsPanel'
@@ -15,6 +15,7 @@ import { HomeAppearancePanel } from '../components/HomeAppearancePanel'
 import { MenuAppearancePanel } from '../components/MenuAppearancePanel'
 import { WaitLoungeSettingsPanel } from '../components/WaitLoungeSettingsPanel'
 import { ComboRecommendationSettingsPanel } from '../components/ComboRecommendationSettingsPanel'
+import { PosSettingsPanel } from '../components/PosSettingsPanel'
 
 const FEATURE_LABELS: Record<string, string> = {
   spinWheel: 'گردونه شانس',
@@ -25,7 +26,7 @@ const FEATURE_LABELS: Record<string, string> = {
   smartCombo: 'کمبو هوشمند',
 }
 
-type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'features' | 'ai' | 'sms' | 'alerts'
+type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
 
 export function Settings() {
   const queryClient = useQueryClient()
@@ -46,14 +47,20 @@ export function Settings() {
     queryKey: ['admin-alerts'],
     queryFn: () => api<AdminAlertSettings>('/api/admin/alerts'),
   })
+  const { data: posData } = useQuery({
+    queryKey: ['pos-settings'],
+    queryFn: () => api<PosSettings>('/api/admin/pos/settings'),
+  })
   const [form, setForm] = useState<StoreSettings | null>(null)
   const [aiForm, setAiForm] = useState<AiSettings>(DEFAULT_AI_SETTINGS)
   const [smsForm, setSmsForm] = useState<SmsSettings>(DEFAULT_SMS_SETTINGS)
   const [alertForm, setAlertForm] = useState<AdminAlertSettings>(DEFAULT_ADMIN_ALERT_SETTINGS)
+  const [posForm, setPosForm] = useState<PosSettings>(DEFAULT_POS_SETTINGS)
   const [saved, setSaved] = useState(false)
   const [aiSaved, setAiSaved] = useState(false)
   const [smsSaved, setSmsSaved] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
+  const [posSaved, setPosSaved] = useState(false)
 
   useEffect(() => {
     if (data) setForm(data)
@@ -70,6 +77,10 @@ export function Settings() {
   useEffect(() => {
     if (alertData) setAlertForm(alertData)
   }, [alertData])
+
+  useEffect(() => {
+    if (posData) setPosForm(posData)
+  }, [posData])
 
   const mutation = useMutation({
     mutationFn: (payload: StoreSettings) =>
@@ -111,6 +122,16 @@ export function Settings() {
     },
   })
 
+  const posMutation = useMutation({
+    mutationFn: (payload: PosSettings) =>
+      api('/api/admin/pos/settings', { method: 'PUT', body: JSON.stringify(payload) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-settings'] })
+      setPosSaved(true)
+      setTimeout(() => setPosSaved(false), 2000)
+    },
+  })
+
   if (!form) {
     return (
       <div className="page">
@@ -123,6 +144,7 @@ export function Settings() {
     if (tab === 'ai') aiMutation.mutate(aiForm)
     else if (tab === 'sms') smsMutation.mutate(smsForm)
     else if (tab === 'alerts') alertMutation.mutate(alertForm)
+    else if (tab === 'pos') posMutation.mutate(posForm)
     else mutation.mutate(form)
   }
 
@@ -133,9 +155,19 @@ export function Settings() {
         ? smsMutation.isPending
         : tab === 'alerts'
           ? alertMutation.isPending
-          : mutation.isPending
+          : tab === 'pos'
+            ? posMutation.isPending
+            : mutation.isPending
   const savedLabel =
-    tab === 'ai' ? aiSaved : tab === 'sms' ? smsSaved : tab === 'alerts' ? alertSaved : saved
+    tab === 'ai'
+      ? aiSaved
+      : tab === 'sms'
+        ? smsSaved
+        : tab === 'alerts'
+          ? alertSaved
+          : tab === 'pos'
+            ? posSaved
+            : saved
 
   return (
     <div className="page">
@@ -172,6 +204,9 @@ export function Settings() {
         </button>
         <button type="button" className={tab === 'combo' ? 'active' : ''} onClick={() => setTab('combo')}>
           <Sparkles size={16} /> پیشنهاد ترکیب
+        </button>
+        <button type="button" className={tab === 'pos' ? 'active' : ''} onClick={() => setTab('pos')}>
+          <Calculator size={16} /> صندوق
         </button>
         <button type="button" className={tab === 'ai' ? 'active' : ''} onClick={() => setTab('ai')}>
           <Bot size={16} /> هوش مصنوعی
@@ -349,6 +384,8 @@ export function Settings() {
       {tab === 'sms' && <SmsSettingsPanel settings={smsForm} onChange={setSmsForm} />}
 
       {tab === 'alerts' && <AlertSettingsPanel settings={alertForm} onChange={setAlertForm} />}
+
+      {tab === 'pos' && <PosSettingsPanel value={posForm} onChange={setPosForm} />}
 
       {tab === 'features' && (
         <div className="settings-grid">

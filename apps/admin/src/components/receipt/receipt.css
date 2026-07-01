@@ -1,0 +1,195 @@
+.thermal-receipt {
+  width: var(--receipt-width, 58mm);
+  max-width: var(--receipt-width, 58mm);
+  margin: 0 auto;
+  padding: 4mm 3mm;
+  font-family: 'Vazirmatn', 'Tahoma', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #000;
+  background: #fff;
+  direction: rtl;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.tr-header {
+  text-align: center;
+}
+
+.tr-logo {
+  display: block;
+  max-width: 36mm;
+  max-height: 14mm;
+  margin: 0 auto 2mm;
+  filter: grayscale(1);
+}
+
+.tr-brand-emoji {
+  font-size: 22px;
+  margin-bottom: 2mm;
+}
+
+.tr-store-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tr-subtitle,
+.tr-header-text {
+  margin: 1mm 0 0;
+  font-size: 10px;
+  color: #333;
+}
+
+.tr-meta-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+  margin-top: 2mm;
+  font-size: 9px;
+  color: #444;
+}
+
+.tr-divider {
+  border-top: 1px dashed #000;
+  margin: 3mm 0;
+}
+
+.tr-order-meta,
+.tr-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+}
+
+.tr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2mm;
+  font-size: 10px;
+}
+
+.tr-receipt-no {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.tr-note {
+  margin: 1mm 0 0;
+  font-size: 9px;
+  color: #333;
+}
+
+.tr-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5mm;
+}
+
+.tr-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 2mm;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tr-item-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.tr-item-price {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tr-item-extra {
+  font-size: 9px;
+  color: #333;
+  padding-right: 3mm;
+  margin-top: 0.5mm;
+}
+
+.tr-discount {
+  color: #333;
+}
+
+.tr-total {
+  font-size: 12px;
+  padding-top: 1mm;
+  border-top: 1px solid #000;
+  margin-top: 1mm;
+}
+
+.tr-footer {
+  text-align: center;
+}
+
+.tr-footer-text {
+  margin: 0 0 2mm;
+  font-size: 10px;
+}
+
+.tr-qr {
+  display: block;
+  margin: 2mm auto;
+}
+
+.tr-thanks {
+  margin: 1mm 0 0;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: 58mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #receipt-root,
+  #receipt-root * {
+    visibility: visible;
+  }
+
+  #receipt-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm;
+    max-width: 58mm;
+    padding: 2mm;
+    box-shadow: none !important;
+  }
+
+  .admin-sidebar,
+  .admin-shell > *:not(#receipt-print-portal),
+  .pos-shell > *:not(#receipt-print-portal),
+  .modal-overlay {
+    display: none !important;
+  }
+}
+
+@media print {
+  .thermal-receipt[data-width='80'] {
+    width: 80mm;
+    max-width: 80mm;
+  }
+}

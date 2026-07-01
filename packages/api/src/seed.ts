@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import bcrypt from 'bcryptjs'
 import { PrismaClient, Prisma } from '@prisma/client'
-import { DEFAULT_STORE_SETTINGS, LEGACY_CATEGORY_ACCENTS, SEED_VISUAL_PROFILES } from '@chill-bar/shared'
+import { DEFAULT_STORE_SETTINGS, DEFAULT_POS_SETTINGS, LEGACY_CATEGORY_ACCENTS, SEED_VISUAL_PROFILES } from '@chill-bar/shared'
 import { env } from './env.js'
 
 const prisma = new PrismaClient()
@@ -55,7 +55,7 @@ const ICE_OPTIONS = [
   { id: 'strawberry-fill', type: 'FILLING', name: 'توت فرنگی', color: '#e85d8a', priceMod: 5, emoji: '🍓', coldBoost: 0.4 },
 ] as const
 
-async function main() {
+export async function runSeed() {
   console.log('🌱 Seeding Chill Bar database...')
 
   const menuPath = join(__dirname, '..', 'prisma', 'seed-data', 'menu.json')
@@ -85,14 +85,8 @@ async function main() {
     const isIceCreamHub = c.id === 'icecream'
     await prisma.category.upsert({
       where: { id: c.id },
-      update: {
-        name: c.name,
-        emoji: c.emoji,
-        sortOrder: i,
-        accentColor,
-        isIceCreamHub,
-        showCustomBadge: isIceCreamHub,
-      },
+      // Never overwrite admin edits on re-seed / deploy restart
+      update: {},
       create: {
         id: c.id,
         name: c.name,
@@ -106,20 +100,12 @@ async function main() {
   }
   console.log(`✅ ${menu.categories.length} categories`)
 
-  // Menu items (idempotent: clear then insert by stable id)
+  // Menu items — create missing defaults only; preserve admin price/name edits
   for (let i = 0; i < menu.items.length; i++) {
     const item = menu.items[i]
     await prisma.menuItem.upsert({
       where: { id: item.id },
-      update: {
-        name: item.name,
-        price: item.price,
-        emoji: item.emoji,
-        description: item.description ?? '',
-        tags: item.tags ?? {},
-        categoryId: item.category,
-        sortOrder: i,
-      },
+      update: {},
       create: {
         id: item.id,
         name: item.name,
@@ -139,17 +125,7 @@ async function main() {
     const o = ICE_OPTIONS[i]
     await prisma.iceCreamOption.upsert({
       where: { type_id: { type: o.type, id: o.id } },
-      update: {
-        name: o.name,
-        color: o.color,
-        texture: 'texture' in o ? o.texture : null,
-        priceMod: o.priceMod,
-        emoji: o.emoji,
-        hotBoost: 'hotBoost' in o ? o.hotBoost : null,
-        coldBoost: 'coldBoost' in o ? o.coldBoost : null,
-        sortOrder: i,
-        visualProfile: (SEED_VISUAL_PROFILES[o.id] ?? null) as Prisma.InputJsonValue,
-      },
+      update: {},
       create: {
         id: o.id,
         type: o.type,
@@ -194,14 +170,26 @@ async function main() {
       },
     },
   })
+  await prisma.setting.upsert({
+    where: { key: 'pos_config' },
+    update: {},
+    create: {
+      key: 'pos_config',
+      value: DEFAULT_POS_SETTINGS as unknown as Prisma.InputJsonValue,
+    },
+  })
   console.log('✅ Settings')
 
   console.log('🎉 Seed complete!')
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(() => prisma.$disconnect())
+const isDirectRun = process.argv[1]?.endsWith('seed.ts')
+
+if (isDirectRun) {
+  runSeed()
+    .catch((e) => {
+      console.error(e)
+      process.exit(1)
+    })
+    .finally(() => prisma.$disconnect())
+}

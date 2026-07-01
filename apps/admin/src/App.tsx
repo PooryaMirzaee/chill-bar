@@ -8,6 +8,8 @@ import { MenuManager } from './pages/MenuManager'
 import { IceCreamManager } from './pages/IceCreamManager'
 import { Settings } from './pages/Settings'
 import { Users } from './pages/Users'
+import { PosRegister } from './pages/pos/PosRegister'
+import { PosShiftHistory } from './pages/pos/PosShiftHistory'
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -27,6 +29,22 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route
+        path="/pos"
+        element={
+          <Protected>
+            <PosRegister />
+          </Protected>
+        }
+      />
+      <Route
+        path="/pos/shifts"
+        element={
+          <Protected>
+            <PosShiftHistory />
+          </Protected>
+        }
+      />
       <Route
         path="/"
         element={

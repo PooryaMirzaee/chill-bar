@@ -10,7 +10,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
-import { ShoppingBag, Wallet, TrendingUp, Clock } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ShoppingBag, Wallet, TrendingUp, Clock, Calculator, CreditCard } from 'lucide-react'
 import type { DashboardStats } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { formatNumber, formatPrice } from '../lib/format'
@@ -41,6 +42,11 @@ export function Dashboard() {
           <h1>داشبورد</h1>
           <p className="page-sub">نمای کلی عملکرد امروز</p>
         </div>
+        <div className="page-actions">
+          <Link to="/pos" className="btn-primary">
+            <Calculator size={16} /> صندوق فروش
+          </Link>
+        </div>
       </header>
 
       <div className="stat-grid">
@@ -57,6 +63,18 @@ export function Dashboard() {
           tone="green"
         />
         <StatCard
+          icon={<Calculator />}
+          label="فروش صندوق"
+          value={formatPrice(data.posRevenueToday ?? 0)}
+          tone="blue"
+        />
+        <StatCard
+          icon={<CreditCard />}
+          label="سفارش آنلاین"
+          value={formatPrice(data.onlineRevenueToday ?? 0)}
+          tone="blue"
+        />
+        <StatCard
           icon={<TrendingUp />}
           label="میانگین هر سفارش"
           value={formatPrice(data.avgOrderValue)}
@@ -68,7 +86,26 @@ export function Dashboard() {
           value={formatNumber(data.pendingCount)}
           tone="red"
         />
+        {(data.unpaidOrdersCount ?? 0) > 0 && (
+          <StatCard
+            icon={<Wallet />}
+            label="پرداخت نشده"
+            value={formatNumber(data.unpaidOrdersCount ?? 0)}
+            tone="red"
+          />
+        )}
       </div>
+
+      {data.openShift && (
+        <section className="card dash-shift-banner">
+          <strong>شیفت باز</strong>
+          <span>
+            {data.openShift.openedByName ?? '—'} ·{' '}
+            {new Date(data.openShift.openedAt).toLocaleTimeString('fa-IR')}
+          </span>
+          <Link to="/pos/shifts">گزارش شیفت‌ها</Link>
+        </section>
+      )}
 
       <div className="dash-grid">
         <section className="card">

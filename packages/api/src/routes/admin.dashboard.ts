@@ -11,7 +11,8 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
       const startOfDay = new Date(now)
       startOfDay.setHours(0, 0, 0, 0)
 
-      const [todayOrders, pendingCount, statusGroups, last7] = await Promise.all([
+      const [todayOrders, pendingCount, statusGroups, last7, unpaidCount, openShift] =
+        await Promise.all([
         prisma.order.findMany({
           where: { createdAt: { gte: startOfDay }, status: { not: 'CANCELLED' } },
           include: { items: true },
@@ -25,11 +26,28 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
           },
           select: { total: true, createdAt: true },
         }),
+        prisma.order.count({
+          where: {
+            paymentStatus: 'UNPAID',
+            status: { not: 'CANCELLED' },
+            channel: { in: ['MOBILE', 'KIOSK'] },
+          },
+        }),
+        prisma.cashShift.findFirst({
+          where: { status: 'OPEN' },
+          include: { openedBy: { select: { name: true } } },
+          orderBy: { openedAt: 'desc' },
+        }),
       ])
 
       const revenueToday = todayOrders.reduce((sum, o) => sum + o.total, 0)
       const ordersToday = todayOrders.length
       const avgOrderValue = ordersToday ? Math.round(revenueToday / ordersToday) : 0
+      const posOrdersToday = todayOrders.filter((o) => o.channel === 'POS')
+      const posRevenueToday = posOrdersToday.reduce((sum, o) => sum + o.total, 0)
+      const onlineRevenueToday = todayOrders
+        .filter((o) => o.channel !== 'POS')
+        .reduce((sum, o) => sum + o.total, 0)
 
       const statusCounts = {
         PENDING: 0,
@@ -91,6 +109,17 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         popularItems,
         hourlyOrders: hourly,
         revenueLast7Days,
+        posSalesToday: posOrdersToday.length,
+        posRevenueToday,
+        onlineRevenueToday,
+        unpaidOrdersCount: unpaidCount,
+        openShift: openShift
+          ? {
+              id: openShift.id,
+              openedAt: openShift.openedAt.toISOString(),
+              openedByName: openShift.openedBy?.name ?? null,
+            }
+          : null,
       }
     },
   )

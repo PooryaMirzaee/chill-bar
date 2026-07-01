@@ -15,10 +15,12 @@ export async function adminOrderRoutes(app: FastifyInstance) {
         channel?: string
         date?: string
         limit?: string
+        paymentStatus?: string
       }
       const where: Record<string, unknown> = {}
       if (query.status) where.status = query.status as OrderStatus
       if (query.channel) where.channel = query.channel
+      if (query.paymentStatus) where.paymentStatus = query.paymentStatus
       if (query.date) {
         const start = new Date(query.date)
         start.setHours(0, 0, 0, 0)

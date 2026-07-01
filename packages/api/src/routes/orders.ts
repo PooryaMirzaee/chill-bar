@@ -54,6 +54,7 @@ export async function orderRoutes(app: FastifyInstance) {
               customerName: input.customerName ?? null,
               note: input.note ?? null,
               customerId: customerId ?? null,
+              subtotal: total,
               total,
               items: {
                 create: orderItems.map((item) => ({

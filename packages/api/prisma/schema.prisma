@@ -25,6 +25,32 @@ enum OrderStatus {
 enum OrderChannel {
   MOBILE
   KIOSK
+  POS
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MIXED
+  UNPAID
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum AdjustmentType {
+  DISCOUNT
+  REFUND
+  VOID_ITEM
+}
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
 }
 
 enum IceOptionType {
@@ -34,14 +60,18 @@ enum IceOptionType {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  username  String   @unique
-  password  String
-  role      UserRole @default(STAFF)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String            @id @default(cuid())
+  name               String
+  username           String            @unique
+  password           String
+  role               UserRole          @default(STAFF)
+  isActive           Boolean           @default(true)
+  createdOrders      Order[]           @relation("OrderCreatedBy")
+  openedShifts       CashShift[]       @relation("ShiftOpenedBy")
+  closedShifts       CashShift[]       @relation("ShiftClosedBy")
+  orderAdjustments   OrderAdjustment[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 }
 
 model Category {
@@ -148,24 +178,89 @@ model WaitGameSession {
   @@index([customerId])
 }
 
+model CashShift {
+  id             String      @id @default(cuid())
+  status         ShiftStatus @default(OPEN)
+  openingCash    Int         @default(0)
+  closingCash    Int?
+  expectedCash   Int?
+  difference     Int?
+  notes          String?
+  openedByUserId String
+  openedBy       User        @relation("ShiftOpenedBy", fields: [openedByUserId], references: [id])
+  closedByUserId String?
+  closedBy       User?       @relation("ShiftClosedBy", fields: [closedByUserId], references: [id])
+  orders         Order[]
+  openedAt       DateTime    @default(now())
+  closedAt       DateTime?
+
+  @@index([status])
+  @@index([openedAt])
+}
+
 model Order {
-  id           String       @id @default(cuid())
-  code         String       @unique
-  status       OrderStatus  @default(PENDING)
-  channel      OrderChannel @default(MOBILE)
-  customerName String?
-  note         String?
-  total        Int          @default(0)
-  customerId   String?
-  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items        OrderItem[]
-  waitGame     WaitGameSession?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String         @id @default(cuid())
+  code            String         @unique
+  status          OrderStatus    @default(PENDING)
+  channel         OrderChannel   @default(MOBILE)
+  customerName    String?
+  note            String?
+  subtotal        Int            @default(0)
+  discountAmount  Int            @default(0)
+  discountNote    String?
+  total           Int            @default(0)
+  paymentStatus   PaymentStatus  @default(UNPAID)
+  paymentMethod   PaymentMethod  @default(UNPAID)
+  paidAmount      Int            @default(0)
+  changeAmount    Int            @default(0)
+  receiptNumber   Int?
+  customerId      String?
+  customer        Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdByUserId String?
+  createdBy       User?          @relation("OrderCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  shiftId         String?
+  shift           CashShift?     @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  payments        OrderPayment[]
+  adjustments     OrderAdjustment[]
+  waitGame        WaitGameSession?
+  paidAt          DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([status])
   @@index([createdAt])
   @@index([customerId])
+  @@index([paymentStatus])
+  @@index([shiftId])
+  @@index([receiptNumber])
+}
+
+model OrderPayment {
+  id        String        @id @default(cuid())
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  method    PaymentMethod
+  amount    Int
+  createdAt DateTime      @default(now())
+
+  @@index([orderId])
+}
+
+model OrderAdjustment {
+  id              String         @id @default(cuid())
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String
+  type            AdjustmentType
+  amount          Int
+  itemId          String?
+  reason          String?
+  createdByUserId String
+  createdBy       User           @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime       @default(now())
+
+  @@index([orderId])
 }
 
 model OrderItem {

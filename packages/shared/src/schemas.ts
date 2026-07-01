@@ -3,7 +3,13 @@ import { homeAppearanceSchema } from './homeAppearance'
 import { menuAppearanceSchema } from './menuAppearance'
 import { comboRecommendationSettingsSchema } from './comboSettings'
 
-export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK'])
+export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK', 'POS'])
+
+export const paymentMethodSchema = z.enum(['CASH', 'CARD', 'MIXED', 'UNPAID'])
+
+export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'])
+
+export const adjustmentTypeSchema = z.enum(['DISCOUNT', 'REFUND', 'VOID_ITEM'])
 
 export const orderStatusSchema = z.enum([
   'PENDING',
@@ -487,3 +493,85 @@ export type IceCreamOptionInput = z.infer<typeof iceCreamOptionInputSchema>
 export type IceCreamBuilderSettingsInput = z.infer<typeof iceCreamBuilderSettingsSchema>
 export type CustomerOtpSendInput = z.infer<typeof customerOtpSendSchema>
 export type CustomerOtpVerifyInput = z.infer<typeof customerOtpVerifySchema>
+
+export const posSettingsSchema = z.object({
+  enabled: z.boolean().default(true),
+  requireShiftOpen: z.boolean().default(true),
+  receiptWidthMm: z.union([z.literal(58), z.literal(80)]).default(58),
+  receiptHeaderText: z.string().max(300).default(''),
+  receiptFooterText: z.string().max(300).default('از خرید شما سپاسگزاریم 🍦'),
+  showLogoOnReceipt: z.boolean().default(true),
+  showQrOnReceipt: z.boolean().default(true),
+  showShiftOnReceipt: z.boolean().default(true),
+  autoPrintOnSale: z.boolean().default(true),
+  autoPrintOnOnlineSettle: z.boolean().default(true),
+  defaultPaymentMethod: paymentMethodSchema.default('CASH'),
+  allowMixedPayment: z.boolean().default(true),
+  allowManualDiscount: z.boolean().default(true),
+  maxDiscountPercentStaff: z.number().int().min(0).max(100).default(10),
+  maxDiscountPercentManager: z.number().int().min(0).max(100).default(50),
+  allowRefunds: z.boolean().default(true),
+  requireRefundReason: z.boolean().default(true),
+  requireManagerForRefund: z.boolean().default(false),
+  shiftRoles: z
+    .array(z.enum(['SUPER_ADMIN', 'MANAGER', 'STAFF']))
+    .default(['SUPER_ADMIN', 'MANAGER', 'STAFF']),
+  discountRoles: z
+    .array(z.enum(['SUPER_ADMIN', 'MANAGER', 'STAFF']))
+    .default(['SUPER_ADMIN', 'MANAGER', 'STAFF']),
+})
+
+export const shiftOpenSchema = z.object({
+  openingCash: z.number().int().min(0).max(100_000_000).default(0),
+})
+
+export const shiftCloseSchema = z.object({
+  closingCash: z.number().int().min(0).max(100_000_000),
+  notes: z.string().max(500).optional().nullable(),
+})
+
+const posPaymentLineSchema = z.object({
+  method: z.enum(['CASH', 'CARD']),
+  amount: z.number().int().positive(),
+})
+
+export const posCheckoutPaymentSchema = z.object({
+  method: paymentMethodSchema,
+  cashReceived: z.number().int().min(0).max(100_000_000).optional(),
+  payments: z.array(posPaymentLineSchema).optional(),
+})
+
+export const posSaleSchema = z.object({
+  items: z.array(orderItemPayloadSchema).min(1, 'سبد خرید خالی است'),
+  customerName: z.string().max(80).optional().nullable(),
+  note: z.string().max(500).optional().nullable(),
+  discountAmount: z.number().int().min(0).max(10_000_000).default(0),
+  discountNote: z.string().max(200).optional().nullable(),
+  payment: posCheckoutPaymentSchema,
+})
+
+export const orderCheckoutSchema = z.object({
+  payment: posCheckoutPaymentSchema,
+  discountAmount: z.number().int().min(0).max(10_000_000).default(0),
+  discountNote: z.string().max(200).optional().nullable(),
+  markDelivered: z.boolean().default(true),
+})
+
+export const orderAdjustmentSchema = z.object({
+  type: adjustmentTypeSchema,
+  amount: z.number().int().positive(),
+  itemId: z.string().optional().nullable(),
+  reason: z.string().max(300).optional().nullable(),
+})
+
+export const orderVoidSchema = z.object({
+  reason: z.string().max(300).optional().nullable(),
+})
+
+export type PosSettingsInput = z.infer<typeof posSettingsSchema>
+export type ShiftOpenInput = z.infer<typeof shiftOpenSchema>
+export type ShiftCloseInput = z.infer<typeof shiftCloseSchema>
+export type PosSaleInput = z.infer<typeof posSaleSchema>
+export type OrderCheckoutInput = z.infer<typeof orderCheckoutSchema>
+export type OrderAdjustmentInput = z.infer<typeof orderAdjustmentSchema>
+export type OrderVoidInput = z.infer<typeof orderVoidSchema>
