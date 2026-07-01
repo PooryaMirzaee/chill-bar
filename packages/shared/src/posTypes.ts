@@ -12,7 +12,11 @@ export interface PosSettings {
   requireShiftOpen: boolean
   receiptWidthMm: 58 | 80
   receiptTemplateId: ReceiptTemplateId
+  kitchenReceiptTemplateId: ReceiptTemplateId
   receiptHighContrast: boolean
+  receiptPrintMode: 'dialog' | 'off'
+  printCustomerReceipt: boolean
+  printKitchenReceipt: boolean
   receiptHeaderText: string
   receiptFooterText: string
   showLogoOnReceipt: boolean

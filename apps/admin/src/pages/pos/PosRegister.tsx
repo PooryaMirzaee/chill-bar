@@ -8,7 +8,7 @@ import {
 } from '@chill-bar/shared'
 import { api } from '../../lib/api'
 import { usePosCart } from '../../lib/usePosCart'
-import { buildThermalReceiptProps, printThermalReceipt } from '../../lib/printReceipt'
+import { printOrderReceipts, shouldAutoPrint } from '../../lib/printReceipt'
 import { useAuth } from '../../lib/auth'
 import { PosShiftBar } from './PosShiftBar'
 import { PosItemGrid } from './PosItemGrid'
@@ -79,7 +79,7 @@ export function PosRegister() {
       cart.clear()
       setShowCheckout(false)
       setError(null)
-      if (posSettings.autoPrintOnSale) {
+      if (posSettings.autoPrintOnSale && shouldAutoPrint(posSettings)) {
         printReceiptForOrder(order)
       }
     },
@@ -111,7 +111,7 @@ export function PosRegister() {
     onSuccess: (order) => {
       queryClient.invalidateQueries({ queryKey: ['pos-incoming'] })
       setSettleOrder(null)
-      if (posSettings.autoPrintOnOnlineSettle) {
+      if (posSettings.autoPrintOnOnlineSettle && shouldAutoPrint(posSettings)) {
         printReceiptForOrder(order)
       }
     },
@@ -120,7 +120,7 @@ export function PosRegister() {
 
   const printReceiptForOrder = (order: PosOrder) => {
     if (!store) return
-    printThermalReceipt(buildThermalReceiptProps(order, store, posSettings, { cashierName: user?.name }))
+    printOrderReceipts(order, store, posSettings, { cashierName: user?.name })
   }
 
   const handleSelectItem = (item: PosMenuItem) => {

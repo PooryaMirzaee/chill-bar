@@ -1,5 +1,5 @@
 import type { PosSettings, ReceiptTemplateId, StoreSettings } from '@chill-bar/shared'
-import { PAYMENT_METHOD_LABEL, RECEIPT_TEMPLATES } from '@chill-bar/shared'
+import { CUSTOMER_RECEIPT_TEMPLATES, KITCHEN_RECEIPT_TEMPLATES, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import { ThermalReceipt } from './receipt/ThermalReceipt'
 import { buildSampleReceiptProps, printSampleReceipt } from '../lib/printReceipt'
 
@@ -14,7 +14,38 @@ export function PosSettingsPanel({ value, onChange, store }: PosSettingsPanelPro
     onChange({ ...value, [key]: val })
   }
 
-  const previewProps = buildSampleReceiptProps(store ?? { storeName: 'Chill Bar' }, value)
+  const previewCustomer = buildSampleReceiptProps(store ?? { storeName: 'Chill Bar' }, value, 'customer')
+  const previewKitchen = buildSampleReceiptProps(store ?? { storeName: 'Chill Bar' }, value, 'kitchen')
+
+  const renderTemplateGrid = (
+    templates: typeof CUSTOMER_RECEIPT_TEMPLATES,
+    selected: ReceiptTemplateId,
+    onSelect: (id: ReceiptTemplateId) => void,
+    label: string,
+  ) => (
+    <div>
+      <span>{label}</span>
+      <div className="receipt-template-grid" role="radiogroup" aria-label={label}>
+        {templates.map((template) => (
+          <button
+            key={template.id}
+            type="button"
+            role="radio"
+            aria-checked={selected === template.id}
+            className={`receipt-template-card${selected === template.id ? ' is-active' : ''}`}
+            onClick={() => onSelect(template.id)}
+          >
+            <div
+              className={`receipt-template-preview receipt-template-preview--${template.id}`}
+              aria-hidden
+            />
+            <strong>{template.name}</strong>
+            <span>{template.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="settings-panel pos-settings-panel">
@@ -60,32 +91,56 @@ export function PosSettingsPanel({ value, onChange, store }: PosSettingsPanelPro
           />
         </label>
 
-        <div>
-          <span>طرح رسید</span>
-          <div className="receipt-template-grid" role="radiogroup" aria-label="طرح رسید">
-            {RECEIPT_TEMPLATES.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                role="radio"
-                aria-checked={value.receiptTemplateId === template.id}
-                className={`receipt-template-card${value.receiptTemplateId === template.id ? ' is-active' : ''}`}
-                onClick={() => set('receiptTemplateId', template.id as ReceiptTemplateId)}
-              >
-                <div
-                  className={`receipt-template-preview receipt-template-preview--${template.id}`}
-                  aria-hidden
-                />
-                <strong>{template.name}</strong>
-                <span>{template.description}</span>
-              </button>
-            ))}
-          </div>
+        <label>
+          رفتار چاپ خودکار
+          <select
+            value={value.receiptPrintMode}
+            onChange={(e) => set('receiptPrintMode', e.target.value as PosSettings['receiptPrintMode'])}
+          >
+            <option value="dialog">باز کردن دیالوگ چاپ (آشپزخانه + مشتری)</option>
+            <option value="off">بدون چاپ خودکار</option>
+          </select>
+        </label>
+
+        <label className="toggle-row">
+          <span>چاپ نسخه مشتری</span>
+          <input
+            type="checkbox"
+            checked={value.printCustomerReceipt}
+            onChange={(e) => set('printCustomerReceipt', e.target.checked)}
+          />
+        </label>
+        <label className="toggle-row">
+          <span>چاپ نسخه آشپزخانه</span>
+          <input
+            type="checkbox"
+            checked={value.printKitchenReceipt}
+            onChange={(e) => set('printKitchenReceipt', e.target.checked)}
+          />
+        </label>
+
+        {renderTemplateGrid(
+          CUSTOMER_RECEIPT_TEMPLATES,
+          value.receiptTemplateId,
+          (id) => set('receiptTemplateId', id),
+          'طرح رسید مشتری',
+        )}
+
+        {renderTemplateGrid(
+          KITCHEN_RECEIPT_TEMPLATES,
+          value.kitchenReceiptTemplateId,
+          (id) => set('kitchenReceiptTemplateId', id),
+          'طرح رسید آشپزخانه',
+        )}
+
+        <div className="receipt-preview-panel">
+          <strong>پیش‌نمایش مشتری</strong>
+          <ThermalReceipt {...previewCustomer} preview />
         </div>
 
         <div className="receipt-preview-panel">
-          <strong>پیش‌نمایش زنده</strong>
-          <ThermalReceipt {...previewProps} preview />
+          <strong>پیش‌نمایش آشپزخانه</strong>
+          <ThermalReceipt {...previewKitchen} preview />
         </div>
 
         <div className="receipt-settings-actions">

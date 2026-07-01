@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { PosSettings, StoreSettings } from '@chill-bar/shared'
 import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
-import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
+import { ReceiptPrintBatch, ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-export function printThermalReceipt(props: ThermalReceiptProps) {
+function renderAndPrint(node: ReactNode, openDialog: boolean) {
   let portal = document.getElementById('receipt-print-portal')
   if (!portal) {
     portal = document.createElement('div')
@@ -13,7 +14,12 @@ export function printThermalReceipt(props: ThermalReceiptProps) {
   }
 
   const root = createRoot(portal)
-  root.render(<ThermalReceipt {...props} />)
+  root.render(node)
+
+  if (!openDialog) {
+    root.unmount()
+    return
+  }
 
   requestAnimationFrame(() => {
     setTimeout(() => {
@@ -21,8 +27,24 @@ export function printThermalReceipt(props: ThermalReceiptProps) {
       setTimeout(() => {
         root.unmount()
       }, 500)
-    }, 150)
+    }, 180)
   })
+}
+
+export function printThermalReceipt(props: ThermalReceiptProps, options?: { openDialog?: boolean }) {
+  renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
+}
+
+export function printThermalReceiptBatch(
+  copies: ThermalReceiptProps[],
+  options?: { openDialog?: boolean },
+) {
+  if (copies.length === 0) return
+  if (copies.length === 1) {
+    printThermalReceipt(copies[0], options)
+    return
+  }
+  renderAndPrint(<ReceiptPrintBatch copies={copies} />, options?.openDialog !== false)
 }
 
 export function buildReceiptItemsFromOrder(
@@ -34,6 +56,7 @@ export function buildReceiptItemsFromOrder(
     lineTotal: number
     customConfig?: Record<string, unknown> | null
   }>,
+  options?: { omitPricesInExtras?: boolean },
 ): ThermalReceiptProps['items'] {
   return items.map((item) => {
     const extras: string[] = []
@@ -42,7 +65,9 @@ export function buildReceiptItemsFromOrder(
       for (const mod of config.modifiers as Array<{ optionName?: string; price?: number }>) {
         if (mod.optionName) {
           extras.push(
-            `+ ${mod.optionName}${mod.price ? ` (${new Intl.NumberFormat('fa-IR').format(mod.price)})` : ''}`,
+            options?.omitPricesInExtras || !mod.price
+              ? `+ ${mod.optionName}`
+              : `+ ${mod.optionName} (${new Intl.NumberFormat('fa-IR').format(mod.price)})`,
           )
         }
       }
@@ -88,12 +113,12 @@ type ReceiptOrderLike = {
   changeAmount?: number
 }
 
-export function buildThermalReceiptProps(
+function buildBaseReceiptProps(
   order: ReceiptOrderLike,
   store: StoreSettings,
   posSettings: PosSettings,
   options?: { cashierName?: string | null },
-): ThermalReceiptProps {
+): Omit<ThermalReceiptProps, 'copyType' | 'templateId'> {
   return {
     storeName: store.storeName,
     storeSubtitle: store.storeSubtitle,
@@ -105,7 +130,6 @@ export function buildThermalReceiptProps(
     headerText: posSettings.receiptHeaderText,
     footerText: posSettings.receiptFooterText,
     widthMm: posSettings.receiptWidthMm,
-    templateId: posSettings.receiptTemplateId,
     highContrast: posSettings.receiptHighContrast,
     orderCode: order.code,
     receiptNumber: order.receiptNumber,
@@ -126,9 +150,74 @@ export function buildThermalReceiptProps(
   }
 }
 
+export function buildThermalReceiptProps(
+  order: ReceiptOrderLike,
+  store: StoreSettings,
+  posSettings: PosSettings,
+  options?: { cashierName?: string | null; copyType?: 'customer' | 'kitchen' },
+): ThermalReceiptProps {
+  const copyType = options?.copyType ?? 'customer'
+  const base = buildBaseReceiptProps(order, store, posSettings, options)
+  return {
+    ...base,
+    copyType,
+    templateId:
+      copyType === 'kitchen'
+        ? posSettings.kitchenReceiptTemplateId
+        : posSettings.receiptTemplateId,
+    items: buildReceiptItemsFromOrder(order.items, {
+      omitPricesInExtras: copyType === 'kitchen',
+    }),
+    showPrices: copyType === 'customer',
+  }
+}
+
+export function buildOrderReceiptCopies(
+  order: ReceiptOrderLike,
+  store: StoreSettings,
+  posSettings: PosSettings,
+  options?: { cashierName?: string | null },
+): ThermalReceiptProps[] {
+  const copies: ThermalReceiptProps[] = []
+  if (posSettings.printKitchenReceipt) {
+    copies.push(
+      buildThermalReceiptProps(order, store, posSettings, { ...options, copyType: 'kitchen' }),
+    )
+  }
+  if (posSettings.printCustomerReceipt) {
+    copies.push(
+      buildThermalReceiptProps(order, store, posSettings, { ...options, copyType: 'customer' }),
+    )
+  }
+  return copies
+}
+
+export function printOrderReceipts(
+  order: ReceiptOrderLike,
+  store: StoreSettings,
+  posSettings: PosSettings,
+  options?: { cashierName?: string | null; forceDialog?: boolean },
+) {
+  const copies = buildOrderReceiptCopies(order, store, posSettings, options)
+  if (copies.length === 0) return
+
+  const openDialog = options?.forceDialog === true || posSettings.receiptPrintMode === 'dialog'
+  if (!openDialog) return
+
+  printThermalReceiptBatch(copies, { openDialog: true })
+}
+
+export function shouldAutoPrint(posSettings: PosSettings): boolean {
+  return (
+    posSettings.receiptPrintMode === 'dialog' &&
+    (posSettings.printCustomerReceipt || posSettings.printKitchenReceipt)
+  )
+}
+
 export function buildSampleReceiptProps(
   store: Pick<StoreSettings, 'storeName'> & Partial<StoreSettings>,
   posSettings: PosSettings,
+  copyType: 'customer' | 'kitchen' = 'customer',
 ): ThermalReceiptProps {
   return {
     storeName: store.storeName || 'Chill Bar',
@@ -141,7 +230,11 @@ export function buildSampleReceiptProps(
     headerText: posSettings.receiptHeaderText || 'نمونه چاپ رسید',
     footerText: posSettings.receiptFooterText,
     widthMm: posSettings.receiptWidthMm,
-    templateId: posSettings.receiptTemplateId,
+    templateId:
+      copyType === 'kitchen'
+        ? posSettings.kitchenReceiptTemplateId
+        : posSettings.receiptTemplateId,
+    copyType,
     highContrast: posSettings.receiptHighContrast,
     orderCode: 'CB-PREVIEW',
     receiptNumber: 42,
@@ -175,6 +268,7 @@ export function buildSampleReceiptProps(
     paidAmount: 300000,
     changeAmount: 20000,
     showQr: posSettings.showQrOnReceipt,
+    showPrices: copyType === 'customer',
   }
 }
 
@@ -182,5 +276,42 @@ export function printSampleReceipt(
   store: Pick<StoreSettings, 'storeName'> & Partial<StoreSettings>,
   posSettings: PosSettings,
 ) {
-  printThermalReceipt(buildSampleReceiptProps(store, posSettings))
+  const copies = buildOrderReceiptCopies(
+    {
+      code: 'CB-PREVIEW',
+      receiptNumber: 42,
+      createdAt: new Date().toISOString(),
+      createdByName: 'صندوقدار',
+      customerName: 'مشتری نمونه',
+      customerPhone: '09123456789',
+      channel: 'POS',
+      items: [
+        {
+          name: 'شیک وانیل',
+          emoji: '🥤',
+          quantity: 2,
+          unitPrice: 85000,
+          lineTotal: 170000,
+          customConfig: { modifiers: [{ optionName: 'خامه' }] },
+        },
+        {
+          name: 'بستنی کاستومی',
+          emoji: '🍦',
+          quantity: 1,
+          unitPrice: 120000,
+          lineTotal: 120000,
+          customConfig: { iceCream: { base: 'وانیل', coating: 'شکلات', filling: 'فندق' } },
+        },
+      ],
+      subtotal: 290000,
+      discountAmount: 10000,
+      total: 280000,
+      paymentMethod: 'CASH',
+      paidAmount: 300000,
+      changeAmount: 20000,
+    },
+    store as StoreSettings,
+    posSettings,
+  )
+  printThermalReceiptBatch(copies.length ? copies : [buildSampleReceiptProps(store, posSettings)])
 }

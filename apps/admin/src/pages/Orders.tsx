@@ -14,7 +14,7 @@ import { useAdminSocket } from '../lib/useOrdersSocket'
 import { formatPrice, timeAgo } from '../lib/format'
 import { OrderItemExtras, OrderItemExtrasCompact } from '../components/OrderItemExtras'
 import { isAlertMuted, setAlertMuted, subscribeAlertMute } from '../lib/alertMute'
-import { buildThermalReceiptProps, printThermalReceipt } from '../lib/printReceipt'
+import { printOrderReceipts } from '../lib/printReceipt'
 import { useAuth } from '../lib/auth'
 import { PosCheckoutModal } from './pos/PosCheckoutModal'
 
@@ -233,7 +233,10 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
   const printOrderReceipt = (o: Order = order) => {
     if (!store) return
-    printThermalReceipt(buildThermalReceiptProps(o, store, posSettings, { cashierName: user?.name }))
+    printOrderReceipts(o, store, posSettings, {
+      cashierName: user?.name,
+      forceDialog: true,
+    })
   }
 
   const unpaid = order.paymentStatus === 'UNPAID' || !order.paymentStatus

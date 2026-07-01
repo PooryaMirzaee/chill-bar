@@ -46,11 +46,12 @@
   max-width: 40mm;
   max-height: 16mm;
   margin: 0 auto 2mm;
-  filter: grayscale(1) contrast(2) brightness(0);
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.15);
 }
 
 .thermal-receipt--high-contrast .tr-logo {
-  filter: grayscale(1) contrast(3) brightness(0);
+  filter: grayscale(1) contrast(1.25);
 }
 
 .tr-brand-emoji {
@@ -190,17 +191,15 @@
   margin-top: 1mm;
 }
 
-.tr-total--inverted {
-  background: #000;
-  color: #fff;
+.tr-total--emphasized {
+  border: 3px double #000;
   padding: 2.5mm 2mm;
-  border: 3px solid #000;
-  border-radius: 0;
+  font-size: 16px;
   margin: 2mm 0;
 }
 
-.tr-total--inverted strong {
-  color: #fff;
+.tr-total--emphasized strong {
+  color: #000;
 }
 
 /* ── Footer ─────────────────────────────────────────────────── */
@@ -309,6 +308,106 @@
   letter-spacing: 0.08em;
 }
 
+/* ── Kitchen copy ───────────────────────────────────────────── */
+
+.tr-kitchen-badge {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  border: 3px double #000;
+  padding: 2mm;
+  margin-bottom: 3mm;
+}
+
+.tr-note--kitchen {
+  font-size: 12px;
+  font-weight: 900;
+  border: 2px solid #000;
+  padding: 2mm;
+  text-align: center;
+}
+
+.thermal-receipt--kitchen-copy .tr-item-head {
+  font-size: 13px;
+}
+
+.thermal-receipt--kitchen-copy.thermal-receipt--kitchen .tr-item-head,
+.thermal-receipt--kitchen-copy.thermal-receipt--kitchen-compact .tr-item-head {
+  font-size: 14px;
+}
+
+/* ── Compact templates ──────────────────────────────────────── */
+
+.thermal-receipt--compact {
+  padding: 2.5mm 2.5mm;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.thermal-receipt--compact .tr-store-name {
+  font-size: 14px;
+}
+
+.thermal-receipt--compact .tr-divider {
+  margin: 2mm auto;
+}
+
+.thermal-receipt--compact .tr-order-meta,
+.thermal-receipt--compact .tr-totals,
+.thermal-receipt--compact .tr-items {
+  gap: 1.5mm;
+}
+
+.thermal-receipt--compact-bold {
+  font-size: 11px;
+}
+
+.thermal-receipt--compact-bold .tr-store-name {
+  font-size: 16px;
+}
+
+.thermal-receipt--compact-bold .tr-item-head {
+  font-size: 12px;
+}
+
+.thermal-receipt--compact-minimal {
+  font-size: 9px;
+  line-height: 1.3;
+  padding: 2mm;
+}
+
+.thermal-receipt--compact-minimal .tr-store-name {
+  font-size: 12px;
+}
+
+.thermal-receipt--compact-minimal .tr-kitchen-badge {
+  font-size: 14px;
+  padding: 1.5mm;
+}
+
+/* ── Dual print batch ───────────────────────────────────────── */
+
+.receipt-print-batch {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.receipt-print-sheet {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.receipt-page-break {
+  break-before: page;
+  page-break-before: always;
+  height: 0;
+  margin: 0;
+}
+
 /* ── Template picker (admin settings) ───────────────────────── */
 
 .receipt-template-grid {
@@ -380,13 +479,12 @@
 }
 
 .receipt-template-preview--bold::after {
-  content: '██ جمع ██';
+  content: '══ جمع ══';
   position: absolute;
   bottom: 8px;
   left: 8px;
   right: 8px;
-  background: #000;
-  color: #fff;
+  border: 2px double #000;
   font-size: 7px;
   font-weight: 900;
   padding: 3px;
@@ -501,23 +599,43 @@
   }
 
   #receipt-root,
-  #receipt-root * {
+  #receipt-root *,
+  .receipt-print-batch,
+  .receipt-print-batch * {
     visibility: visible;
     color: #000 !important;
+    background: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  #receipt-root {
+  #receipt-root,
+  .receipt-print-batch {
     position: relative !important;
     left: auto !important;
     top: auto !important;
     margin: 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .receipt-print-batch .thermal-receipt {
+    width: var(--receipt-width, 80mm) !important;
+    max-width: var(--receipt-width, 80mm) !important;
+    margin: 0 auto !important;
+    padding: 2mm 2.5mm !important;
+    page-break-inside: avoid;
+    background: #fff !important;
+  }
+
+  #receipt-root:not(.receipt-print-batch) {
     width: var(--receipt-width, 80mm) !important;
     max-width: var(--receipt-width, 80mm) !important;
     padding: 2mm 2.5mm !important;
-    box-shadow: none !important;
     page-break-inside: avoid;
+    background: #fff !important;
   }
 
   .thermal-receipt--high-contrast,
@@ -526,12 +644,10 @@
     color: #000 !important;
   }
 
-  .thermal-receipt--high-contrast .tr-total--inverted,
-  .thermal-receipt--high-contrast .tr-total--inverted strong {
-    background: #000 !important;
-    color: #fff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  .thermal-receipt--high-contrast .tr-total--emphasized,
+  .thermal-receipt--high-contrast .tr-total--emphasized strong {
+    color: #000 !important;
+    border-color: #000 !important;
   }
 
   .tr-divider--solid {
@@ -543,7 +659,7 @@
   }
 
   .tr-logo {
-    filter: grayscale(1) contrast(3) brightness(0) !important;
+    filter: grayscale(1) contrast(1.2) !important;
   }
 
   .admin-sidebar,
