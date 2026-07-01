@@ -1,6 +1,6 @@
-import type { OrderChannel } from '@chill-bar/shared'
-
 const KIOSK_KEY = 'chill-kiosk-mode'
+
+export type CustomerOrderChannel = 'MOBILE' | 'KIOSK'
 
 /**
  * Kiosk mode is enabled via `?mode=kiosk` (persisted) so the in-store touch
@@ -21,6 +21,6 @@ export function detectKioskMode(): boolean {
   return localStorage.getItem(KIOSK_KEY) === '1'
 }
 
-export function getChannel(): OrderChannel {
+export function getChannel(): CustomerOrderChannel {
   return detectKioskMode() ? 'KIOSK' : 'MOBILE'
 }
