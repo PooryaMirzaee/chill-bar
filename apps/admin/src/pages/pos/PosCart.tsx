@@ -13,9 +13,10 @@ export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps
   return (
     <aside className="pos-cart">
       <header className="pos-cart-head">
-        <h2>سبد ({cart.count.toLocaleString('fa-IR')})</h2>
+        <h2>سبد خرید</h2>
+        <span className="pos-cart-count">{cart.count.toLocaleString('fa-IR')} قلم</span>
         {cart.lines.length > 0 && (
-          <button type="button" className="btn-ghost btn-sm" onClick={cart.clear}>
+          <button type="button" className="pos-cart-clear" onClick={cart.clear}>
             پاک کردن
           </button>
         )}
@@ -23,77 +24,94 @@ export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps
 
       <div className="pos-cart-lines">
         {cart.lines.length === 0 ? (
-          <p className="pos-empty">آیتمی انتخاب نشده</p>
+          <p className="pos-empty">برای شروع، آیتم را از منو انتخاب کنید</p>
         ) : (
           cart.lines.map((line) => (
             <div key={line.lineId} className="pos-cart-line">
-              <div className="pos-cart-line-info">
+              <div className="pos-cart-line-main">
                 <span className="pos-cart-emoji">{line.emoji}</span>
-                <div>
+                <div className="pos-cart-line-text">
                   <strong>{line.name}</strong>
                   <span className="pos-cart-unit">{formatPrice(line.unitPrice)}</span>
                 </div>
+                <strong className="pos-cart-line-total">
+                  {formatPrice(line.unitPrice * line.quantity)}
+                </strong>
               </div>
               <div className="pos-cart-line-actions">
-                <button type="button" onClick={() => cart.updateQuantity(line.lineId, line.quantity - 1)}>
-                  <Minus size={14} />
+                <button
+                  type="button"
+                  aria-label="کم کردن"
+                  onClick={() => cart.updateQuantity(line.lineId, line.quantity - 1)}
+                >
+                  <Minus size={15} />
                 </button>
-                <span>{line.quantity.toLocaleString('fa-IR')}</span>
-                <button type="button" onClick={() => cart.updateQuantity(line.lineId, line.quantity + 1)}>
-                  <Plus size={14} />
+                <span className="pos-cart-qty">{line.quantity.toLocaleString('fa-IR')}</span>
+                <button
+                  type="button"
+                  aria-label="افزودن"
+                  onClick={() => cart.updateQuantity(line.lineId, line.quantity + 1)}
+                >
+                  <Plus size={15} />
                 </button>
-                <button type="button" className="danger" onClick={() => cart.removeLine(line.lineId)}>
-                  <Trash2 size={14} />
+                <button
+                  type="button"
+                  className="danger"
+                  aria-label="حذف"
+                  onClick={() => cart.removeLine(line.lineId)}
+                >
+                  <Trash2 size={15} />
                 </button>
               </div>
-              <div className="pos-cart-line-total">{formatPrice(line.unitPrice * line.quantity)}</div>
             </div>
           ))
         )}
       </div>
 
-      <div className="pos-cart-fields">
-        <input
-          placeholder="نام مشتری (اختیاری)"
-          value={cart.customerName}
-          onChange={(e) => cart.setCustomerName(e.target.value)}
-        />
-        <input
-          placeholder="یادداشت"
-          value={cart.note}
-          onChange={(e) => cart.setNote(e.target.value)}
-        />
-      </div>
-
-      <div className="pos-cart-totals">
-        <div className="pos-total-row">
-          <span>جمع</span>
-          <span>{formatPrice(cart.subtotal)}</span>
+      <div className="pos-cart-footer">
+        <div className="pos-cart-fields">
+          <input
+            placeholder="نام مشتری"
+            value={cart.customerName}
+            onChange={(e) => cart.setCustomerName(e.target.value)}
+          />
+          <input
+            placeholder="یادداشت"
+            value={cart.note}
+            onChange={(e) => cart.setNote(e.target.value)}
+          />
         </div>
-        {cart.discountAmount > 0 && (
-          <div className="pos-total-row discount">
-            <span>تخفیف</span>
-            <span>−{formatPrice(cart.discountAmount)}</span>
+
+        <div className="pos-cart-totals">
+          <div className="pos-total-row">
+            <span>جمع جزء</span>
+            <span>{formatPrice(cart.subtotal)}</span>
           </div>
-        )}
-        <div className="pos-total-row grand">
-          <strong>کل</strong>
-          <strong>{formatPrice(cart.total)}</strong>
+          {cart.discountAmount > 0 && (
+            <div className="pos-total-row discount">
+              <span>تخفیف</span>
+              <span>−{formatPrice(cart.discountAmount)}</span>
+            </div>
+          )}
+          <div className="pos-total-row grand">
+            <strong>مبلغ قابل پرداخت</strong>
+            <strong>{formatPrice(cart.total)}</strong>
+          </div>
         </div>
-      </div>
 
-      <div className="pos-cart-actions">
-        <button type="button" className="btn-ghost" onClick={onDiscount} disabled={!cart.lines.length}>
-          تخفیف
-        </button>
-        <button
-          type="button"
-          className="btn-primary pos-checkout-btn"
-          onClick={onCheckout}
-          disabled={disabled || !cart.lines.length}
-        >
-          پرداخت
-        </button>
+        <div className="pos-cart-actions">
+          <button type="button" className="pos-btn-secondary" onClick={onDiscount} disabled={!cart.lines.length}>
+            تخفیف
+          </button>
+          <button
+            type="button"
+            className="pos-btn-primary pos-checkout-btn"
+            onClick={onCheckout}
+            disabled={disabled || !cart.lines.length}
+          >
+            پرداخت
+          </button>
+        </div>
       </div>
     </aside>
   )

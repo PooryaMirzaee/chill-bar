@@ -164,22 +164,25 @@ export function PosRegister() {
           <h1>صندوق فروش</h1>
         </div>
         <PosShiftBar />
-        <Link to="/pos/shifts" className="btn-ghost btn-sm">
-          <History size={16} /> تاریخچه شیفت
+        <Link to="/pos/shifts" className="pos-topbar-link">
+          <History size={16} /> شیفت‌ها
         </Link>
       </header>
 
-      {error && (
-        <div className="pos-banner error">
-          {error}
-          <button type="button" onClick={() => setError(null)}>
-            ✕
-          </button>
+      {(error || shiftBlocked) && (
+        <div className="pos-alerts">
+          {error && (
+            <div className="pos-banner error">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError(null)} aria-label="بستن">
+                ✕
+              </button>
+            </div>
+          )}
+          {shiftBlocked && (
+            <div className="pos-banner warn">برای فروش، ابتدا شیفت را باز کنید.</div>
+          )}
         </div>
-      )}
-
-      {shiftBlocked && (
-        <div className="pos-banner warn">برای فروش، ابتدا شیفت را باز کنید.</div>
       )}
 
       <PosIncomingPanel onSettle={setSettleOrder} />
