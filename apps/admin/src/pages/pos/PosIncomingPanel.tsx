@@ -41,6 +41,11 @@ export function PosIncomingPanel({ onSettle }: PosIncomingPanelProps) {
               <strong>{order.code}</strong>
               <span className="pos-incoming-channel">{ORDER_CHANNEL_LABEL[order.channel]}</span>
               {order.customerName && <span className="pos-incoming-name">{order.customerName}</span>}
+              {order.customerPhone && (
+                <span className="pos-incoming-phone" dir="ltr">
+                  {order.customerPhone}
+                </span>
+              )}
               <span className="pos-incoming-time">{timeAgo(order.createdAt)}</span>
               <strong className="pos-incoming-price">{formatPrice(order.total)}</strong>
             </button>

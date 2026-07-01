@@ -25,6 +25,8 @@ export interface PosSettings {
   allowRefunds: boolean
   requireRefundReason: boolean
   requireManagerForRefund: boolean
+  soundOnAddItem: boolean
+  addItemSoundVolume: number
   shiftRoles: Array<'SUPER_ADMIN' | 'MANAGER' | 'STAFF'>
   discountRoles: Array<'SUPER_ADMIN' | 'MANAGER' | 'STAFF'>
 }
@@ -85,6 +87,7 @@ export interface PosCheckoutPayment {
 export interface PosSalePayload {
   items: OrderItemPayload[]
   customerName?: string | null
+  customerPhone?: string | null
   note?: string | null
   discountAmount?: number
   discountNote?: string | null

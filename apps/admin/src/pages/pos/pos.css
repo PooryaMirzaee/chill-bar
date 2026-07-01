@@ -543,6 +543,28 @@
   gap: 8px;
 }
 
+.pos-cart-fields--customer {
+  grid-template-columns: 1fr 1fr;
+}
+
+.pos-cart-fields .pos-cart-note {
+  grid-column: 1 / -1;
+}
+
+.pos-cart-fields input.invalid {
+  border-color: var(--pos-danger);
+  color: #fecaca;
+}
+
+.pos-field-hint {
+  margin: -4px 2px 0;
+  font-size: 0.78rem;
+}
+
+.pos-field-hint.error {
+  color: var(--pos-danger);
+}
+
 .pos-cart-fields input {
   padding: 10px 11px;
   border-radius: 10px;
@@ -801,6 +823,47 @@
 .pos-checkout-total strong {
   color: var(--pos-primary);
   font-size: 1.1rem;
+}
+
+.pos-checkout-customer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pos-checkout-customer input {
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--pos-border-strong);
+  background: var(--pos-surface-2);
+  color: var(--pos-text);
+  font-size: 0.86rem;
+}
+
+.pos-checkout-customer input.invalid {
+  border-color: var(--pos-danger);
+}
+
+.pos-mixed-pay {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pos-mixed-pay label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--pos-text-secondary);
+}
+
+.pos-mixed-pay input {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--pos-border-strong);
+  background: var(--pos-surface-2);
+  color: var(--pos-text);
 }
 
 .pos-payment-methods {

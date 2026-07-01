@@ -513,6 +513,8 @@ export const posSettingsSchema = z.object({
   allowRefunds: z.boolean().default(true),
   requireRefundReason: z.boolean().default(true),
   requireManagerForRefund: z.boolean().default(false),
+  soundOnAddItem: z.boolean().default(true),
+  addItemSoundVolume: z.number().min(0).max(1).default(0.45),
   shiftRoles: z
     .array(z.enum(['SUPER_ADMIN', 'MANAGER', 'STAFF']))
     .default(['SUPER_ADMIN', 'MANAGER', 'STAFF']),
@@ -541,9 +543,21 @@ export const posCheckoutPaymentSchema = z.object({
   payments: z.array(posPaymentLineSchema).optional(),
 })
 
+const posCustomerPhoneSchema = z
+  .string()
+  .max(15)
+  .optional()
+  .nullable()
+  .transform((v) => {
+    if (!v?.trim()) return null
+    return v.replace(/\D/g, '')
+  })
+  .refine((v) => v === null || /^09\d{9}$/.test(v), 'شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود')
+
 export const posSaleSchema = z.object({
   items: z.array(orderItemPayloadSchema).min(1, 'سبد خرید خالی است'),
   customerName: z.string().max(80).optional().nullable(),
+  customerPhone: posCustomerPhoneSchema,
   note: z.string().max(500).optional().nullable(),
   discountAmount: z.number().int().min(0).max(10_000_000).default(0),
   discountNote: z.string().max(200).optional().nullable(),
@@ -552,6 +566,8 @@ export const posSaleSchema = z.object({
 
 export const orderCheckoutSchema = z.object({
   payment: posCheckoutPaymentSchema,
+  customerName: z.string().max(80).optional().nullable(),
+  customerPhone: posCustomerPhoneSchema,
   discountAmount: z.number().int().min(0).max(10_000_000).default(0),
   discountNote: z.string().max(200).optional().nullable(),
   markDelivered: z.boolean().default(true),

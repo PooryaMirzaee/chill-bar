@@ -67,3 +67,13 @@ export function playAlertSound(id: AdminAlertSoundId, volume = 0.7) {
       break
   }
 }
+
+/** Short register beep when an item is added to the POS cart */
+export function playPosItemAddedSound(volume = 0.45) {
+  const ctx = getCtx()
+  if (!ctx) return
+  const v = Math.max(0.05, Math.min(1, volume))
+  const t0 = ctx.currentTime
+  tone(ctx, 1046, t0, 0.07, v * 0.32, 'sine')
+  tone(ctx, 1318, t0 + 0.05, 0.09, v * 0.28, 'triangle')
+}

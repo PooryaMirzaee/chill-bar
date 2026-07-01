@@ -19,6 +19,8 @@ export const DEFAULT_POS_SETTINGS: PosSettings = {
   allowRefunds: true,
   requireRefundReason: true,
   requireManagerForRefund: false,
+  soundOnAddItem: true,
+  addItemSoundVolume: 0.45,
   shiftRoles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'],
   discountRoles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'],
 }

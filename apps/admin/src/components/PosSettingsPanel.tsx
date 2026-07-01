@@ -174,6 +174,29 @@ export function PosSettingsPanel({ value, onChange }: PosSettingsPanelProps) {
           />
         </label>
       </section>
+
+      <section className="settings-section">
+        <h3>صدا</h3>
+        <label className="toggle-row">
+          <span>صدای افزودن به سبد</span>
+          <input
+            type="checkbox"
+            checked={value.soundOnAddItem}
+            onChange={(e) => set('soundOnAddItem', e.target.checked)}
+          />
+        </label>
+        <label>
+          بلندی صدا
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={value.addItemSoundVolume}
+            onChange={(e) => set('addItemSoundVolume', Number(e.target.value))}
+          />
+        </label>
+      </section>
     </div>
   )
 }

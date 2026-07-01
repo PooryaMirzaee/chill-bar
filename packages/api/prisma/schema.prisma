@@ -204,6 +204,7 @@ model Order {
   status          OrderStatus    @default(PENDING)
   channel         OrderChannel   @default(MOBILE)
   customerName    String?
+  customerPhone   String?
   note            String?
   subtotal        Int            @default(0)
   discountAmount  Int            @default(0)

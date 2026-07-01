@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { PosCartApi } from '../../lib/usePosCart'
 import { formatPrice } from '../../lib/format'
 import { Minus, Plus, Trash2 } from 'lucide-react'
@@ -10,6 +11,11 @@ interface PosCartProps {
 }
 
 export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps) {
+  const phoneInvalid = useMemo(() => {
+    const digits = cart.customerPhone.replace(/\D/g, '')
+    return digits.length > 0 && !/^09\d{9}$/.test(digits)
+  }, [cart.customerPhone])
+
   return (
     <aside className="pos-cart">
       <header className="pos-cart-head">
@@ -69,18 +75,32 @@ export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps
       </div>
 
       <div className="pos-cart-footer">
-        <div className="pos-cart-fields">
+        <div className="pos-cart-fields pos-cart-fields--customer">
           <input
             placeholder="نام مشتری"
             value={cart.customerName}
             onChange={(e) => cart.setCustomerName(e.target.value)}
           />
           <input
+            className={phoneInvalid ? 'invalid' : ''}
+            type="tel"
+            inputMode="tel"
+            placeholder="موبایل مشتری (۰۹…)"
+            value={cart.customerPhone}
+            onChange={(e) => cart.setCustomerPhone(e.target.value)}
+            dir="ltr"
+            aria-invalid={phoneInvalid}
+          />
+          <input
+            className="pos-cart-note"
             placeholder="یادداشت"
             value={cart.note}
             onChange={(e) => cart.setNote(e.target.value)}
           />
         </div>
+        {phoneInvalid && (
+          <p className="pos-field-hint error">شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود</p>
+        )}
 
         <div className="pos-cart-totals">
           <div className="pos-total-row">
@@ -107,7 +127,7 @@ export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps
             type="button"
             className="pos-btn-primary pos-checkout-btn"
             onClick={onCheckout}
-            disabled={disabled || !cart.lines.length}
+            disabled={disabled || !cart.lines.length || phoneInvalid}
           >
             پرداخت
           </button>

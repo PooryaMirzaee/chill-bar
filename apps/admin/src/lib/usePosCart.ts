@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { MenuModifierGroup, OrderItemPayload, SelectedModifier } from '@chill-bar/shared'
 import {
   buildCartLineId,
@@ -8,6 +8,7 @@ import {
   type ModifierSelectionState,
 } from '@chill-bar/shared'
 import type { PosMenuItem } from '@chill-bar/shared'
+import { playPosItemAddedSound } from './alertSounds'
 
 export interface PosCartLine {
   lineId: string
@@ -18,6 +19,11 @@ export interface PosCartLine {
   quantity: number
   selectedModifiers: SelectedModifier[]
   customConfig: Record<string, unknown> | null
+}
+
+export interface UsePosCartOptions {
+  soundOnAddItem?: boolean
+  addItemSoundVolume?: number
 }
 
 function toPayload(line: PosCartLine): OrderItemPayload {
@@ -31,12 +37,23 @@ function toPayload(line: PosCartLine): OrderItemPayload {
   }
 }
 
-export function usePosCart() {
+export function usePosCart(options: UsePosCartOptions = {}) {
+  const soundOnAddItem = options.soundOnAddItem ?? true
+  const addItemSoundVolume = options.addItemSoundVolume ?? 0.45
+  const soundRef = useRef({ soundOnAddItem, addItemSoundVolume })
+  soundRef.current = { soundOnAddItem, addItemSoundVolume }
+
   const [lines, setLines] = useState<PosCartLine[]>([])
   const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
   const [note, setNote] = useState('')
   const [discountAmount, setDiscountAmount] = useState(0)
   const [discountNote, setDiscountNote] = useState('')
+
+  const playAddSound = useCallback(() => {
+    if (!soundRef.current.soundOnAddItem) return
+    playPosItemAddedSound(soundRef.current.addItemSoundVolume)
+  }, [])
 
   const subtotal = useMemo(
     () => lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
@@ -58,13 +75,16 @@ export function usePosCart() {
           ? `ice-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
           : buildCartLineId(item.id, selectedModifiers)
 
+      let added = false
       setLines((prev) => {
         const existing = prev.find((l) => l.lineId === lineId)
         if (existing && !customConfig?.iceCream) {
+          added = true
           return prev.map((l) =>
             l.lineId === lineId ? { ...l, quantity: l.quantity + 1 } : l,
           )
         }
+        added = true
         return [
           ...prev,
           {
@@ -85,22 +105,38 @@ export function usePosCart() {
           },
         ]
       })
+      if (added) playAddSound()
     },
-    [],
+    [playAddSound],
   )
 
-  const addCustomLine = useCallback((line: Omit<PosCartLine, 'lineId'> & { lineId?: string }) => {
-    const lineId = line.lineId ?? `custom-${Date.now()}`
-    setLines((prev) => [...prev, { ...line, lineId }])
-  }, [])
+  const addCustomLine = useCallback(
+    (line: Omit<PosCartLine, 'lineId'> & { lineId?: string }) => {
+      const lineId = line.lineId ?? `custom-${Date.now()}`
+      setLines((prev) => [...prev, { ...line, lineId }])
+      playAddSound()
+    },
+    [playAddSound],
+  )
 
-  const updateQuantity = useCallback((lineId: string, quantity: number) => {
-    if (quantity <= 0) {
-      setLines((prev) => prev.filter((l) => l.lineId !== lineId))
-      return
-    }
-    setLines((prev) => prev.map((l) => (l.lineId === lineId ? { ...l, quantity } : l)))
-  }, [])
+  const updateQuantity = useCallback(
+    (lineId: string, quantity: number) => {
+      if (quantity <= 0) {
+        setLines((prev) => prev.filter((l) => l.lineId !== lineId))
+        return
+      }
+      let increased = false
+      setLines((prev) =>
+        prev.map((l) => {
+          if (l.lineId !== lineId) return l
+          if (quantity > l.quantity) increased = true
+          return { ...l, quantity }
+        }),
+      )
+      if (increased) playAddSound()
+    },
+    [playAddSound],
+  )
 
   const removeLine = useCallback((lineId: string) => {
     setLines((prev) => prev.filter((l) => l.lineId !== lineId))
@@ -109,12 +145,19 @@ export function usePosCart() {
   const clear = useCallback(() => {
     setLines([])
     setCustomerName('')
+    setCustomerPhone('')
     setNote('')
     setDiscountAmount(0)
     setDiscountNote('')
   }, [])
 
   const getPayload = useCallback((): OrderItemPayload[] => lines.map(toPayload), [lines])
+
+  const normalizePhone = useCallback((): string | null => {
+    const digits = customerPhone.replace(/\D/g, '')
+    if (!digits) return null
+    return digits
+  }, [customerPhone])
 
   return {
     lines,
@@ -123,6 +166,9 @@ export function usePosCart() {
     count,
     customerName,
     setCustomerName,
+    customerPhone,
+    setCustomerPhone,
+    normalizePhone,
     note,
     setNote,
     discountAmount,

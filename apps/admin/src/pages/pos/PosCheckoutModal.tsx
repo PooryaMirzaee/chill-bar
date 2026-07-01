@@ -11,6 +11,11 @@ interface PosCheckoutModalProps {
   onConfirm: (payment: PosCheckoutPayment) => void
   loading?: boolean
   title?: string
+  customerName?: string
+  customerPhone?: string
+  onCustomerNameChange?: (value: string) => void
+  onCustomerPhoneChange?: (value: string) => void
+  showCustomerFields?: boolean
 }
 
 export function PosCheckoutModal({
@@ -20,6 +25,11 @@ export function PosCheckoutModal({
   onConfirm,
   loading,
   title = 'پرداخت',
+  customerName = '',
+  customerPhone = '',
+  onCustomerNameChange,
+  onCustomerPhoneChange,
+  showCustomerFields = false,
 }: PosCheckoutModalProps) {
   const [method, setMethod] = useState<PaymentMethod>(
     settings.defaultPaymentMethod === 'UNPAID' ? 'CASH' : settings.defaultPaymentMethod,
@@ -29,6 +39,8 @@ export function PosCheckoutModal({
   const cardPart = Math.max(0, total - cashPart)
 
   const change = method === 'CASH' ? Math.max(0, cashReceived - total) : 0
+  const phoneDigits = customerPhone.replace(/\D/g, '')
+  const phoneInvalid = phoneDigits.length > 0 && !/^09\d{9}$/.test(phoneDigits)
 
   const handleConfirm = () => {
     if (method === 'MIXED') {
@@ -62,6 +74,26 @@ export function PosCheckoutModal({
           <span>مبلغ قابل پرداخت</span>
           <strong>{formatPrice(total)}</strong>
         </div>
+
+        {showCustomerFields && (
+          <div className="pos-checkout-customer">
+            <input
+              placeholder="نام مشتری"
+              value={customerName}
+              onChange={(e) => onCustomerNameChange?.(e.target.value)}
+            />
+            <input
+              className={phoneInvalid ? 'invalid' : ''}
+              type="tel"
+              inputMode="tel"
+              placeholder="موبایل مشتری (۰۹…)"
+              value={customerPhone}
+              onChange={(e) => onCustomerPhoneChange?.(e.target.value)}
+              dir="ltr"
+            />
+            {phoneInvalid && <p className="pos-error">شماره موبایل نامعتبر است</p>}
+          </div>
+        )}
 
         <div className="pos-payment-methods">
           {(['CASH', 'CARD'] as const).map((m) => (
@@ -122,6 +154,7 @@ export function PosCheckoutModal({
           className="btn-primary"
           disabled={
             loading ||
+            phoneInvalid ||
             (method === 'CASH' && cashReceived < total) ||
             (method === 'MIXED' && cashPart + cardPart !== total)
           }

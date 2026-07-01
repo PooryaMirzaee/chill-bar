@@ -147,6 +147,7 @@ export interface Order {
   status: OrderStatus
   channel: OrderChannel
   customerName?: string | null
+  customerPhone?: string | null
   note?: string | null
   subtotal?: number
   discountAmount?: number

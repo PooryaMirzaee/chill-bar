@@ -25,6 +25,7 @@ export interface ThermalReceiptProps {
   cashierName?: string | null
   shiftOpenedAt?: string | null
   customerName?: string | null
+  customerPhone?: string | null
   note?: string | null
   channelLabel?: string
   items: ReceiptItemLine[]
@@ -63,6 +64,7 @@ export function ThermalReceipt({
   createdAt,
   cashierName,
   customerName,
+  customerPhone,
   note,
   channelLabel,
   items,
@@ -128,6 +130,12 @@ export function ThermalReceipt({
           <div className="tr-row">
             <span>مشتری</span>
             <span>{customerName}</span>
+          </div>
+        )}
+        {customerPhone && (
+          <div className="tr-row">
+            <span>موبایل</span>
+            <span dir="ltr">{customerPhone}</span>
           </div>
         )}
         {note && <p className="tr-note">یادداشت: {note}</p>}

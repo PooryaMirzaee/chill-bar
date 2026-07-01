@@ -26,23 +26,29 @@ import './pos.css'
 export function PosRegister() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const cart = usePosCart()
+
+  const { data: posSettings = DEFAULT_POS_SETTINGS } = useQuery({
+    queryKey: ['pos-settings'],
+    queryFn: () => api<PosSettings>('/api/admin/pos/settings'),
+  })
+
+  const cart = usePosCart({
+    soundOnAddItem: posSettings.soundOnAddItem,
+    addItemSoundVolume: posSettings.addItemSoundVolume,
+  })
 
   const [modifierItem, setModifierItem] = useState<PosMenuItem | null>(null)
   const [iceHubItem, setIceHubItem] = useState<PosMenuItem | null>(null)
   const [showCheckout, setShowCheckout] = useState(false)
   const [showDiscount, setShowDiscount] = useState(false)
   const [settleOrder, setSettleOrder] = useState<PosOrder | null>(null)
+  const [settleCustomerName, setSettleCustomerName] = useState('')
+  const [settleCustomerPhone, setSettleCustomerPhone] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const { data: menu } = useQuery({
     queryKey: ['pos-menu'],
     queryFn: () => api<PosMenuData>('/api/admin/pos/menu'),
-  })
-
-  const { data: posSettings = DEFAULT_POS_SETTINGS } = useQuery({
-    queryKey: ['pos-settings'],
-    queryFn: () => api<PosSettings>('/api/admin/pos/settings'),
   })
 
   const { data: store } = useQuery({
@@ -62,6 +68,7 @@ export function PosRegister() {
         body: JSON.stringify({
           items: cart.getPayload(),
           customerName: cart.customerName || null,
+          customerPhone: cart.normalizePhone(),
           note: cart.note || null,
           discountAmount: cart.discountAmount,
           discountNote: cart.discountNote || null,
@@ -85,14 +92,20 @@ export function PosRegister() {
     mutationFn: ({
       orderId,
       payment,
+      customerName,
+      customerPhone,
     }: {
       orderId: string
       payment: { method: string; cashReceived?: number; payments?: Array<{ method: string; amount: number }> }
+      customerName?: string | null
+      customerPhone?: string | null
     }) =>
       api<PosOrder>(`/api/admin/orders/${orderId}/checkout`, {
         method: 'POST',
         body: JSON.stringify({
           payment,
+          customerName: customerName ?? null,
+          customerPhone: customerPhone ?? null,
           discountAmount: 0,
           markDelivered: true,
         }),
@@ -124,6 +137,7 @@ export function PosRegister() {
       createdAt: order.createdAt,
       cashierName: order.createdByName ?? user?.name,
       customerName: order.customerName,
+      customerPhone: order.customerPhone,
       note: order.note,
       channelLabel: ORDER_CHANNEL_LABEL[order.channel],
       items: buildReceiptItemsFromOrder(order.items),
@@ -185,7 +199,13 @@ export function PosRegister() {
         </div>
       )}
 
-      <PosIncomingPanel onSettle={setSettleOrder} />
+      <PosIncomingPanel
+        onSettle={(order) => {
+          setSettleOrder(order)
+          setSettleCustomerName(order.customerName ?? '')
+          setSettleCustomerPhone(order.customerPhone ?? '')
+        }}
+      />
 
       <div className="pos-main">
         <div className="pos-catalog">
@@ -244,11 +264,22 @@ export function PosRegister() {
           total={settleOrder.total}
           settings={posSettings}
           title={`تسویه ${settleOrder.code}`}
+          showCustomerFields
+          customerName={settleCustomerName}
+          customerPhone={settleCustomerPhone}
+          onCustomerNameChange={setSettleCustomerName}
+          onCustomerPhoneChange={setSettleCustomerPhone}
           onClose={() => setSettleOrder(null)}
           loading={settleMutation.isPending}
-          onConfirm={(payment) =>
-            settleMutation.mutate({ orderId: settleOrder.id, payment })
-          }
+          onConfirm={(payment) => {
+            const digits = settleCustomerPhone.replace(/\D/g, '')
+            settleMutation.mutate({
+              orderId: settleOrder.id,
+              payment,
+              customerName: settleCustomerName || null,
+              customerPhone: digits || null,
+            })
+          }}
         />
       )}
     </div>
