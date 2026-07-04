@@ -5,6 +5,7 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Orders } from './pages/Orders'
 import { MenuManager } from './pages/MenuManager'
+import { MenuQuickEntry } from './pages/MenuQuickEntry'
 import { IceCreamManager } from './pages/IceCreamManager'
 import { Settings } from './pages/Settings'
 import { Users } from './pages/Users'
@@ -56,6 +57,7 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="orders" element={<Orders />} />
         <Route path="menu" element={<MenuManager />} />
+        <Route path="menu/quick" element={<MenuQuickEntry />} />
         <Route path="ice-cream" element={<IceCreamManager />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<Users />} />

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, ImagePlus, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ImagePlus, Loader2, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { Category, MenuModifierGroup } from '@chill-bar/shared'
 import { parseMenuModifiers } from '@chill-bar/shared'
 import { api } from '../lib/api'
@@ -368,9 +369,14 @@ export function MenuManager() {
             {view === 'categories' ? 'بازگشت به آیتم‌ها' : 'مدیریت دسته‌ها'}
           </button>
           {view === 'items' && (
-            <button className="btn-primary" onClick={openNew}>
-              <Plus size={18} /> آیتم جدید
-            </button>
+            <>
+              <Link to="/menu/quick" className="btn-secondary">
+                <Zap size={18} /> ورود سریع
+              </Link>
+              <button className="btn-primary" onClick={openNew}>
+                <Plus size={18} /> آیتم جدید
+              </button>
+            </>
           )}
         </div>
       </header>
