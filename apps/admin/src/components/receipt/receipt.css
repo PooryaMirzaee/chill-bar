@@ -598,6 +598,16 @@
     justify-content: center !important;
   }
 
+  #receipt-print-portal .thermal-receipt {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  #receipt-print-portal .thermal-receipt:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
   #receipt-root,
   #receipt-root *,
   .receipt-print-batch,

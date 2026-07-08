@@ -499,20 +499,21 @@ function OrderConfirmation({
 
   return (
     <>
-      <WaitLoungeCelebrationPopup
-        open={celebrationOpen}
-        orderCode={order.code}
-        title={loungeCopy.waitLoungeOrderSuccessTitle}
-        body={loungeCopy.waitLoungeOrderSuccessBody}
-        cta={loungeCopy.waitLoungeEnter}
-        laterLabel={loungeCopy.waitLoungeOrderSuccessLater}
-        maxPoints={waitLounge.maxPointsPerOrder}
-        pointsLabel={loungeCopy.waitLoungePointsLabel}
-        onPlay={openLounge}
-        onDismiss={dismissCelebration}
-      />
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        <WaitLoungeCelebrationPopup
+          open={celebrationOpen}
+          orderCode={order.code}
+          title={loungeCopy.waitLoungeOrderSuccessTitle}
+          body={loungeCopy.waitLoungeOrderSuccessBody}
+          cta={loungeCopy.waitLoungeEnter}
+          laterLabel={loungeCopy.waitLoungeOrderSuccessLater}
+          maxPoints={waitLounge.maxPointsPerOrder}
+          pointsLabel={loungeCopy.waitLoungePointsLabel}
+          onPlay={openLounge}
+          onDismiss={dismissCelebration}
+        />
 
-      <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
+        <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
         <CheckCircle2 className="h-8 w-8 text-primary" />
       </div>
@@ -568,6 +569,7 @@ function OrderConfirmation({
       <Button className="mt-auto w-full" size="lg" variant="outline" onClick={onClose}>
         بستن
       </Button>
+        </div>
       </div>
     </>
   )

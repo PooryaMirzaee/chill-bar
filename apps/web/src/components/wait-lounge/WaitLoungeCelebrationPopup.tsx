@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Gamepad2, Sparkles, Trophy, X } from 'lucide-react'
 import { formatChillPoints } from '@chill-bar/shared'
@@ -33,27 +31,11 @@ export function WaitLoungeCelebrationPopup({
   onPlay,
   onDismiss,
 }: Props) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!open) return
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
-
-  if (!mounted) return null
-
-  return createPortal(
+  return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center"
+          className="absolute inset-0 z-[80] flex items-end justify-center p-4 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -61,22 +43,20 @@ export function WaitLoungeCelebrationPopup({
           aria-modal="true"
           aria-labelledby="wait-lounge-celebration-title"
         >
-          <motion.button
+          <button
             type="button"
             aria-label="بستن"
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={onDismiss}
           />
 
           <motion.div
-            className="relative z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-violet-400/30 bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 text-white shadow-2xl shadow-violet-950/50"
+            className="relative z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-violet-400/30 bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 text-white shadow-2xl shadow-violet-950/50 touch-manipulation"
             initial={{ opacity: 0, y: 48, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 32, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-violet-500/25 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-8 -right-8 h-36 w-36 rounded-full bg-fuchsia-500/20 blur-3xl" />
@@ -107,7 +87,7 @@ export function WaitLoungeCelebrationPopup({
             <button
               type="button"
               onClick={onDismiss}
-              className="absolute end-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur hover:bg-white/20"
+              className="absolute end-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur hover:bg-white/20 touch-manipulation"
               aria-label="بستن"
             >
               <X className="h-4 w-4" />
@@ -157,7 +137,7 @@ export function WaitLoungeCelebrationPopup({
                   size="lg"
                   className={cn(
                     'h-12 w-full gap-2 rounded-2xl border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500',
-                    'text-base font-bold text-white shadow-lg shadow-violet-600/30 hover:from-violet-400 hover:to-fuchsia-400',
+                    'text-base font-bold text-white shadow-lg shadow-violet-600/30 hover:from-violet-400 hover:to-fuchsia-400 touch-manipulation',
                   )}
                   onClick={onPlay}
                 >
@@ -166,7 +146,7 @@ export function WaitLoungeCelebrationPopup({
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full text-white/70 hover:bg-white/10 hover:text-white"
+                  className="w-full text-white/70 hover:bg-white/10 hover:text-white touch-manipulation"
                   onClick={onDismiss}
                 >
                   {laterLabel}
@@ -176,7 +156,6 @@ export function WaitLoungeCelebrationPopup({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   )
 }

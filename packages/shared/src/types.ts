@@ -247,6 +247,31 @@ export interface FinancialDailyReport {
   mixedTotal: number
   cancelledCount: number
   refundedTotal: number
+  orders?: FinancialOrderRow[]
+}
+
+export type FinancialOrderSortField = 'createdAt' | 'code' | 'total' | 'receiptNumber' | 'channel'
+export type FinancialSortDirection = 'asc' | 'desc'
+
+export interface FinancialOrderRow {
+  id: string
+  code: string
+  receiptNumber: number | null
+  createdAt: string
+  channel: OrderChannel
+  status: OrderStatus
+  paymentMethod: PaymentMethod | null
+  paymentStatus: PaymentStatus
+  customerName: string | null
+  total: number
+  discountAmount: number
+  itemCount: number
+}
+
+export interface FinancialOrdersReport {
+  date: string
+  summary: FinancialDailyReport
+  orders: FinancialOrderRow[]
 }
 
 export interface FinancialSummaryReport {
@@ -273,6 +298,7 @@ export interface FinancialSummaryReport {
     posRevenue: number
     onlineRevenue: number
   }>
+  orders: FinancialOrderRow[]
 }
 
 import type { HomeAppearance } from './homeAppearance'
@@ -523,7 +549,7 @@ export interface SmsSettings {
   storeNameInSms: boolean
 }
 
-export type AdminAlertSoundId = 'chime' | 'bell' | 'kitchen' | 'urgent' | 'soft'
+export type AdminAlertSoundId = 'chime' | 'bell' | 'kitchen' | 'urgent' | 'soft' | 'power'
 
 export interface AdminAlertSettings {
   enabled: boolean

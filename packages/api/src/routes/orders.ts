@@ -3,7 +3,8 @@ import type { Order as PrismaOrder, OrderItem, Prisma } from '@prisma/client'
 import { createOrderSchema, findRewardTier } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
 import { broadcast } from '../ws.js'
-import { generateOrderCode, serializeOrder } from '../lib/serializers.js'
+import { serializeOrder } from '../lib/serializers.js'
+import { nextOrderCode } from '../lib/orderCode.js'
 import { getCustomerIdFromAuth } from './customers.js'
 import { loadSettings } from '../lib/storeSettings.js'
 import { applyScratchRewardRules } from '../lib/scratchReward.js'
@@ -47,9 +48,10 @@ export async function orderRoutes(app: FastifyInstance) {
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
         order = await prisma.$transaction(async (tx) => {
+          const code = await nextOrderCode(tx)
           const created = await tx.order.create({
             data: {
-              code: generateOrderCode(),
+              code,
               channel: input.channel,
               customerName: input.customerName ?? null,
               note: input.note ?? null,

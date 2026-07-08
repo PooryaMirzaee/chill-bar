@@ -1,9 +1,17 @@
-import type { FinancialDailyReport, FinancialSummaryReport } from '@chill-bar/shared'
-import type { Order, OrderAdjustment, OrderPayment } from '@prisma/client'
+import type {
+  FinancialDailyReport,
+  FinancialOrderRow,
+  FinancialOrderSortField,
+  FinancialOrdersReport,
+  FinancialSortDirection,
+  FinancialSummaryReport,
+} from '@chill-bar/shared'
+import type { Order, OrderAdjustment, OrderItem, OrderPayment } from '@prisma/client'
 
 type OrderWithRelations = Order & {
   payments: OrderPayment[]
   adjustments: OrderAdjustment[]
+  items?: OrderItem[]
 }
 
 function startOfDay(date: Date): Date {
@@ -50,6 +58,63 @@ function accumulatePaymentTotals(orders: OrderWithRelations[]) {
   return { cashTotal, cardTotal, mixedTotal }
 }
 
+export function mapFinancialOrderRow(order: OrderWithRelations): FinancialOrderRow {
+  return {
+    id: order.id,
+    code: order.code,
+    receiptNumber: order.receiptNumber,
+    createdAt: order.createdAt.toISOString(),
+    channel: order.channel,
+    status: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    customerName: order.customerName,
+    total: order.total,
+    discountAmount: order.discountAmount,
+    itemCount: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+  }
+}
+
+export function sortFinancialOrders(
+  orders: FinancialOrderRow[],
+  sortBy: FinancialOrderSortField,
+  sortDir: FinancialSortDirection,
+): FinancialOrderRow[] {
+  const dir = sortDir === 'asc' ? 1 : -1
+  return [...orders].sort((a, b) => {
+    switch (sortBy) {
+      case 'code':
+        return a.code.localeCompare(b.code, 'en', { numeric: true }) * dir
+      case 'total':
+        return (a.total - b.total) * dir
+      case 'receiptNumber':
+        return ((a.receiptNumber ?? 0) - (b.receiptNumber ?? 0)) * dir
+      case 'channel':
+        return a.channel.localeCompare(b.channel) * dir
+      case 'createdAt':
+      default:
+        return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir
+    }
+  })
+}
+
+export function buildFinancialOrdersReport(
+  date: string,
+  orders: OrderWithRelations[],
+  sortBy: FinancialOrderSortField,
+  sortDir: FinancialSortDirection,
+): FinancialOrdersReport {
+  const summary = buildFinancialDailyReport(date, orders)
+  const rows = sortFinancialOrders(
+    orders
+      .filter((order) => order.status !== 'CANCELLED')
+      .map(mapFinancialOrderRow),
+    sortBy,
+    sortDir,
+  )
+  return { date, summary, orders: rows }
+}
+
 export function buildFinancialDailyReport(
   date: string,
   orders: OrderWithRelations[],
@@ -86,6 +151,8 @@ export function buildFinancialSummaryReport(
   from: Date,
   to: Date,
   orders: OrderWithRelations[],
+  sortBy: FinancialOrderSortField = 'createdAt',
+  sortDir: FinancialSortDirection = 'desc',
 ): FinancialSummaryReport {
   const fromIso = from.toISOString().slice(0, 10)
   const toIso = to.toISOString().slice(0, 10)
@@ -132,6 +199,13 @@ export function buildFinancialSummaryReport(
     cancelledCount: daily.cancelledCount,
     refundedTotal: daily.refundedTotal,
     dailyBreakdown: [...dayMap.entries()].map(([date, values]) => ({ date, ...values })),
+    orders: sortFinancialOrders(
+      orders
+        .filter((order) => order.status !== 'CANCELLED')
+        .map(mapFinancialOrderRow),
+      sortBy,
+      sortDir,
+    ),
   }
 }
 

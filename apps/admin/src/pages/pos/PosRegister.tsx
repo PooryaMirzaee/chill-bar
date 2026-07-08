@@ -19,6 +19,7 @@ import { PosCheckoutModal } from './PosCheckoutModal'
 import { PosDiscountModal } from './PosDiscountModal'
 import { PosIncomingPanel } from './PosIncomingPanel'
 import type { PosMenuItem } from '@chill-bar/shared'
+import { menuItemOpensIceCreamBuilder } from '@chill-bar/shared'
 import './pos.css'
 
 export function PosRegister() {
@@ -124,8 +125,7 @@ export function PosRegister() {
   }
 
   const handleSelectItem = (item: PosMenuItem) => {
-    const category = menu?.categories.find((c) => c.id === item.categoryId)
-    if (category?.isIceCreamHub) {
+    if (menuItemOpensIceCreamBuilder(item.tags)) {
       setIceHubItem(item)
       return
     }

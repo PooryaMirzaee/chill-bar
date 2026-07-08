@@ -2,12 +2,12 @@ import type { AdminAlertSettings } from './types'
 
 export const DEFAULT_ADMIN_ALERT_SETTINGS: AdminAlertSettings = {
   enabled: true,
-  volume: 0.7,
+  volume: 1,
   soundOnNewOrder: true,
-  newOrderSound: 'chime',
+  newOrderSound: 'power',
   pendingReminderEnabled: true,
   pendingReminderIntervalSeconds: 15,
-  pendingReminderSound: 'bell',
+  pendingReminderSound: 'power',
 }
 
 export const ADMIN_ALERT_SOUND_LABELS: Record<AdminAlertSettings['newOrderSound'], string> = {
@@ -16,4 +16,5 @@ export const ADMIN_ALERT_SOUND_LABELS: Record<AdminAlertSettings['newOrderSound'
   kitchen: 'آشپزخانه',
   urgent: 'فوری',
   soft: 'آرام',
+  power: 'آژیر قوی (پیشنهادی)',
 }

@@ -1,36 +1,68 @@
 import type { ReactNode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, type Root } from 'react-dom/client'
 import type { PosSettings, StoreSettings } from '@chill-bar/shared'
 import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
 import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-function renderAndPrint(node: ReactNode, openDialog: boolean): Promise<void> {
+const PRINT_GAP_MS = 900
+
+function waitForPrintDialog(): Promise<void> {
   return new Promise((resolve) => {
-    let portal = document.getElementById('receipt-print-portal')
-    if (!portal) {
-      portal = document.createElement('div')
-      portal.id = 'receipt-print-portal'
-      document.body.appendChild(portal)
+    let settled = false
+    const done = () => {
+      if (settled) return
+      settled = true
+      window.removeEventListener('afterprint', done)
+      media.removeEventListener('change', onMediaChange)
+      resolve()
     }
 
-    const root = createRoot(portal)
+    const onMediaChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) done()
+    }
+
+    window.addEventListener('afterprint', done)
+    const media = window.matchMedia('print')
+    media.addEventListener('change', onMediaChange)
+    window.setTimeout(done, 120_000)
+  })
+}
+
+function removePrintPortal() {
+  document.getElementById('receipt-print-portal')?.remove()
+}
+
+function renderAndPrint(node: ReactNode, openDialog: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    removePrintPortal()
+
+    const portal = document.createElement('div')
+    portal.id = 'receipt-print-portal'
+    document.body.appendChild(portal)
+
+    let root: Root | null = createRoot(portal)
     root.render(node)
 
-    if (!openDialog) {
-      root.unmount()
+    const cleanup = () => {
+      root?.unmount()
+      root = null
+      removePrintPortal()
       resolve()
+    }
+
+    if (!openDialog) {
+      cleanup()
       return
     }
 
     requestAnimationFrame(() => {
-      setTimeout(() => {
+      window.setTimeout(async () => {
         window.print()
-        setTimeout(() => {
-          root.unmount()
-          resolve()
-        }, 500)
-      }, 180)
+        await waitForPrintDialog()
+        await new Promise((r) => window.setTimeout(r, PRINT_GAP_MS))
+        cleanup()
+      }, 220)
     })
   })
 }
@@ -42,7 +74,7 @@ export function printThermalReceipt(
   return renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
 }
 
-/** Prints each receipt in its own print dialog (kitchen and customer stay separate). */
+/** Prints each receipt in its own isolated print job (kitchen and customer stay separate). */
 export async function printThermalReceiptBatch(
   copies: ThermalReceiptProps[],
   options?: { openDialog?: boolean },

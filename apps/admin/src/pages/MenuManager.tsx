@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, ImagePlus, Loader2, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Category, MenuModifierGroup } from '@chill-bar/shared'
-import { parseMenuModifiers } from '@chill-bar/shared'
+import { parseMenuModifiers, menuItemOpensIceCreamBuilder } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
 import { uploadImage, resolveAssetUrl } from '../lib/upload'
@@ -32,6 +32,8 @@ interface ItemForm {
   imageUrl: string
   modifiers: MenuModifierGroup[]
   isAvailable: boolean
+  opensIceCreamBuilder: boolean
+  tags: Record<string, number>
 }
 
 const emptyForm: ItemForm = {
@@ -44,6 +46,8 @@ const emptyForm: ItemForm = {
   imageUrl: '',
   modifiers: [],
   isAvailable: true,
+  opensIceCreamBuilder: false,
+  tags: {},
 }
 
 function newId(prefix: string) {
@@ -291,13 +295,16 @@ export function MenuManager() {
 
   const saveMutation = useMutation({
     mutationFn: (data: ItemForm) => {
+      const tags = { ...data.tags }
+      if (data.opensIceCreamBuilder) tags.iceCreamBuilder = 1
+      else delete tags.iceCreamBuilder
       const body = JSON.stringify({
         name: data.name,
         price: Number(data.price),
         emoji: data.emoji,
         description: data.description,
         category: data.category,
-        tags: {},
+        tags,
         imageUrl: data.imageUrl || null,
         modifiers: data.modifiers,
         isAvailable: data.isAvailable,
@@ -352,6 +359,8 @@ export function MenuManager() {
       imageUrl: item.imageUrl ?? '',
       modifiers: parseMenuModifiers(item.modifiers),
       isAvailable: item.isAvailable,
+      opensIceCreamBuilder: menuItemOpensIceCreamBuilder(item.tags),
+      tags: item.tags ?? {},
     })
 
   return (
@@ -538,6 +547,14 @@ export function MenuManager() {
                 groups={form.modifiers}
                 onChange={(modifiers) => setForm({ ...form, modifiers })}
               />
+              <label className="checkbox-field field-full">
+                <input
+                  type="checkbox"
+                  checked={form.opensIceCreamBuilder}
+                  onChange={(e) => setForm({ ...form, opensIceCreamBuilder: e.target.checked })}
+                />
+                <span>ساخت بستنی سفارشی در صندوق (فقط این آیتم)</span>
+              </label>
               <label className="checkbox-field field-full">
                 <input
                   type="checkbox"

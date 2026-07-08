@@ -1489,3 +1489,67 @@ textarea {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
+.fin-orders-section {
+  margin-top: 20px;
+}
+
+.fin-orders-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fin-orders-head h4 {
+  margin: 0;
+}
+
+.fin-orders-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.fin-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+  font-size: 0.9rem;
+}
+
+.fin-orders-table th,
+.fin-orders-table td {
+  padding: 10px 12px;
+  text-align: right;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+.fin-orders-table th {
+  background: rgba(255, 255, 255, 0.03);
+  font-weight: 700;
+}
+
+.fin-orders-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fin-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fin-discount {
+  display: block;
+  color: #f0a060;
+  font-size: 0.78rem;
+}

@@ -134,6 +134,7 @@ export interface PosMenuItem {
   emoji: string
   categoryId: string
   modifiers: unknown[]
+  tags?: Record<string, unknown>
   isAvailable: boolean
 }
 

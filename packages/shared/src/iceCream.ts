@@ -169,3 +169,9 @@ export function lighten(hex: string, amount: number): string {
   const [r, g, b] = hexToRgb(hex)
   return rgbToHex(r + amount, g + amount, b + amount)
 }
+
+export function menuItemOpensIceCreamBuilder(
+  tags: Record<string, unknown> | null | undefined,
+): boolean {
+  return Number(tags?.iceCreamBuilder) === 1
+}

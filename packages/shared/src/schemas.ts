@@ -438,7 +438,7 @@ export const smsSettingsSchema = z.object({
 
 export type SmsSettingsInput = z.infer<typeof smsSettingsSchema>
 
-export const adminAlertSoundIdSchema = z.enum(['chime', 'bell', 'kitchen', 'urgent', 'soft'])
+export const adminAlertSoundIdSchema = z.enum(['chime', 'bell', 'kitchen', 'urgent', 'soft', 'power'])
 
 export const adminAlertSettingsSchema = z.object({
   enabled: z.boolean().default(true),

@@ -65,6 +65,14 @@ export function playAlertSound(id: AdminAlertSoundId, volume = 0.7) {
       tone(ctx, 440, t0, 0.55, v * 0.22, 'sine')
       tone(ctx, 554, t0 + 0.2, 0.45, v * 0.15, 'sine')
       break
+    case 'power':
+      for (let i = 0; i < 6; i++) {
+        tone(ctx, 880 + (i % 2) * 220, t0 + i * 0.11, 0.16, v * 0.95, 'square')
+        tone(ctx, 1320, t0 + i * 0.11 + 0.04, 0.12, v * 0.75, 'sawtooth')
+      }
+      tone(ctx, 660, t0 + 0.75, 0.45, v * 0.85, 'square')
+      tone(ctx, 990, t0 + 0.82, 0.38, v * 0.7, 'triangle')
+      break
   }
 }
 

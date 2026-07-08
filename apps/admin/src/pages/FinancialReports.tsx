@@ -9,10 +9,17 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Calendar, TrendingUp, Wallet } from 'lucide-react'
-import type { FinancialDailyReport, FinancialSummaryReport } from '@chill-bar/shared'
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, TrendingUp, Wallet } from 'lucide-react'
+import type {
+  FinancialDailyReport,
+  FinancialOrderRow,
+  FinancialOrderSortField,
+  FinancialSortDirection,
+  FinancialSummaryReport,
+} from '@chill-bar/shared'
+import { ORDER_CHANNEL_LABEL, ORDER_STATUS_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import { api } from '../lib/api'
-import { formatNumber, formatPrice } from '../lib/format'
+import { formatDateTime, formatNumber, formatPrice } from '../lib/format'
 
 function todayInputValue(): string {
   return new Date().toISOString().slice(0, 10)
@@ -31,21 +38,40 @@ const tooltipStyle = {
   color: '#fff',
 }
 
+const SORT_LABELS: Record<FinancialOrderSortField, string> = {
+  createdAt: 'زمان',
+  code: 'کد',
+  total: 'مبلغ',
+  receiptNumber: 'شماره فیش',
+  channel: 'کانال',
+}
+
 export function FinancialReports() {
   const [dailyDate, setDailyDate] = useState(todayInputValue)
   const [summaryFrom, setSummaryFrom] = useState(monthAgoInputValue)
   const [summaryTo, setSummaryTo] = useState(todayInputValue)
+  const [dailySort, setDailySort] = useState<{
+    sortBy: FinancialOrderSortField
+    sortDir: FinancialSortDirection
+  }>({ sortBy: 'createdAt', sortDir: 'desc' })
+  const [summarySort, setSummarySort] = useState<{
+    sortBy: FinancialOrderSortField
+    sortDir: FinancialSortDirection
+  }>({ sortBy: 'createdAt', sortDir: 'desc' })
 
   const { data: daily, isLoading: dailyLoading } = useQuery({
-    queryKey: ['financial-daily', dailyDate],
-    queryFn: () => api<FinancialDailyReport>(`/api/admin/reports/financial/daily?date=${dailyDate}`),
+    queryKey: ['financial-daily', dailyDate, dailySort.sortBy, dailySort.sortDir],
+    queryFn: () =>
+      api<FinancialDailyReport>(
+        `/api/admin/reports/financial/daily?date=${dailyDate}&sortBy=${dailySort.sortBy}&sortDir=${dailySort.sortDir}`,
+      ),
   })
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
-    queryKey: ['financial-summary', summaryFrom, summaryTo],
+    queryKey: ['financial-summary', summaryFrom, summaryTo, summarySort.sortBy, summarySort.sortDir],
     queryFn: () =>
       api<FinancialSummaryReport>(
-        `/api/admin/reports/financial/summary?from=${summaryFrom}&to=${summaryTo}`,
+        `/api/admin/reports/financial/summary?from=${summaryFrom}&to=${summaryTo}&sortBy=${summarySort.sortBy}&sortDir=${summarySort.sortDir}`,
       ),
   })
 
@@ -60,12 +86,26 @@ export function FinancialReports() {
     [summary],
   )
 
+  const toggleDailySort = (sortBy: FinancialOrderSortField) => {
+    setDailySort((current) => ({
+      sortBy,
+      sortDir: current.sortBy === sortBy && current.sortDir === 'desc' ? 'asc' : 'desc',
+    }))
+  }
+
+  const toggleSummarySort = (sortBy: FinancialOrderSortField) => {
+    setSummarySort((current) => ({
+      sortBy,
+      sortDir: current.sortBy === sortBy && current.sortDir === 'desc' ? 'asc' : 'desc',
+    }))
+  }
+
   return (
     <div className="page">
       <header className="page-head">
         <div>
           <h1>گزارش‌های مالی</h1>
-          <p className="page-sub">خلاصه فروش روزانه و گزارش کلی دوره‌ای</p>
+          <p className="page-sub">مدیریت فیش‌های روزانه و گزارش کامل با امکان مرتب‌سازی</p>
         </div>
       </header>
 
@@ -75,7 +115,7 @@ export function FinancialReports() {
             <h3>
               <Calendar size={18} /> گزارش روزانه
             </h3>
-            <p className="page-sub">فروش، تخفیف و تفکیک پرداخت برای یک روز</p>
+            <p className="page-sub">فروش، تخفیف و لیست فیش‌های همان روز</p>
           </div>
           <label className="field fin-date-field">
             <span>تاریخ</span>
@@ -115,6 +155,14 @@ export function FinancialReports() {
               <ReportRow label="لغو شده" value={formatNumber(daily.cancelledCount)} />
               <ReportRow label="استرداد" value={formatPrice(daily.refundedTotal)} />
             </div>
+
+            <OrdersTable
+              title={`فیش‌های ${dailyDate}`}
+              orders={daily.orders ?? []}
+              sortBy={dailySort.sortBy}
+              sortDir={dailySort.sortDir}
+              onSort={toggleDailySort}
+            />
           </>
         )}
       </section>
@@ -181,11 +229,97 @@ export function FinancialReports() {
                 <Bar dataKey="netRevenue" fill="#F26522" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+
+            <OrdersTable
+              title="همه فیش‌های بازه"
+              orders={summary.orders}
+              sortBy={summarySort.sortBy}
+              sortDir={summarySort.sortDir}
+              onSort={toggleSummarySort}
+            />
           </>
         )}
       </section>
     </div>
   )
+}
+
+function OrdersTable({
+  title,
+  orders,
+  sortBy,
+  sortDir,
+  onSort,
+}: {
+  title: string
+  orders: FinancialOrderRow[]
+  sortBy: FinancialOrderSortField
+  sortDir: FinancialSortDirection
+  onSort: (field: FinancialOrderSortField) => void
+}) {
+  return (
+    <div className="fin-orders-section">
+      <div className="fin-orders-head">
+        <h4>{title}</h4>
+        <span>{orders.length.toLocaleString('fa-IR')} فیش</span>
+      </div>
+      {orders.length === 0 ? (
+        <p className="empty-hint">فیشی برای نمایش نیست</p>
+      ) : (
+        <div className="fin-orders-table-wrap">
+          <table className="fin-orders-table">
+            <thead>
+              <tr>
+                {(['createdAt', 'code', 'receiptNumber', 'channel', 'total'] as const).map((field) => (
+                  <th key={field}>
+                    <button type="button" className="fin-sort-btn" onClick={() => onSort(field)}>
+                      {SORT_LABELS[field]}
+                      <SortIcon active={sortBy === field} dir={sortDir} />
+                    </button>
+                  </th>
+                ))}
+                <th>وضعیت</th>
+                <th>پرداخت</th>
+                <th>مشتری</th>
+                <th>اقلام</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td>{formatDateTime(order.createdAt)}</td>
+                  <td>
+                    <strong>{order.code}</strong>
+                  </td>
+                  <td>{order.receiptNumber?.toLocaleString('fa-IR') ?? '—'}</td>
+                  <td>{ORDER_CHANNEL_LABEL[order.channel]}</td>
+                  <td>
+                    <strong>{formatPrice(order.total)}</strong>
+                    {order.discountAmount > 0 && (
+                      <small className="fin-discount"> −{formatPrice(order.discountAmount)}</small>
+                    )}
+                  </td>
+                  <td>{ORDER_STATUS_LABEL[order.status]}</td>
+                  <td>
+                    {order.paymentMethod
+                      ? PAYMENT_METHOD_LABEL[order.paymentMethod]
+                      : '—'}
+                  </td>
+                  <td>{order.customerName ?? '—'}</td>
+                  <td>{order.itemCount.toLocaleString('fa-IR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir: FinancialSortDirection }) {
+  if (!active) return <ArrowUpDown size={14} />
+  return dir === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
 }
 
 function ReportStat({

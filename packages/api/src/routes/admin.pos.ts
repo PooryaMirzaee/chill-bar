@@ -10,7 +10,8 @@ import {
 import type { PosSettings, UserRole } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
 import { broadcast } from '../ws.js'
-import { generateOrderCode, serializePosOrder } from '../lib/serializers.js'
+import { serializePosOrder } from '../lib/serializers.js'
+import { nextOrderCode } from '../lib/orderCode.js'
 import { loadPosSettings, savePosSettings } from '../lib/pos/settings.js'
 import {
   calcOrderTotal,
@@ -83,6 +84,7 @@ export async function adminPosRoutes(app: FastifyInstance) {
           emoji: item.emoji,
           categoryId: item.categoryId,
           modifiers: item.modifiers as unknown[],
+          tags: item.tags as Record<string, unknown>,
           isAvailable: item.isAvailable,
         })),
       }
@@ -141,9 +143,10 @@ export async function adminPosRoutes(app: FastifyInstance) {
         try {
           order = await prisma.$transaction(async (tx) => {
             const receiptNumber = await nextReceiptNumber(tx, shift?.id)
+            const code = await nextOrderCode(tx)
             const created = await tx.order.create({
               data: {
-                code: generateOrderCode(),
+                code,
                 channel: 'POS',
                 status: 'DELIVERED',
                 customerName: input.customerName ?? null,

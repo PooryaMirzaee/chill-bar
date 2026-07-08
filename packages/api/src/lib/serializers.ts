@@ -83,12 +83,3 @@ export function serializePosOrder(order: OrderWithRelations): PosOrder {
     })),
   }
 }
-
-export function generateOrderCode(): string {
-  const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ'
-  let code = ''
-  for (let i = 0; i < 4; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return `CB-${code}`
-}
