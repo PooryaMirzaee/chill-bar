@@ -3,48 +3,54 @@ import { createRoot } from 'react-dom/client'
 import type { PosSettings, StoreSettings } from '@chill-bar/shared'
 import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
-import { ReceiptPrintBatch, ThermalReceipt } from '../components/receipt/ThermalReceipt'
+import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-function renderAndPrint(node: ReactNode, openDialog: boolean) {
-  let portal = document.getElementById('receipt-print-portal')
-  if (!portal) {
-    portal = document.createElement('div')
-    portal.id = 'receipt-print-portal'
-    document.body.appendChild(portal)
-  }
+function renderAndPrint(node: ReactNode, openDialog: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    let portal = document.getElementById('receipt-print-portal')
+    if (!portal) {
+      portal = document.createElement('div')
+      portal.id = 'receipt-print-portal'
+      document.body.appendChild(portal)
+    }
 
-  const root = createRoot(portal)
-  root.render(node)
+    const root = createRoot(portal)
+    root.render(node)
 
-  if (!openDialog) {
-    root.unmount()
-    return
-  }
+    if (!openDialog) {
+      root.unmount()
+      resolve()
+      return
+    }
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      window.print()
+    requestAnimationFrame(() => {
       setTimeout(() => {
-        root.unmount()
-      }, 500)
-    }, 180)
+        window.print()
+        setTimeout(() => {
+          root.unmount()
+          resolve()
+        }, 500)
+      }, 180)
+    })
   })
 }
 
-export function printThermalReceipt(props: ThermalReceiptProps, options?: { openDialog?: boolean }) {
-  renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
+export function printThermalReceipt(
+  props: ThermalReceiptProps,
+  options?: { openDialog?: boolean },
+): Promise<void> {
+  return renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
 }
 
-export function printThermalReceiptBatch(
+/** Prints each receipt in its own print dialog (kitchen and customer stay separate). */
+export async function printThermalReceiptBatch(
   copies: ThermalReceiptProps[],
   options?: { openDialog?: boolean },
-) {
+): Promise<void> {
   if (copies.length === 0) return
-  if (copies.length === 1) {
-    printThermalReceipt(copies[0], options)
-    return
+  for (const copy of copies) {
+    await printThermalReceipt(copy, options)
   }
-  renderAndPrint(<ReceiptPrintBatch copies={copies} />, options?.openDialog !== false)
 }
 
 export function buildReceiptItemsFromOrder(
@@ -196,15 +202,41 @@ export function printOrderReceipts(
   order: ReceiptOrderLike,
   store: StoreSettings,
   posSettings: PosSettings,
-  options?: { cashierName?: string | null; forceDialog?: boolean },
-) {
-  const copies = buildOrderReceiptCopies(order, store, posSettings, options)
-  if (copies.length === 0) return
+  options?: {
+    cashierName?: string | null
+    forceDialog?: boolean
+    copyType?: 'customer' | 'kitchen' | 'both'
+  },
+): Promise<void> {
+  const copyType = options?.copyType ?? 'both'
+  let copies = buildOrderReceiptCopies(order, store, posSettings, options)
+  if (copyType !== 'both') {
+    copies = copies.filter((copy) => copy.copyType === copyType)
+  }
+  if (copies.length === 0) return Promise.resolve()
 
   const openDialog = options?.forceDialog === true || posSettings.receiptPrintMode === 'dialog'
-  if (!openDialog) return
+  if (!openDialog) return Promise.resolve()
 
-  printThermalReceiptBatch(copies, { openDialog: true })
+  return printThermalReceiptBatch(copies, { openDialog: true })
+}
+
+export function printKitchenReceipt(
+  order: ReceiptOrderLike,
+  store: StoreSettings,
+  posSettings: PosSettings,
+  options?: { cashierName?: string | null; forceDialog?: boolean },
+) {
+  return printOrderReceipts(order, store, posSettings, { ...options, copyType: 'kitchen' })
+}
+
+export function printCustomerReceipt(
+  order: ReceiptOrderLike,
+  store: StoreSettings,
+  posSettings: PosSettings,
+  options?: { cashierName?: string | null; forceDialog?: boolean },
+) {
+  return printOrderReceipts(order, store, posSettings, { ...options, copyType: 'customer' })
 }
 
 export function shouldAutoPrint(posSettings: PosSettings): boolean {

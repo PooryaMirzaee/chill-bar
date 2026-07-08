@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BellOff, Calculator, Printer, RefreshCw } from 'lucide-react'
+import { Bell, BellOff, Calculator, ChefHat, Printer, RefreshCw, User } from 'lucide-react'
 import type { Order, OrderStatus, PosOrder, PosSettings, StoreSettings } from '@chill-bar/shared'
 import {
   DEFAULT_POS_SETTINGS,
@@ -14,7 +14,7 @@ import { useAdminSocket } from '../lib/useOrdersSocket'
 import { formatPrice, timeAgo } from '../lib/format'
 import { OrderItemExtras, OrderItemExtrasCompact } from '../components/OrderItemExtras'
 import { isAlertMuted, setAlertMuted, subscribeAlertMute } from '../lib/alertMute'
-import { printOrderReceipts } from '../lib/printReceipt'
+import { printKitchenReceipt, printOrderReceipts } from '../lib/printReceipt'
 import { useAuth } from '../lib/auth'
 import { PosCheckoutModal } from './pos/PosCheckoutModal'
 
@@ -55,18 +55,40 @@ export function Orders() {
   )
   useAdminSocket(handleSocket)
 
+  const { data: store } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api<StoreSettings>('/api/settings'),
+  })
+  const { data: posSettings = DEFAULT_POS_SETTINGS } = useQuery({
+    queryKey: ['pos-settings'],
+    queryFn: () => api<PosSettings>('/api/admin/pos/settings'),
+  })
+
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       api<Order>(`/api/admin/orders/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       }),
-    onSuccess: () => {
+    onSuccess: (updated, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['orders', 'pending'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      if (
+        store &&
+        updated.channel !== 'POS' &&
+        status === 'CONFIRMED' &&
+        posSettings.printKitchenReceipt
+      ) {
+        printKitchenReceipt(updated, store, posSettings, { forceDialog: true })
+      }
     },
   })
+
+  const printOnlineReceipt = (order: Order, copyType: 'kitchen' | 'customer' | 'both' = 'both') => {
+    if (!store) return
+    printOrderReceipts(order, store, posSettings, { forceDialog: true, copyType })
+  }
 
   const grouped = useMemo(() => {
     const map: Record<string, Order[]> = {}
@@ -166,6 +188,24 @@ export function Orders() {
                     <div className="order-card-foot">
                       <strong>{formatPrice(order.total)}</strong>
                       <div className="order-card-actions" onClick={(e) => e.stopPropagation()}>
+                        {order.channel !== 'POS' && (
+                          <>
+                            <button
+                              className="btn-ghost-sm"
+                              title="چاپ آشپزخانه"
+                              onClick={() => printOnlineReceipt(order, 'kitchen')}
+                            >
+                              <ChefHat size={14} />
+                            </button>
+                            <button
+                              className="btn-ghost-sm"
+                              title="چاپ مشتری"
+                              onClick={() => printOnlineReceipt(order, 'customer')}
+                            >
+                              <User size={14} />
+                            </button>
+                          </>
+                        )}
                         <button
                           className="btn-ghost-sm danger"
                           onClick={() =>
@@ -231,11 +271,12 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
     },
   })
 
-  const printOrderReceipt = (o: Order = order) => {
+  const printOrderReceipt = (o: Order = order, copyType: 'kitchen' | 'customer' | 'both' = 'both') => {
     if (!store) return
     printOrderReceipts(o, store, posSettings, {
       cashierName: user?.name,
       forceDialog: true,
+      copyType,
     })
   }
 
@@ -285,9 +326,17 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                 <Calculator size={16} /> تسویه در صندوق
               </button>
             )}
-            <button className="btn-ghost" onClick={() => printOrderReceipt()}>
-              <Printer size={16} /> چاپ رسید
+            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'kitchen')}>
+              <ChefHat size={16} /> چاپ آشپزخانه
             </button>
+            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'customer')}>
+              <User size={16} /> چاپ مشتری
+            </button>
+            {order.channel !== 'POS' && (
+              <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'both')}>
+                <Printer size={16} /> چاپ هر دو
+              </button>
+            )}
           </footer>
         </div>
       </div>

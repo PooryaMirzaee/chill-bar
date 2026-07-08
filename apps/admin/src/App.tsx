@@ -11,6 +11,7 @@ import { Settings } from './pages/Settings'
 import { Users } from './pages/Users'
 import { PosRegister } from './pages/pos/PosRegister'
 import { PosShiftHistory } from './pages/pos/PosShiftHistory'
+import { FinancialReports } from './pages/FinancialReports'
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="menu" element={<MenuManager />} />
         <Route path="menu/quick" element={<MenuQuickEntry />} />
         <Route path="ice-cream" element={<IceCreamManager />} />
+        <Route path="reports" element={<FinancialReports />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<Users />} />
       </Route>

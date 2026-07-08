@@ -9,6 +9,7 @@ import {
   LogOut,
   Calculator,
   Zap,
+  BarChart3,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { useOrderAlerts } from '../lib/useOrderAlerts'
@@ -20,6 +21,7 @@ const NAV = [
   { to: '/menu', label: 'منو', icon: UtensilsCrossed },
   { to: '/menu/quick', label: 'ورود سریع', icon: Zap },
   { to: '/ice-cream', label: 'گزینه‌های بستنی', icon: IceCreamCone },
+  { to: '/reports', label: 'گزارش مالی', icon: BarChart3, roles: ['SUPER_ADMIN', 'MANAGER'] },
   { to: '/settings', label: 'تنظیمات', icon: SettingsIcon },
   { to: '/users', label: 'کاربران', icon: UsersIcon, roles: ['SUPER_ADMIN'] },
 ]

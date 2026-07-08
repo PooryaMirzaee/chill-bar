@@ -231,6 +231,50 @@ export interface DashboardStats {
   openShift?: { id: string; openedAt: string; openedByName: string | null } | null
 }
 
+export interface FinancialDailyReport {
+  date: string
+  orderCount: number
+  grossRevenue: number
+  totalDiscount: number
+  netRevenue: number
+  avgOrderValue: number
+  posOrders: number
+  posRevenue: number
+  onlineOrders: number
+  onlineRevenue: number
+  cashTotal: number
+  cardTotal: number
+  mixedTotal: number
+  cancelledCount: number
+  refundedTotal: number
+}
+
+export interface FinancialSummaryReport {
+  from: string
+  to: string
+  orderCount: number
+  grossRevenue: number
+  totalDiscount: number
+  netRevenue: number
+  avgOrderValue: number
+  posOrders: number
+  posRevenue: number
+  onlineOrders: number
+  onlineRevenue: number
+  cashTotal: number
+  cardTotal: number
+  mixedTotal: number
+  cancelledCount: number
+  refundedTotal: number
+  dailyBreakdown: Array<{
+    date: string
+    orderCount: number
+    netRevenue: number
+    posRevenue: number
+    onlineRevenue: number
+  }>
+}
+
 import type { HomeAppearance } from './homeAppearance'
 import type { MenuAppearance } from './menuAppearance'
 

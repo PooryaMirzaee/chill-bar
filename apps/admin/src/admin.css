@@ -1440,3 +1440,52 @@ textarea {
   margin-right: auto;
   color: var(--primary);
 }
+
+.field-error {
+  color: #f87171;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+
+.fin-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.fin-section-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.fin-date-field {
+  min-width: 160px;
+}
+
+.fin-date-range {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fin-report-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}

@@ -1,0 +1,220 @@
+import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { Calendar, TrendingUp, Wallet } from 'lucide-react'
+import type { FinancialDailyReport, FinancialSummaryReport } from '@chill-bar/shared'
+import { api } from '../lib/api'
+import { formatNumber, formatPrice } from '../lib/format'
+
+function todayInputValue(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function monthAgoInputValue(): string {
+  const d = new Date()
+  d.setDate(d.getDate() - 29)
+  return d.toISOString().slice(0, 10)
+}
+
+const tooltipStyle = {
+  background: '#15151d',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 12,
+  color: '#fff',
+}
+
+export function FinancialReports() {
+  const [dailyDate, setDailyDate] = useState(todayInputValue)
+  const [summaryFrom, setSummaryFrom] = useState(monthAgoInputValue)
+  const [summaryTo, setSummaryTo] = useState(todayInputValue)
+
+  const { data: daily, isLoading: dailyLoading } = useQuery({
+    queryKey: ['financial-daily', dailyDate],
+    queryFn: () => api<FinancialDailyReport>(`/api/admin/reports/financial/daily?date=${dailyDate}`),
+  })
+
+  const { data: summary, isLoading: summaryLoading } = useQuery({
+    queryKey: ['financial-summary', summaryFrom, summaryTo],
+    queryFn: () =>
+      api<FinancialSummaryReport>(
+        `/api/admin/reports/financial/summary?from=${summaryFrom}&to=${summaryTo}`,
+      ),
+  })
+
+  const chartData = useMemo(
+    () =>
+      (summary?.dailyBreakdown ?? []).map((row) => ({
+        ...row,
+        label: new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(
+          new Date(row.date),
+        ),
+      })),
+    [summary],
+  )
+
+  return (
+    <div className="page">
+      <header className="page-head">
+        <div>
+          <h1>گزارش‌های مالی</h1>
+          <p className="page-sub">خلاصه فروش روزانه و گزارش کلی دوره‌ای</p>
+        </div>
+      </header>
+
+      <section className="card" style={{ marginBottom: 16 }}>
+        <header className="fin-section-head">
+          <div>
+            <h3>
+              <Calendar size={18} /> گزارش روزانه
+            </h3>
+            <p className="page-sub">فروش، تخفیف و تفکیک پرداخت برای یک روز</p>
+          </div>
+          <label className="field fin-date-field">
+            <span>تاریخ</span>
+            <input type="date" value={dailyDate} onChange={(e) => setDailyDate(e.target.value)} />
+          </label>
+        </header>
+
+        {dailyLoading || !daily ? (
+          <div className="stat-grid">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="stat-card skeleton" style={{ height: 92 }} />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="stat-grid">
+              <ReportStat label="تعداد فیش" value={formatNumber(daily.orderCount)} tone="orange" />
+              <ReportStat label="فروش خالص" value={formatPrice(daily.netRevenue)} tone="green" />
+              <ReportStat label="تخفیف" value={formatPrice(daily.totalDiscount)} tone="blue" />
+              <ReportStat
+                label="میانگین سفارش"
+                value={formatPrice(daily.avgOrderValue)}
+                tone="blue"
+              />
+            </div>
+            <div className="fin-detail-grid">
+              <ReportRow label="فروش ناخالص" value={formatPrice(daily.grossRevenue)} />
+              <ReportRow label="صندوق" value={`${formatNumber(daily.posOrders)} · ${formatPrice(daily.posRevenue)}`} />
+              <ReportRow
+                label="آنلاین / کیوسک"
+                value={`${formatNumber(daily.onlineOrders)} · ${formatPrice(daily.onlineRevenue)}`}
+              />
+              <ReportRow
+                label="نقد / کارت / ترکیبی"
+                value={`${formatPrice(daily.cashTotal)} / ${formatPrice(daily.cardTotal)} / ${formatPrice(daily.mixedTotal)}`}
+              />
+              <ReportRow label="لغو شده" value={formatNumber(daily.cancelledCount)} />
+              <ReportRow label="استرداد" value={formatPrice(daily.refundedTotal)} />
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="card">
+        <header className="fin-section-head">
+          <div>
+            <h3>
+              <TrendingUp size={18} /> گزارش کلی
+            </h3>
+            <p className="page-sub">جمع فروش در بازه زمانی انتخابی</p>
+          </div>
+          <div className="fin-date-range">
+            <label className="field fin-date-field">
+              <span>از</span>
+              <input type="date" value={summaryFrom} onChange={(e) => setSummaryFrom(e.target.value)} />
+            </label>
+            <label className="field fin-date-field">
+              <span>تا</span>
+              <input type="date" value={summaryTo} onChange={(e) => setSummaryTo(e.target.value)} />
+            </label>
+          </div>
+        </header>
+
+        {summaryLoading || !summary ? (
+          <div className="card skeleton" style={{ height: 320 }} />
+        ) : (
+          <>
+            <div className="stat-grid">
+              <ReportStat label="کل فیش‌ها" value={formatNumber(summary.orderCount)} tone="orange" />
+              <ReportStat label="فروش خالص" value={formatPrice(summary.netRevenue)} tone="green" />
+              <ReportStat
+                label="فروش صندوق"
+                value={formatPrice(summary.posRevenue)}
+                tone="blue"
+              />
+              <ReportStat
+                label="فروش آنلاین"
+                value={formatPrice(summary.onlineRevenue)}
+                tone="blue"
+              />
+            </div>
+
+            <div className="fin-detail-grid" style={{ marginBottom: 16 }}>
+              <ReportRow label="فروش ناخالص" value={formatPrice(summary.grossRevenue)} />
+              <ReportRow label="تخفیف کل" value={formatPrice(summary.totalDiscount)} />
+              <ReportRow
+                label="نقد / کارت / ترکیبی"
+                value={`${formatPrice(summary.cashTotal)} / ${formatPrice(summary.cardTotal)} / ${formatPrice(summary.mixedTotal)}`}
+              />
+              <ReportRow label="استرداد کل" value={formatPrice(summary.refundedTotal)} />
+            </div>
+
+            <h4 style={{ marginBottom: 8 }}>روند روزانه فروش خالص</h4>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={chartData} margin={{ left: 0, right: 8, top: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="label" tick={{ fill: '#9aa0ab', fontSize: 11 }} />
+                <YAxis tick={{ fill: '#9aa0ab', fontSize: 12 }} width={56} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  formatter={(v: number) => [formatPrice(v), 'فروش خالص']}
+                />
+                <Bar dataKey="netRevenue" fill="#F26522" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function ReportStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone: string
+}) {
+  return (
+    <div className={`stat-card stat-${tone}`}>
+      <div className="stat-icon">
+        <Wallet size={18} />
+      </div>
+      <div className="stat-body">
+        <span className="stat-label">{label}</span>
+        <strong className="stat-value">{value}</strong>
+      </div>
+    </div>
+  )
+}
+
+function ReportRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="fin-report-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  )
+}

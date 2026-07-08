@@ -104,6 +104,7 @@ export function Dashboard() {
             {new Date(data.openShift.openedAt).toLocaleTimeString('fa-IR')}
           </span>
           <Link to="/pos/shifts">گزارش شیفت‌ها</Link>
+          <Link to="/reports">گزارش مالی</Link>
         </section>
       )}
 

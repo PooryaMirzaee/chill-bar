@@ -97,7 +97,7 @@ export function PosSettingsPanel({ value, onChange, store }: PosSettingsPanelPro
             value={value.receiptPrintMode}
             onChange={(e) => set('receiptPrintMode', e.target.value as PosSettings['receiptPrintMode'])}
           >
-            <option value="dialog">باز کردن دیالوگ چاپ (آشپزخانه + مشتری)</option>
+            <option value="dialog">باز کردن دیالوگ چاپ جداگانه (آشپزخانه و مشتری)</option>
             <option value="off">بدون چاپ خودکار</option>
           </select>
         </label>

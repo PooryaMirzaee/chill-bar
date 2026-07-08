@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Plus, Save, Trash2 } from 'lucide-react'
 import type { IceCreamBuilderSettings, IceCreamOption, IceCreamOptions, IceCreamVisualProfile } from '@chill-bar/shared'
 import {
@@ -47,6 +47,11 @@ function slugify(name: string): string {
     .slice(0, 40)
 }
 
+function parsePriceInput(value: string): number {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.round(parsed) : 0
+}
+
 export function IceCreamManager() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({
@@ -55,12 +60,17 @@ export function IceCreamManager() {
   })
 
   const [settings, setSettings] = useState<IceCreamBuilderSettings>(DEFAULT_ICE_CREAM_BUILDER_SETTINGS)
+  const [settingsDirty, setSettingsDirty] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
+  const [optionError, setOptionError] = useState<string | null>(null)
+  const settingsSyncedRef = useRef(false)
   const [tab, setTab] = useState<OptionType>('BASE')
   const [editing, setEditing] = useState<(IceCreamOption & { type?: OptionType }) | null>(null)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    if (data) {
+    if (!data) return
+    if (!settingsSyncedRef.current || !settingsDirty) {
       setSettings({
         basePrice: data.basePrice,
         minPrice: data.minPrice,
@@ -68,18 +78,35 @@ export function IceCreamManager() {
         smartSuggestions: data.smartSuggestions,
         builderMode: data.builderMode ?? 'studio',
       })
+      settingsSyncedRef.current = true
     }
-  }, [data])
+  }, [data, settingsDirty])
+
+  const updateSettings = (patch: Partial<IceCreamBuilderSettings>) => {
+    setSettingsDirty(true)
+    setSettingsError(null)
+    setSettings((current) => ({ ...current, ...patch }))
+  }
 
   const saveSettingsMutation = useMutation({
     mutationFn: (payload: typeof settings) =>
-      api('/api/admin/ice-cream/settings', { method: 'PUT', body: JSON.stringify(payload) }),
+      api('/api/admin/ice-cream/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...payload,
+          basePrice: Math.round(payload.basePrice),
+          minPrice: Math.round(payload.minPrice),
+        }),
+      }),
     onSuccess: () => {
+      setSettingsDirty(false)
+      setSettingsError(null)
       queryClient.invalidateQueries({ queryKey: ['admin-ice-cream'] })
       queryClient.invalidateQueries({ queryKey: ['ice-options'] })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     },
+    onError: (err: Error) => setSettingsError(err.message),
   })
 
   const saveOptionMutation = useMutation({
@@ -90,7 +117,7 @@ export function IceCreamManager() {
         name: opt.name,
         color: opt.color,
         texture: opt.texture ?? null,
-        priceMod: opt.priceMod,
+        priceMod: Math.round(opt.priceMod),
         emoji: opt.emoji,
         hotBoost: opt.hotBoost ?? null,
         coldBoost: opt.coldBoost ?? null,
@@ -111,9 +138,11 @@ export function IceCreamManager() {
       })
     },
     onSuccess: () => {
+      setOptionError(null)
       queryClient.invalidateQueries({ queryKey: ['admin-ice-cream'] })
       setEditing(null)
     },
+    onError: (err: Error) => setOptionError(err.message),
   })
 
   const deleteMutation = useMutation({
@@ -205,12 +234,13 @@ export function IceCreamManager() {
 
       <section className="card" style={{ marginBottom: 16 }}>
         <h3>تنظیمات کلی</h3>
+        {settingsError && <p className="field-error">{settingsError}</p>}
         <div className="form-grid">
           <label className="checkbox-field field-full">
             <input
               type="checkbox"
               checked={settings.enabled}
-              onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
+              onChange={(e) => updateSettings({ enabled: e.target.checked })}
             />
             <span>بخش بستنی سفارشی در اپ فعال باشد</span>
           </label>
@@ -218,7 +248,7 @@ export function IceCreamManager() {
             <input
               type="checkbox"
               checked={settings.smartSuggestions}
-              onChange={(e) => setSettings({ ...settings, smartSuggestions: e.target.checked })}
+              onChange={(e) => updateSettings({ smartSuggestions: e.target.checked })}
             />
             <span>پیشنهاد هوشمند بر اساس آب‌وهوا</span>
           </label>
@@ -227,7 +257,7 @@ export function IceCreamManager() {
             <select
               value={settings.builderMode}
               onChange={(e) =>
-                setSettings({ ...settings, builderMode: e.target.value as 'classic' | 'studio' })
+                updateSettings({ builderMode: e.target.value as 'classic' | 'studio' })
               }
             >
               <option value="studio">استودیو — پیش‌نمایش ثابت، انتخاب افقی، بدون اسکرول صفحه (پیشنهادی)</option>
@@ -243,7 +273,7 @@ export function IceCreamManager() {
               type="number"
               min={0}
               value={settings.basePrice}
-              onChange={(e) => setSettings({ ...settings, basePrice: Number(e.target.value) })}
+              onChange={(e) => updateSettings({ basePrice: parsePriceInput(e.target.value) })}
             />
           </label>
           <label className="field">
@@ -252,7 +282,7 @@ export function IceCreamManager() {
               type="number"
               min={0}
               value={settings.minPrice}
-              onChange={(e) => setSettings({ ...settings, minPrice: Number(e.target.value) })}
+              onChange={(e) => updateSettings({ minPrice: parsePriceInput(e.target.value) })}
             />
           </label>
         </div>
@@ -327,6 +357,7 @@ export function IceCreamManager() {
         {editing && (
           <section className="card ice-admin-editor">
             <h3>{editing.id ? 'ویرایش' : 'گزینه جدید'}</h3>
+            {optionError && <p className="field-error">{optionError}</p>}
             <div className="ice-editor-grid">
               <div className="ice-editor-form">
                 <div className="form-grid">
@@ -384,11 +415,13 @@ export function IceCreamManager() {
                     </label>
                   )}
                   <label className="field">
-                    <span>هزینه اضافه (تومان)</span>
+                    <span>{tab === 'BASE' ? 'هزینه اضافه نسبت به قیمت پایه' : 'هزینه اضافه (تومان)'}</span>
                     <input
                       type="number"
                       value={editing.priceMod}
-                      onChange={(e) => setEditing({ ...editing, priceMod: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setEditing({ ...editing, priceMod: parsePriceInput(e.target.value) })
+                      }
                     />
                   </label>
                   {tab === 'COATING' && (

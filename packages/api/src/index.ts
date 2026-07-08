@@ -23,6 +23,7 @@ import { adminUploadRoutes } from './routes/admin.upload.js'
 import { adminUserRoutes } from './routes/admin.users.js'
 import { adminShiftRoutes } from './routes/admin.shifts.js'
 import { adminPosRoutes } from './routes/admin.pos.js'
+import { adminReportRoutes } from './routes/admin.reports.js'
 import { waitLoungeRoutes } from './routes/waitLounge.js'
 import { wsRoutes } from './routes/ws.js'
 import { prisma } from './prisma.js'
@@ -69,6 +70,7 @@ async function main() {
   await app.register(adminUserRoutes)
   await app.register(adminShiftRoutes)
   await app.register(adminPosRoutes)
+  await app.register(adminReportRoutes)
 
   // Realtime
   await app.register(wsRoutes)
