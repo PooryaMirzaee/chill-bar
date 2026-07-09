@@ -1590,3 +1590,10 @@ textarea {
 .btn-primary.danger:hover:not(:disabled) {
   background: #ef4444;
 }
+
+.settings-hint {
+  margin: 6px 0 12px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

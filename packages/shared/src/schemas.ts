@@ -502,7 +502,7 @@ export const posSettingsSchema = z.object({
   receiptTemplateId: z.enum(RECEIPT_TEMPLATE_IDS).default('bold'),
   kitchenReceiptTemplateId: z.enum(RECEIPT_TEMPLATE_IDS).default('kitchen-compact'),
   receiptHighContrast: z.boolean().default(true),
-  receiptPrintMode: z.enum(['dialog', 'off']).default('dialog'),
+  receiptPrintMode: z.enum(['dialog', 'silent', 'off']).default('dialog'),
   printCustomerReceipt: z.boolean().default(true),
   printKitchenReceipt: z.boolean().default(true),
   receiptHeaderText: z.string().max(300).default(''),

@@ -81,7 +81,7 @@ export function PosRegister() {
       setShowCheckout(false)
       setError(null)
       if (posSettings.autoPrintOnSale && shouldAutoPrint(posSettings)) {
-        printReceiptForOrder(order, { forceDialog: true })
+        printReceiptForOrder(order)
       }
     },
     onError: (err: Error) => setError(err.message),
@@ -113,7 +113,7 @@ export function PosRegister() {
       queryClient.invalidateQueries({ queryKey: ['pos-incoming'] })
       setSettleOrder(null)
       if (posSettings.autoPrintOnOnlineSettle && shouldAutoPrint(posSettings)) {
-        printReceiptForOrder(order, { forceDialog: true })
+        printReceiptForOrder(order)
       }
     },
     onError: (err: Error) => setError(err.message),

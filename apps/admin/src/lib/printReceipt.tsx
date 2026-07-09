@@ -5,10 +5,10 @@ import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
 import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-/** Gap between separate print jobs so thermal cutter can cut each receipt. */
-const PRINT_GAP_MS = 1500
+const PRINT_GAP_DIALOG_MS = 1500
+const PRINT_GAP_SILENT_MS = 700
 
-function waitForPrintDialog(): Promise<void> {
+function waitForPrintComplete(maxMs: number): Promise<void> {
   return new Promise((resolve) => {
     let settled = false
     const done = () => {
@@ -26,7 +26,7 @@ function waitForPrintDialog(): Promise<void> {
     window.addEventListener('afterprint', done)
     const media = window.matchMedia('print')
     media.addEventListener('change', onMediaChange)
-    window.setTimeout(done, 120_000)
+    window.setTimeout(done, maxMs)
   })
 }
 
@@ -34,7 +34,9 @@ function removePrintPortal() {
   document.getElementById('receipt-print-portal')?.remove()
 }
 
-function renderAndPrint(node: ReactNode, openDialog: boolean): Promise<void> {
+type PrintMode = PosSettings['receiptPrintMode']
+
+function renderAndPrint(node: ReactNode, mode: PrintMode): Promise<void> {
   return new Promise((resolve) => {
     removePrintPortal()
 
@@ -52,37 +54,44 @@ function renderAndPrint(node: ReactNode, openDialog: boolean): Promise<void> {
       resolve()
     }
 
-    if (!openDialog) {
-      cleanup()
-      return
-    }
-
     requestAnimationFrame(() => {
       window.setTimeout(async () => {
         window.print()
-        await waitForPrintDialog()
-        await new Promise((r) => window.setTimeout(r, PRINT_GAP_MS))
+        await waitForPrintComplete(mode === 'silent' ? 4_000 : 120_000)
+        await new Promise((r) =>
+          window.setTimeout(r, mode === 'silent' ? PRINT_GAP_SILENT_MS : PRINT_GAP_DIALOG_MS),
+        )
         cleanup()
       }, 220)
     })
   })
 }
 
+function resolvePrintMode(
+  posSettings: PosSettings,
+  options?: { forceDialog?: boolean; forceSilent?: boolean },
+): PrintMode {
+  if (options?.forceDialog) return 'dialog'
+  if (options?.forceSilent) return 'silent'
+  return posSettings.receiptPrintMode
+}
+
 export function printThermalReceipt(
   props: ThermalReceiptProps,
-  options?: { openDialog?: boolean },
+  options?: { mode?: PrintMode },
 ): Promise<void> {
-  return renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
+  return renderAndPrint(<ThermalReceipt {...props} />, options?.mode ?? 'dialog')
 }
 
 /** Each copy is a separate print job so thermal printers cut between receipts. */
 export async function printThermalReceiptBatch(
   copies: ThermalReceiptProps[],
-  options?: { openDialog?: boolean },
+  options?: { mode?: PrintMode },
 ): Promise<void> {
   if (copies.length === 0) return
+  const mode = options?.mode ?? 'dialog'
   for (const copy of copies) {
-    await printThermalReceipt(copy, options)
+    await printThermalReceipt(copy, { mode })
   }
 }
 
@@ -242,6 +251,7 @@ export function printOrderReceipts(
   options?: {
     cashierName?: string | null
     forceDialog?: boolean
+    forceSilent?: boolean
     copyType?: 'customer' | 'kitchen' | 'both'
   },
 ): Promise<void> {
@@ -252,10 +262,10 @@ export function printOrderReceipts(
   }
   if (copies.length === 0) return Promise.resolve()
 
-  const openDialog = options?.forceDialog === true || posSettings.receiptPrintMode === 'dialog'
-  if (!openDialog) return Promise.resolve()
+  const mode = resolvePrintMode(posSettings, options)
+  if (mode === 'off') return Promise.resolve()
 
-  return printThermalReceiptBatch(copies, { openDialog: true })
+  return printThermalReceiptBatch(copies, { mode })
 }
 
 export function printKitchenReceipt(
@@ -278,7 +288,7 @@ export function printCustomerReceipt(
 
 export function shouldAutoPrint(posSettings: PosSettings): boolean {
   return (
-    posSettings.receiptPrintMode === 'dialog' &&
+    (posSettings.receiptPrintMode === 'dialog' || posSettings.receiptPrintMode === 'silent') &&
     (posSettings.printCustomerReceipt || posSettings.printKitchenReceipt)
   )
 }
@@ -382,5 +392,8 @@ export function printSampleReceipt(
     store as StoreSettings,
     posSettings,
   )
-  printThermalReceiptBatch(copies.length ? copies : [buildSampleReceiptProps(store, posSettings)])
+  printThermalReceiptBatch(
+    copies.length ? copies : [buildSampleReceiptProps(store, posSettings)],
+    { mode: posSettings.receiptPrintMode === 'off' ? 'dialog' : posSettings.receiptPrintMode },
+  )
 }

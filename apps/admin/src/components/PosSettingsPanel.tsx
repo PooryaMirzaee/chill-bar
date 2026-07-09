@@ -92,15 +92,20 @@ export function PosSettingsPanel({ value, onChange, store }: PosSettingsPanelPro
         </label>
 
         <label>
-          رفتار چاپ خودکار
+          روش چاپ خودکار
           <select
             value={value.receiptPrintMode}
             onChange={(e) => set('receiptPrintMode', e.target.value as PosSettings['receiptPrintMode'])}
           >
-            <option value="dialog">باز کردن دیالوگ چاپ جداگانه (آشپزخانه و مشتری)</option>
+            <option value="silent">بدون دیالوگ — چاپ مستقیم هر دو فیش پشت‌سرهم</option>
+            <option value="dialog">با دیالوگ چاپ — تأیید جدا برای هر فیش</option>
             <option value="off">بدون چاپ خودکار</option>
           </select>
         </label>
+        <p className="settings-hint">
+          حالت «بدون دیالوگ» برای پرینتر حرارتی با Chrome در حالت kiosk مناسب است (پرینتر پیش‌فرض +
+          برش خودکار). در مرورگر عادی ممکن است همچنان یک‌بار دیالوگ نمایش داده شود.
+        </p>
 
         <label className="toggle-row">
           <span>چاپ نسخه مشتری</span>

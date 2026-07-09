@@ -7,6 +7,8 @@ export type AdjustmentType = 'DISCOUNT' | 'REFUND' | 'VOID_ITEM'
 
 export type ShiftStatus = 'OPEN' | 'CLOSED'
 
+export type ReceiptPrintMode = 'dialog' | 'silent' | 'off'
+
 export interface PosSettings {
   enabled: boolean
   requireShiftOpen: boolean
@@ -14,7 +16,7 @@ export interface PosSettings {
   receiptTemplateId: ReceiptTemplateId
   kitchenReceiptTemplateId: ReceiptTemplateId
   receiptHighContrast: boolean
-  receiptPrintMode: 'dialog' | 'off'
+  receiptPrintMode: ReceiptPrintMode
   printCustomerReceipt: boolean
   printKitchenReceipt: boolean
   receiptHeaderText: string
