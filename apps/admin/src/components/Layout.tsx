@@ -62,6 +62,9 @@ export function Layout() {
           )}
         </nav>
         <div className="admin-sidebar-footer">
+          <p className="admin-build-version" title="نسخه دیپلوی — برای اطمینان از آپدیت">
+            build {__BUILD_SHA__}
+          </p>
           <div className="admin-user">
             <div className="admin-user-avatar">{user?.name?.[0] ?? 'C'}</div>
             <div className="admin-user-info">

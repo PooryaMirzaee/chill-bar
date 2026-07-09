@@ -19,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: packages/api/Dockerfile
+      args:
+        BUILD_SHA: ${BUILD_SHA:-unknown}
     container_name: chillbar-api
     restart: unless-stopped
     depends_on:
@@ -44,6 +46,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        BUILD_SHA: ${BUILD_SHA:-unknown}
     container_name: chillbar-web
     restart: unless-stopped
     depends_on:
@@ -55,6 +59,8 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+      args:
+        BUILD_SHA: ${BUILD_SHA:-unknown}
     container_name: chillbar-admin
     restart: unless-stopped
     depends_on:

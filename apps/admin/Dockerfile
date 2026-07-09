@@ -1,5 +1,6 @@
 # Chill Bar admin panel — build context is the repository root
 FROM node:22-alpine AS build
+ARG BUILD_SHA=unknown
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
@@ -10,6 +11,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm ci
 COPY packages/shared packages/shared
 COPY apps/admin apps/admin
+ENV VITE_BUILD_SHA=$BUILD_SHA
 RUN npm run build -w @chill-bar/admin
 
 FROM nginx:1.27-alpine AS run

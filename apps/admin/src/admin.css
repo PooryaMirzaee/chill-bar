@@ -211,6 +211,15 @@ textarea {
   flex-direction: column;
   gap: 10px;
 }
+.admin-build-version {
+  margin: 0;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+  font-family: ui-monospace, monospace;
+  direction: ltr;
+  text-align: center;
+}
 .admin-user {
   display: flex;
   align-items: center;

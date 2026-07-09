@@ -209,9 +209,12 @@ docker compose up -d api
 
 ```bash
 cd /opt/chill-bar
+export BUILD_SHA="$(git rev-parse --short HEAD)"
 git pull
 docker compose up -d --build
 ```
+
+اگر تغییرات ادمین دیده نمی‌شود: `bash scripts/deploy-update.sh --no-cache` — جزئیات در [UPDATE.md](./UPDATE.md).
 
 ---
 
@@ -248,6 +251,7 @@ docker run --rm -v chill-bar_chillbar_uploads:/data -v $(pwd):/backup alpine \
 | `admin` Restarting — duplicate `/ws/` | `docker compose logs admin` — بعد از `git pull` دوباره build |
 | `api` بالا نمی‌آید | `docker compose logs api` — معمولاً `DATABASE_URL` یا رمز Postgres |
 | صفحه سفید web/admin | `docker compose logs web` — build شکست خورده؟ دوباره `--build` |
+| تغییرات ادمین اعمال نشده | build قطع شده یا کش مرورگر — `bash scripts/deploy-update.sh --no-cache` و hard refresh |
 | عکس منو لود نمی‌شود | مطمئن شوید nginx `/uploads/` را پروکسی می‌کند (در نسخه فعلی پروژه هست) |
 | WebSocket ادمین قطع | در پروکسی 1Panel **WebSocket** را فعال کنید |
 | بعد از آپدیت منو خالی | seed فقط داده اولیه است؛ داده واقعی در Postgres است — بکاپ بگیرید |

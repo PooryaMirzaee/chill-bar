@@ -8,11 +8,19 @@
 
 ```bash
 cd /opt/chill-bar
+export BUILD_SHA="$(git rev-parse --short HEAD)"
 git pull
 docker compose up -d --build
 ```
 
-صبر کن تا build تمام شود (۲–۱۰ دقیقه).
+یا با اسکریپت آماده:
+
+```bash
+cd /opt/chill-bar
+bash scripts/deploy-update.sh
+```
+
+صبر کن تا build تمام شود (۲–۲۰ دقیقه؛ قطع شدن SSH یعنی deploy ناقص مانده).
 
 بررسی:
 
@@ -21,7 +29,7 @@ docker compose ps
 docker compose logs api --tail=30
 ```
 
-همه سرویس‌ها باید **Up** باشند.
+همه سرویس‌ها باید **Up** باشند. در پایین سایدبار ادمین باید `build <commit>` همان `git rev-parse --short HEAD` باشد.
 
 ---
 
@@ -95,6 +103,37 @@ docker compose up -d --build admin
 ---
 
 ## عیب‌یابی آپدیت
+
+### تغییرات ادمین / API اعمال نشده
+
+**علت‌های رایج:**
+
+1. Build وسط کار قطع شده (SSH یا 1Panel) — کانتینر قدیمی هنوز Up است
+2. فقط `docker compose restart` زده شده بدون `--build`
+3. کش مرورگر یا پروکسی 1Panel روی `index.html`
+4. تغییرات API (گزارش مالی، کد سفارش CH500، …) بدون rebuild سرویس `api`
+
+**راه‌حل:**
+
+```bash
+cd /opt/chill-bar
+git pull
+git log -1 --oneline                    # آخرین commit روی سرور
+bash scripts/deploy-update.sh --no-cache
+```
+
+یا دستی:
+
+```bash
+export BUILD_SHA="$(git rev-parse --short HEAD)"
+docker compose build --no-cache admin api
+docker compose up -d --force-recreate admin api
+docker compose ps
+```
+
+بعد در مرورگر: **Ctrl+Shift+R** یا پنجره ناشناس.
+
+تأیید نسخه: پایین سایدبار ادمین → `build abc1234` باید با `git rev-parse --short HEAD` یکی باشد.
 
 ### Build شکست خورد
 
