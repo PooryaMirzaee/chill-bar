@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bar,
   BarChart,
@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Trash2, TrendingUp, Wallet } from 'lucide-react'
 import type {
   FinancialDailyReport,
   FinancialOrderRow,
@@ -47,6 +47,7 @@ const SORT_LABELS: Record<FinancialOrderSortField, string> = {
 }
 
 export function FinancialReports() {
+  const queryClient = useQueryClient()
   const [dailyDate, setDailyDate] = useState(todayInputValue)
   const [summaryFrom, setSummaryFrom] = useState(monthAgoInputValue)
   const [summaryTo, setSummaryTo] = useState(todayInputValue)
@@ -98,6 +99,31 @@ export function FinancialReports() {
       sortBy,
       sortDir: current.sortBy === sortBy && current.sortDir === 'desc' ? 'asc' : 'desc',
     }))
+  }
+
+  const [voidTarget, setVoidTarget] = useState<FinancialOrderRow | null>(null)
+  const [voidReason, setVoidReason] = useState('')
+
+  const voidMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      api(`/api/admin/orders/${id}/void`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason || null }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financial-daily'] })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['recent-receipts'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      setVoidTarget(null)
+      setVoidReason('')
+    },
+  })
+
+  const handleVoid = () => {
+    if (!voidTarget) return
+    voidMutation.mutate({ id: voidTarget.id, reason: voidReason.trim() || undefined })
   }
 
   return (
@@ -162,6 +188,7 @@ export function FinancialReports() {
               sortBy={dailySort.sortBy}
               sortDir={dailySort.sortDir}
               onSort={toggleDailySort}
+              onVoid={setVoidTarget}
             />
           </>
         )}
@@ -236,10 +263,74 @@ export function FinancialReports() {
               sortBy={summarySort.sortBy}
               sortDir={summarySort.sortDir}
               onSort={toggleSummarySort}
+              onVoid={setVoidTarget}
             />
           </>
         )}
       </section>
+
+      {voidTarget && (
+        <div className="modal-overlay" onClick={() => !voidMutation.isPending && setVoidTarget(null)}>
+          <div className="modal fin-void-modal" onClick={(e) => e.stopPropagation()}>
+            <header className="modal-head">
+              <h3>حذف فاکتور</h3>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setVoidTarget(null)}
+                disabled={voidMutation.isPending}
+              >
+                ✕
+              </button>
+            </header>
+            <div className="modal-body">
+              <p>
+                فاکتور <strong>{voidTarget.code}</strong>
+                {voidTarget.receiptNumber != null && (
+                  <> (فیش #{voidTarget.receiptNumber.toLocaleString('fa-IR')})</>
+                )}{' '}
+                ابطال می‌شود و از گزارش مالی حذف خواهد شد.
+              </p>
+              {voidTarget.paymentStatus === 'PAID' && (
+                <p className="fin-void-warn">این فاکتور پرداخت‌شده است — مبلغ به‌عنوان استرداد ثبت می‌شود.</p>
+              )}
+              <label className="field">
+                <span>دلیل (اختیاری)</span>
+                <input
+                  type="text"
+                  value={voidReason}
+                  onChange={(e) => setVoidReason(e.target.value)}
+                  placeholder="مثلاً ثبت اشتباه"
+                  maxLength={300}
+                />
+              </label>
+              {voidMutation.isError && (
+                <p className="error-text">
+                  {voidMutation.error instanceof Error ? voidMutation.error.message : 'خطا در حذف فاکتور'}
+                </p>
+              )}
+            </div>
+            <footer className="modal-foot">
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setVoidTarget(null)}
+                disabled={voidMutation.isPending}
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                className="btn-primary danger"
+                onClick={handleVoid}
+                disabled={voidMutation.isPending}
+              >
+                {voidMutation.isPending ? 'در حال حذف…' : 'حذف فاکتور'}
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -250,12 +341,14 @@ function OrdersTable({
   sortBy,
   sortDir,
   onSort,
+  onVoid,
 }: {
   title: string
   orders: FinancialOrderRow[]
   sortBy: FinancialOrderSortField
   sortDir: FinancialSortDirection
   onSort: (field: FinancialOrderSortField) => void
+  onVoid: (order: FinancialOrderRow) => void
 }) {
   return (
     <div className="fin-orders-section">
@@ -282,6 +375,7 @@ function OrdersTable({
                 <th>پرداخت</th>
                 <th>مشتری</th>
                 <th>اقلام</th>
+                <th>عملیات</th>
               </tr>
             </thead>
             <tbody>
@@ -307,6 +401,18 @@ function OrdersTable({
                   </td>
                   <td>{order.customerName ?? '—'}</td>
                   <td>{order.itemCount.toLocaleString('fa-IR')}</td>
+                  <td>
+                    {order.status !== 'CANCELLED' && (
+                      <button
+                        type="button"
+                        className="btn-ghost-sm danger fin-void-btn"
+                        title="حذف فاکتور"
+                        onClick={() => onVoid(order)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

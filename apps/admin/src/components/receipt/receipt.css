@@ -599,11 +599,6 @@
   }
 
   #receipt-print-portal .thermal-receipt {
-    page-break-after: always;
-    break-after: page;
-  }
-
-  #receipt-print-portal .thermal-receipt:last-child {
     page-break-after: auto;
     break-after: auto;
   }

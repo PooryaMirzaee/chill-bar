@@ -1562,3 +1562,31 @@ textarea {
   color: #f0a060;
   font-size: 0.78rem;
 }
+
+.fin-void-btn {
+  color: #f87171;
+}
+
+.fin-void-warn {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+  font-size: 0.88rem;
+}
+
+.fin-void-modal .error-text {
+  margin-top: 10px;
+  color: #f87171;
+  font-size: 0.88rem;
+}
+
+.btn-primary.danger {
+  background: #dc2626;
+}
+
+.btn-primary.danger:hover:not(:disabled) {
+  background: #ef4444;
+}

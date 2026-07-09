@@ -3,9 +3,10 @@ import { createRoot, type Root } from 'react-dom/client'
 import type { PosSettings, StoreSettings } from '@chill-bar/shared'
 import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
-import { ReceiptPrintBatch, ThermalReceipt } from '../components/receipt/ThermalReceipt'
+import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-const PRINT_GAP_MS = 900
+/** Gap between separate print jobs so thermal cutter can cut each receipt. */
+const PRINT_GAP_MS = 1500
 
 function waitForPrintDialog(): Promise<void> {
   return new Promise((resolve) => {
@@ -74,17 +75,15 @@ export function printThermalReceipt(
   return renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
 }
 
-/** Prints copies in one dialog when multiple (avoids browser blocking the 2nd print). */
+/** Each copy is a separate print job so thermal printers cut between receipts. */
 export async function printThermalReceiptBatch(
   copies: ThermalReceiptProps[],
   options?: { openDialog?: boolean },
 ): Promise<void> {
   if (copies.length === 0) return
-  if (copies.length === 1) {
-    await printThermalReceipt(copies[0], options)
-    return
+  for (const copy of copies) {
+    await printThermalReceipt(copy, options)
   }
-  await renderAndPrint(<ReceiptPrintBatch copies={copies} />, options?.openDialog !== false)
 }
 
 export function buildReceiptItemsFromOrder(
