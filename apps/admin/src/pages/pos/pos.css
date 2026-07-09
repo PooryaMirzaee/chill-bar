@@ -1014,6 +1014,138 @@
   }
 }
 
+/* ── Recent receipts page ── */
+.pos-receipts-page {
+  overflow: auto;
+}
+
+.pos-receipts-wrap {
+  padding: 16px 20px 24px;
+}
+
+.pos-receipts-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--pos-text-muted);
+}
+
+.pos-receipts-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--pos-border);
+  border-radius: 14px;
+  background: var(--pos-surface);
+}
+
+.pos-receipts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.pos-receipts-table th,
+.pos-receipts-table td {
+  padding: 10px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--pos-border);
+  white-space: nowrap;
+}
+
+.pos-receipts-table th {
+  font-size: 0.78rem;
+  color: var(--pos-text-muted);
+  background: var(--pos-surface-2);
+}
+
+.pos-receipts-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pos-receipts-table .mono {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.pos-receipt-pay.paid {
+  color: var(--pos-success);
+}
+
+.pos-receipt-pay.unpaid {
+  color: var(--pos-warning);
+}
+
+.pos-receipt-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.pos-receipt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--pos-border);
+  background: var(--pos-surface-2);
+  color: var(--pos-text-secondary);
+  cursor: pointer;
+}
+
+.pos-receipt-btn:hover {
+  border-color: var(--pos-border-strong);
+  color: var(--pos-text);
+}
+
+.pos-receipt-btn.primary {
+  background: var(--pos-primary);
+  border-color: transparent;
+  color: var(--pos-primary-text);
+}
+
+.pos-receipt-preview-modal {
+  width: min(520px, 100%);
+}
+
+.pos-receipt-preview-body {
+  overflow: auto;
+  max-height: 60dvh;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.pos-modal-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.pos-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--pos-border);
+  background: transparent;
+  color: var(--pos-text-secondary);
+  cursor: pointer;
+}
+
+.spin {
+  animation: pos-spin 0.8s linear infinite;
+}
+
+@keyframes pos-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 640px) {
   .pos-topbar {
     flex-wrap: wrap;

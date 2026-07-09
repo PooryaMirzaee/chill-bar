@@ -28,7 +28,6 @@ import { useStoreSettings } from '../hooks/useStoreSettings'
 import { useLoyalty } from '../hooks/useLoyalty'
 import { useWaitLounge } from '../store/waitLounge'
 import { WaitLoungePromoCard } from './wait-lounge/WaitLoungeEntry'
-import { WaitLoungeCelebrationPopup } from './wait-lounge/WaitLoungeCelebrationPopup'
 import { orderToActive } from '../store/activeOrder'
 
 interface Props {
@@ -130,7 +129,7 @@ export function Cart({
   const titles: Record<Stage, string> = {
     cart: 'سبد خرید',
     checkout: 'تکمیل سفارش',
-    done: 'سفارش ثبت شد',
+    done: 'ثبت شد — مراجعه به صندوق',
   }
 
   return (
@@ -466,9 +465,6 @@ function OrderConfirmation({
   loungeFeatureOn: boolean
 }) {
   const [status, setStatus] = useState<OrderStatus>(order.status)
-  const [celebrationOpen, setCelebrationOpen] = useState(
-    loungeFeatureOn && order.status !== 'CANCELLED' && order.status !== 'DELIVERED',
-  )
   const { setActiveOrder, setLoungeOpen, loungeCopy, sessionPoints } = useWaitLounge()
   const { settings } = useStoreSettings()
   const { waitLounge } = settings
@@ -476,11 +472,8 @@ function OrderConfirmation({
   const openLounge = () => {
     setActiveOrder(orderToActive({ ...order, status }))
     setLoungeOpen(true)
-    setCelebrationOpen(false)
     onClose()
   }
-
-  const dismissCelebration = () => setCelebrationOpen(false)
 
   useEffect(() => {
     if (status === 'DELIVERED' || status === 'CANCELLED') return
@@ -498,30 +491,22 @@ function OrderConfirmation({
   const currentIdx = ORDER_STATUS_FLOW.indexOf(status)
 
   return (
-    <>
-      <div className="relative flex flex-1 flex-col overflow-hidden">
-        <WaitLoungeCelebrationPopup
-          open={celebrationOpen}
-          orderCode={order.code}
-          title={loungeCopy.waitLoungeOrderSuccessTitle}
-          body={loungeCopy.waitLoungeOrderSuccessBody}
-          cta={loungeCopy.waitLoungeEnter}
-          laterLabel={loungeCopy.waitLoungeOrderSuccessLater}
-          maxPoints={waitLounge.maxPointsPerOrder}
-          pointsLabel={loungeCopy.waitLoungePointsLabel}
-          onPlay={openLounge}
-          onDismiss={dismissCelebration}
-        />
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
+          <CheckCircle2 className="h-8 w-8 text-primary" />
+        </div>
 
-        <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
-        <CheckCircle2 className="h-8 w-8 text-primary" />
-      </div>
-      <div>
-        <h4 className="font-semibold">سفارش شما با کد</h4>
-        <div className="mt-2 text-3xl font-bold tracking-widest text-primary">{order.code}</div>
-        <p className="mt-2 text-sm text-muted-foreground">ثبت شد و برای آشپزخانه ارسال شد</p>
-      </div>
+        <div className="w-full rounded-2xl border-2 border-primary/40 bg-primary/10 px-4 py-5">
+          <h4 className="text-lg font-bold leading-relaxed text-primary">
+            سفارشتون ثبت شد
+          </h4>
+          <p className="mt-2 text-sm font-medium leading-relaxed">
+            برای پرداخت به صندوق مراجعه کنید
+          </p>
+          <div className="mt-4 text-3xl font-bold tracking-widest text-primary">{order.code}</div>
+          <p className="mt-2 text-xs text-muted-foreground">کد سفارش را به صندوقدار بگویید</p>
+        </div>
 
       {status === 'CANCELLED' ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
@@ -546,14 +531,13 @@ function OrderConfirmation({
       )}
 
       <div className="flex w-full items-center justify-between rounded-xl border bg-muted/50 px-4 py-3">
-        <span className="text-sm text-muted-foreground">مبلغ قابل پرداخت</span>
+        <span className="text-sm text-muted-foreground">مبلغ قابل پرداخت در صندوق</span>
         <strong className="text-lg">{formatPrice(order.total)}</strong>
       </div>
-      <p className="text-xs text-muted-foreground">پرداخت هنگام تحویل سفارش انجام می‌شود</p>
 
       <QuickSignupPrompt defaultName={name} onDone={() => undefined} />
 
-      {loungeFeatureOn && status !== 'CANCELLED' && status !== 'DELIVERED' && !celebrationOpen && (
+      {loungeFeatureOn && status !== 'CANCELLED' && status !== 'DELIVERED' && (
         <WaitLoungePromoCard
           className="w-full"
           title={loungeCopy.waitLoungePlayTitle}
@@ -569,8 +553,7 @@ function OrderConfirmation({
       <Button className="mt-auto w-full" size="lg" variant="outline" onClick={onClose}>
         بستن
       </Button>
-        </div>
       </div>
-    </>
+    </div>
   )
 }

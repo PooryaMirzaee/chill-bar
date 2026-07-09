@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import type { PosSettings, StoreSettings } from '@chill-bar/shared'
 import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
-import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
+import { ReceiptPrintBatch, ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
 const PRINT_GAP_MS = 900
 
@@ -74,15 +74,17 @@ export function printThermalReceipt(
   return renderAndPrint(<ThermalReceipt {...props} />, options?.openDialog !== false)
 }
 
-/** Prints each receipt in its own isolated print job (kitchen and customer stay separate). */
+/** Prints copies in one dialog when multiple (avoids browser blocking the 2nd print). */
 export async function printThermalReceiptBatch(
   copies: ThermalReceiptProps[],
   options?: { openDialog?: boolean },
 ): Promise<void> {
   if (copies.length === 0) return
-  for (const copy of copies) {
-    await printThermalReceipt(copy, options)
+  if (copies.length === 1) {
+    await printThermalReceipt(copies[0], options)
+    return
   }
+  await renderAndPrint(<ReceiptPrintBatch copies={copies} />, options?.openDialog !== false)
 }
 
 export function buildReceiptItemsFromOrder(
@@ -147,6 +149,7 @@ type ReceiptOrderLike = {
   discountAmount?: number
   total: number
   paymentMethod?: keyof typeof PAYMENT_METHOD_LABEL | null
+  paymentStatus?: 'UNPAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
   paidAmount?: number
   changeAmount?: number
 }
@@ -181,7 +184,10 @@ function buildBaseReceiptProps(
     subtotal: order.subtotal ?? order.total,
     discountAmount: order.discountAmount ?? 0,
     total: order.total,
-    paymentMethodLabel: PAYMENT_METHOD_LABEL[order.paymentMethod ?? 'CASH'],
+    paymentMethodLabel:
+      order.paymentStatus === 'UNPAID' || !order.paymentMethod
+        ? 'پرداخت نشده — مراجعه به صندوق'
+        : PAYMENT_METHOD_LABEL[order.paymentMethod],
     paidAmount: order.paidAmount,
     changeAmount: order.changeAmount,
     showQr: posSettings.showQrOnReceipt,

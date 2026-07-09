@@ -188,24 +188,20 @@ export function Orders() {
                     <div className="order-card-foot">
                       <strong>{formatPrice(order.total)}</strong>
                       <div className="order-card-actions" onClick={(e) => e.stopPropagation()}>
-                        {order.channel !== 'POS' && (
-                          <>
-                            <button
-                              className="btn-ghost-sm"
-                              title="چاپ آشپزخانه"
-                              onClick={() => printOnlineReceipt(order, 'kitchen')}
-                            >
-                              <ChefHat size={14} />
-                            </button>
-                            <button
-                              className="btn-ghost-sm"
-                              title="چاپ مشتری"
-                              onClick={() => printOnlineReceipt(order, 'customer')}
-                            >
-                              <User size={14} />
-                            </button>
-                          </>
-                        )}
+                        <button
+                          className="btn-ghost-sm"
+                          title="چاپ آشپزخانه"
+                          onClick={() => printOnlineReceipt(order, 'kitchen')}
+                        >
+                          <ChefHat size={14} />
+                        </button>
+                        <button
+                          className="btn-ghost-sm"
+                          title="چاپ مشتری"
+                          onClick={() => printOnlineReceipt(order, 'customer')}
+                        >
+                          <User size={14} />
+                        </button>
                         <button
                           className="btn-ghost-sm danger"
                           onClick={() =>
@@ -332,11 +328,9 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
             <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'customer')}>
               <User size={16} /> چاپ مشتری
             </button>
-            {order.channel !== 'POS' && (
-              <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'both')}>
-                <Printer size={16} /> چاپ هر دو
-              </button>
-            )}
+            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'both')}>
+              <Printer size={16} /> چاپ هر دو
+            </button>
           </footer>
         </div>
       </div>

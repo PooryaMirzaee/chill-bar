@@ -11,6 +11,7 @@ import { Settings } from './pages/Settings'
 import { Users } from './pages/Users'
 import { PosRegister } from './pages/pos/PosRegister'
 import { PosShiftHistory } from './pages/pos/PosShiftHistory'
+import { PosRecentReceipts } from './pages/pos/PosRecentReceipts'
 import { FinancialReports } from './pages/FinancialReports'
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -44,6 +45,14 @@ export default function App() {
         element={
           <Protected>
             <PosShiftHistory />
+          </Protected>
+        }
+      />
+      <Route
+        path="/pos/receipts"
+        element={
+          <Protected>
+            <PosRecentReceipts />
           </Protected>
         }
       />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { ArrowRight, History } from 'lucide-react'
+import { ArrowRight, History, Receipt } from 'lucide-react'
 import type { PosCheckoutPayment, PosMenuData, PosOrder, PosSettings, PosShift, StoreSettings } from '@chill-bar/shared'
 import {
   DEFAULT_POS_SETTINGS,
@@ -81,7 +81,7 @@ export function PosRegister() {
       setShowCheckout(false)
       setError(null)
       if (posSettings.autoPrintOnSale && shouldAutoPrint(posSettings)) {
-        printReceiptForOrder(order)
+        printReceiptForOrder(order, { forceDialog: true })
       }
     },
     onError: (err: Error) => setError(err.message),
@@ -113,15 +113,22 @@ export function PosRegister() {
       queryClient.invalidateQueries({ queryKey: ['pos-incoming'] })
       setSettleOrder(null)
       if (posSettings.autoPrintOnOnlineSettle && shouldAutoPrint(posSettings)) {
-        printReceiptForOrder(order)
+        printReceiptForOrder(order, { forceDialog: true })
       }
     },
     onError: (err: Error) => setError(err.message),
   })
 
-  const printReceiptForOrder = (order: PosOrder) => {
+  const printReceiptForOrder = (
+    order: PosOrder,
+    options?: { forceDialog?: boolean; copyType?: 'customer' | 'kitchen' | 'both' },
+  ) => {
     if (!store) return
-    printOrderReceipts(order, store, posSettings, { cashierName: user?.name })
+    printOrderReceipts(order, store, posSettings, {
+      cashierName: user?.name,
+      forceDialog: options?.forceDialog,
+      copyType: options?.copyType,
+    })
   }
 
   const handleSelectItem = (item: PosMenuItem) => {
@@ -150,6 +157,9 @@ export function PosRegister() {
           <h1>صندوق فروش</h1>
         </div>
         <PosShiftBar />
+        <Link to="/pos/receipts" className="pos-topbar-link">
+          <Receipt size={16} /> فیش‌های اخیر
+        </Link>
         <Link to="/pos/shifts" className="pos-topbar-link">
           <History size={16} /> شیفت‌ها
         </Link>
