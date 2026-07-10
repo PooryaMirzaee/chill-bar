@@ -67,7 +67,22 @@ export function AIWaiter({
   const [typing, setTyping] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const moodHandled = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return
+
+    const scrollInputIntoView = () => {
+      window.setTimeout(() => {
+        inputRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      }, 120)
+    }
+
+    const onViewportResize = () => scrollInputIntoView()
+    window.visualViewport?.addEventListener('resize', onViewportResize)
+    return () => window.visualViewport?.removeEventListener('resize', onViewportResize)
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) {
@@ -159,7 +174,10 @@ export function AIWaiter({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="flex h-[85dvh] flex-col rounded-t-2xl px-0">
+      <SheetContent
+        side="bottom"
+        className="flex h-[min(85dvh,100%)] max-h-[100dvh] flex-col rounded-t-2xl px-0 pb-[env(safe-area-inset-bottom)]"
+      >
         <SheetHeader className="border-b px-6 py-4 text-start">
           <SheetTitle className="flex items-center gap-2">
             <span>{assistantEmoji}</span>
@@ -237,15 +255,22 @@ export function AIWaiter({
             </div>
 
             <form
-              className="flex gap-2 border-t p-4"
+              className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
               onSubmit={(e) => {
                 e.preventDefault()
                 send(input)
               }}
             >
               <Input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onFocus={() => {
+                  window.setTimeout(() => {
+                    inputRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+                    bottomRef.current?.scrollIntoView({ block: 'end' })
+                  }, 300)
+                }}
                 placeholder={aiConfig?.inputPlaceholder ?? 'از منو بپرس...'}
                 className="flex-1"
                 disabled={typing}

@@ -1583,6 +1583,73 @@ textarea {
   font-size: 0.88rem;
 }
 
+.fin-row-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.fin-invoice-modal {
+  width: min(560px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.fin-invoice-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fin-invoice-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.fin-invoice-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.fin-invoice-meta span {
+  color: var(--text-muted);
+}
+
+.fin-invoice-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.fin-invoice-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fin-invoice-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.fin-invoice-items th,
+.fin-invoice-items td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 6px;
+  text-align: right;
+}
+
+.fin-invoice-totals {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
 .btn-primary.danger {
   background: #dc2626;
 }

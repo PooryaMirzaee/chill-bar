@@ -63,6 +63,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     swipeDeck: true,
     waitLounge: true,
     smartCombo: true,
+    coffeeFortune: true,
   },
   kioskIdleSeconds: 60,
   appearance: DEFAULT_APPEARANCE,

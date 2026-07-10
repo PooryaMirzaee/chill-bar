@@ -260,20 +260,44 @@ export function Cart({
           <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
             {items.length > 0 && (
               <div className="rounded-xl border bg-card p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">سبد خرید</p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">سبد خرید — برای ویرایش حذف یا تعداد را تغییر دهید</p>
                 <ul className="space-y-2">
                   {items.map((item) => (
-                    <li key={item.cartLineId} className="flex items-center justify-between gap-2 text-sm">
-                      <span className="truncate">
-                        {item.emoji} {item.name}
-                        {item.selectedModifiers && item.selectedModifiers.length > 0
-                          ? ` (${item.selectedModifiers.map((modifier) => modifier.optionName).join('، ')})`
-                          : ''}{' '}
-                        ×{item.quantity}
-                      </span>
-                      <span className="shrink-0 font-medium">
-                        {formatPrice((item.unitPrice ?? item.price) * item.quantity)}
-                      </span>
+                    <li key={item.cartLineId} className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm">
+                      <span className="text-xl">{item.emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatPrice(item.unitPrice ?? item.price)} × {item.quantity}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-lg border">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => updateQuantity(item.cartLineId, item.quantity - 1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-5 text-center text-xs">{item.quantity}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => updateQuantity(item.cartLineId, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeItem(item.cartLineId)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -330,7 +354,7 @@ export function Cart({
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 placeholder="مثلاً بدون یخ، شکر کم..."
-                className="flex min-h-[80px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-[80px] w-full rounded-lg border border-input bg-background px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:text-sm"
               />
             </div>
 

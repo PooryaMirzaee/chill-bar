@@ -43,6 +43,7 @@ import { SearchBar } from './components/SearchBar'
 import { IceCreamHub } from './components/IceCreamHub'
 import { CategoryShowcase } from './components/CategoryShowcase'
 import { ScratchSurprise } from './components/ScratchSurprise'
+import { CoffeeFortune } from './components/CoffeeFortune'
 import { KioskScreensaver } from './components/KioskScreensaver'
 import { CustomerProfileSheet } from './components/CustomerProfileSheet'
 import { WaitLounge } from './components/wait-lounge/WaitLounge'
@@ -105,7 +106,11 @@ function AppContent() {
       { id: 'icecream', label: copy.navIceCream },
       { id: 'menu', label: copy.navMenu },
     ]
-    if (features.swipeDeck !== false || features.scratchSurprise !== false) {
+    if (
+      features.swipeDeck !== false ||
+      features.scratchSurprise !== false ||
+      features.coffeeFortune !== false
+    ) {
       tabs.push({ id: 'discover', label: copy.navDiscover })
     }
     if (features.spinWheel !== false) {
@@ -532,6 +537,9 @@ function AppContent() {
               transition={{ duration: 0.2 }}
               className="space-y-6 py-4"
             >
+              {features.coffeeFortune !== false && !hidePreOrderGames && (
+                <CoffeeFortune items={items} onPickDrink={handleAdd} />
+              )}
               {features.swipeDeck !== false && !hidePreOrderGames && (
                 <SwipeDeck items={items} onAddToCart={handleAdd} onSelect={selectItem} />
               )}

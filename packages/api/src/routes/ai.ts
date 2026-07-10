@@ -9,7 +9,7 @@ import { loadSettings } from '../lib/storeSettings.js'
 
 async function loadMenuItems(): Promise<MenuItem[]> {
   const items = await prisma.menuItem.findMany({
-    where: { isAvailable: true },
+    where: { isAvailable: true, posOnly: false },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     include: { category: true },
   })

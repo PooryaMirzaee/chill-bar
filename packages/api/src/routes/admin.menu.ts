@@ -114,6 +114,7 @@ export async function adminMenuRoutes(app: FastifyInstance) {
         modifiers: parsed.data.modifiers,
         imageUrl: parsed.data.imageUrl ?? null,
         isAvailable: parsed.data.isAvailable,
+        posOnly: parsed.data.posOnly,
         categoryId: parsed.data.category,
       },
     })
@@ -135,6 +136,7 @@ export async function adminMenuRoutes(app: FastifyInstance) {
         modifiers: parsed.data.modifiers,
         imageUrl: parsed.data.imageUrl ?? null,
         isAvailable: parsed.data.isAvailable,
+        posOnly: parsed.data.posOnly,
         categoryId: parsed.data.category,
       },
     })

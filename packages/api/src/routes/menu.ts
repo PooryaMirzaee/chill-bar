@@ -28,6 +28,7 @@ export async function menuRoutes(app: FastifyInstance) {
     const [categories, items] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
       prisma.menuItem.findMany({
+        where: { posOnly: false },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         include: { category: true },
       }),

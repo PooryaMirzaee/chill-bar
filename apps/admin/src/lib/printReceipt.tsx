@@ -5,28 +5,48 @@ import { ORDER_CHANNEL_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import type { ThermalReceiptProps } from '../components/receipt/ThermalReceipt'
 import { ThermalReceipt } from '../components/receipt/ThermalReceipt'
 
-const PRINT_GAP_DIALOG_MS = 1500
+const PRINT_GAP_DIALOG_MS = 2000
 const PRINT_GAP_SILENT_MS = 700
+const PRINT_RENDER_DELAY_MS = 350
 
-function waitForPrintComplete(maxMs: number): Promise<void> {
+function waitForPrintComplete(mode: PrintMode): Promise<void> {
+  if (mode === 'silent') {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, 4_000)
+    })
+  }
+
   return new Promise((resolve) => {
     let settled = false
+    let printEntered = false
+    const media = window.matchMedia('print')
+
     const done = () => {
       if (settled) return
       settled = true
-      window.removeEventListener('afterprint', done)
+      window.removeEventListener('afterprint', onAfterPrint)
       media.removeEventListener('change', onMediaChange)
       resolve()
     }
 
     const onMediaChange = (event: MediaQueryListEvent) => {
-      if (!event.matches) done()
+      if (event.matches) {
+        printEntered = true
+        return
+      }
+      if (printEntered) {
+        window.setTimeout(done, 400)
+      }
     }
 
-    window.addEventListener('afterprint', done)
-    const media = window.matchMedia('print')
+    const onAfterPrint = () => {
+      if (!printEntered) return
+      window.setTimeout(done, 500)
+    }
+
+    window.addEventListener('afterprint', onAfterPrint)
     media.addEventListener('change', onMediaChange)
-    window.setTimeout(done, maxMs)
+    window.setTimeout(done, 180_000)
   })
 }
 
@@ -55,14 +75,17 @@ function renderAndPrint(node: ReactNode, mode: PrintMode): Promise<void> {
     }
 
     requestAnimationFrame(() => {
-      window.setTimeout(async () => {
-        window.print()
-        await waitForPrintComplete(mode === 'silent' ? 4_000 : 120_000)
-        await new Promise((r) =>
-          window.setTimeout(r, mode === 'silent' ? PRINT_GAP_SILENT_MS : PRINT_GAP_DIALOG_MS),
-        )
-        cleanup()
-      }, 220)
+      requestAnimationFrame(() => {
+        window.setTimeout(async () => {
+          window.focus()
+          window.print()
+          await waitForPrintComplete(mode)
+          await new Promise((r) =>
+            window.setTimeout(r, mode === 'silent' ? PRINT_GAP_SILENT_MS : PRINT_GAP_DIALOG_MS),
+          )
+          cleanup()
+        }, PRINT_RENDER_DELAY_MS)
+      })
     })
   })
 }
@@ -231,14 +254,14 @@ export function buildOrderReceiptCopies(
   options?: { cashierName?: string | null },
 ): ThermalReceiptProps[] {
   const copies: ThermalReceiptProps[] = []
-  if (posSettings.printKitchenReceipt) {
-    copies.push(
-      buildThermalReceiptProps(order, store, posSettings, { ...options, copyType: 'kitchen' }),
-    )
-  }
   if (posSettings.printCustomerReceipt) {
     copies.push(
       buildThermalReceiptProps(order, store, posSettings, { ...options, copyType: 'customer' }),
+    )
+  }
+  if (posSettings.printKitchenReceipt) {
+    copies.push(
+      buildThermalReceiptProps(order, store, posSettings, { ...options, copyType: 'kitchen' }),
     )
   }
   return copies

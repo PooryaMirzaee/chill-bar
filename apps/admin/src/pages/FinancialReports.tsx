@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Trash2, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Eye, Trash2, TrendingUp, Wallet } from 'lucide-react'
 import type {
   FinancialDailyReport,
   FinancialOrderRow,
@@ -20,6 +20,7 @@ import type {
 import { ORDER_CHANNEL_LABEL, ORDER_STATUS_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { formatDateTime, formatNumber, formatPrice } from '../lib/format'
+import { FinancialInvoiceModal } from '../components/FinancialInvoiceModal'
 
 function todayInputValue(): string {
   return new Date().toISOString().slice(0, 10)
@@ -102,6 +103,7 @@ export function FinancialReports() {
   }
 
   const [voidTarget, setVoidTarget] = useState<FinancialOrderRow | null>(null)
+  const [viewTarget, setViewTarget] = useState<FinancialOrderRow | null>(null)
   const [voidReason, setVoidReason] = useState('')
 
   const voidMutation = useMutation({
@@ -189,6 +191,7 @@ export function FinancialReports() {
               sortDir={dailySort.sortDir}
               onSort={toggleDailySort}
               onVoid={setVoidTarget}
+              onView={setViewTarget}
             />
           </>
         )}
@@ -264,10 +267,15 @@ export function FinancialReports() {
               sortDir={summarySort.sortDir}
               onSort={toggleSummarySort}
               onVoid={setVoidTarget}
+              onView={setViewTarget}
             />
           </>
         )}
       </section>
+
+      {viewTarget && (
+        <FinancialInvoiceModal row={viewTarget} onClose={() => setViewTarget(null)} />
+      )}
 
       {voidTarget && (
         <div className="modal-overlay" onClick={() => !voidMutation.isPending && setVoidTarget(null)}>
@@ -342,6 +350,7 @@ function OrdersTable({
   sortDir,
   onSort,
   onVoid,
+  onView,
 }: {
   title: string
   orders: FinancialOrderRow[]
@@ -349,6 +358,7 @@ function OrdersTable({
   sortDir: FinancialSortDirection
   onSort: (field: FinancialOrderSortField) => void
   onVoid: (order: FinancialOrderRow) => void
+  onView: (order: FinancialOrderRow) => void
 }) {
   return (
     <div className="fin-orders-section">
@@ -402,16 +412,26 @@ function OrdersTable({
                   <td>{order.customerName ?? '—'}</td>
                   <td>{order.itemCount.toLocaleString('fa-IR')}</td>
                   <td>
-                    {order.status !== 'CANCELLED' && (
+                    <div className="fin-row-actions">
                       <button
                         type="button"
-                        className="btn-ghost-sm danger fin-void-btn"
-                        title="حذف فاکتور"
-                        onClick={() => onVoid(order)}
+                        className="btn-ghost-sm fin-void-btn"
+                        title="مشاهده فاکتور"
+                        onClick={() => onView(order)}
                       >
-                        <Trash2 size={14} />
+                        <Eye size={14} />
                       </button>
-                    )}
+                      {order.status !== 'CANCELLED' && (
+                        <button
+                          type="button"
+                          className="btn-ghost-sm danger fin-void-btn"
+                          title="حذف فاکتور"
+                          onClick={() => onVoid(order)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -19,6 +19,7 @@ interface AdminItem {
   imageUrl: string | null
   modifiers: unknown
   isAvailable: boolean
+  posOnly: boolean
   categoryId: string
 }
 
@@ -32,6 +33,7 @@ interface ItemForm {
   imageUrl: string
   modifiers: MenuModifierGroup[]
   isAvailable: boolean
+  posOnly: boolean
   opensIceCreamBuilder: boolean
   tags: Record<string, number>
 }
@@ -46,6 +48,7 @@ const emptyForm: ItemForm = {
   imageUrl: '',
   modifiers: [],
   isAvailable: true,
+  posOnly: false,
   opensIceCreamBuilder: false,
   tags: {},
 }
@@ -308,6 +311,7 @@ export function MenuManager() {
         imageUrl: data.imageUrl || null,
         modifiers: data.modifiers,
         isAvailable: data.isAvailable,
+        posOnly: data.posOnly,
       })
       return data.id
         ? api(`/api/admin/items/${data.id}`, { method: 'PUT', body })
@@ -359,6 +363,7 @@ export function MenuManager() {
       imageUrl: item.imageUrl ?? '',
       modifiers: parseMenuModifiers(item.modifiers),
       isAvailable: item.isAvailable,
+      posOnly: item.posOnly ?? false,
       opensIceCreamBuilder: menuItemOpensIceCreamBuilder(item.tags),
       tags: item.tags ?? {},
     })
@@ -554,6 +559,14 @@ export function MenuManager() {
                   onChange={(e) => setForm({ ...form, opensIceCreamBuilder: e.target.checked })}
                 />
                 <span>ساخت بستنی سفارشی در صندوق (فقط این آیتم)</span>
+              </label>
+              <label className="checkbox-field field-full">
+                <input
+                  type="checkbox"
+                  checked={form.posOnly}
+                  onChange={(e) => setForm({ ...form, posOnly: e.target.checked })}
+                />
+                <span>فقط صندوق — در منوی مشتری نمایش داده نشود</span>
               </label>
               <label className="checkbox-field field-full">
                 <input

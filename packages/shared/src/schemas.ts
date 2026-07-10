@@ -166,6 +166,7 @@ export const menuItemInputSchema = z.object({
   imageUrl: z.string().max(2048).nullable().optional(),
   modifiers: z.array(menuModifierGroupSchema).default([]),
   isAvailable: z.boolean().default(true),
+  posOnly: z.boolean().default(false),
 })
 
 const hexColor = z.string().regex(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/, 'رنگ نامعتبر است')

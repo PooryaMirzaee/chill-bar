@@ -50,6 +50,7 @@ export interface MenuItem {
   imageUrl?: string | null
   modifiers?: MenuModifierGroup[]
   isAvailable?: boolean
+  posOnly?: boolean
 }
 
 export interface MenuData {

@@ -20,7 +20,7 @@ export function useMenuData() {
   const data = query.data ?? emptyMenu
 
   const items = useMemo(
-    () => data.items.filter((i) => i.isAvailable !== false),
+    () => data.items.filter((i) => i.isAvailable !== false && i.posOnly !== true),
     [data.items],
   )
 

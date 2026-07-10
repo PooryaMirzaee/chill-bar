@@ -24,6 +24,7 @@ const FEATURE_LABELS: Record<string, string> = {
   swipeDeck: 'کشف با سوایپ',
   waitLounge: 'سالن انتظار (بازی زمان آماده‌سازی)',
   smartCombo: 'کمبو هوشمند',
+  coffeeFortune: 'فال قهوه (سرگرمی روزانه)',
 }
 
 type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'

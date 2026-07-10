@@ -97,6 +97,7 @@ model MenuItem {
   modifiers   Json     @default("[]")
   imageUrl    String?
   isAvailable Boolean  @default(true)
+  posOnly     Boolean  @default(false)
   sortOrder   Int      @default(0)
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId  String
