@@ -29,6 +29,7 @@ import { wsRoutes } from './routes/ws.js'
 import { prisma } from './prisma.js'
 import fastifyStatic from '@fastify/static'
 import { UPLOADS_DIR, ensureUploadsDir } from './lib/uploads.js'
+import { prismaMigrationMessage } from './lib/dbSchema.js'
 
 async function main() {
   const app = Fastify({ logger: { level: isProd ? 'info' : 'debug' } })
@@ -52,10 +53,12 @@ async function main() {
     if (reply.sent) return
     const err = error as { statusCode?: number; message?: string }
     const statusCode = err.statusCode ?? 500
+    const migrationHint = prismaMigrationMessage(error)
     const message =
-      statusCode >= 500
+      migrationHint ??
+      (statusCode >= 500
         ? 'خطای داخلی سرور — لاگ API را بررسی کنید'
-        : err.message || 'درخواست نامعتبر است'
+        : err.message || 'درخواست نامعتبر است')
     reply.code(statusCode).send({ error: message })
   })
 

@@ -135,6 +135,32 @@ docker compose ps
 
 تأیید نسخه: پایین سایدبار ادمین → `build abc1234` باید با `git rev-parse --short HEAD` یکی باشد.
 
+### خطای سرور (500) در پنل ادمین
+
+**علت رایج:** کد API جدید است ولی مایگریشن‌های دیتابیس اجرا نشده‌اند (ستون‌های POS مثل `paymentStatus` یا جدول `CashShift` وجود ندارند).
+
+**تشخیص:**
+
+```bash
+curl -s http://127.0.0.1:4000/api/health
+```
+
+اگر `"schema":false` دیدید:
+
+```bash
+docker compose exec api npm run db:deploy
+docker compose restart api
+curl -s http://127.0.0.1:4000/api/health   # باید schema:true شود
+```
+
+یا deploy کامل:
+
+```bash
+bash scripts/deploy-update.sh
+```
+
+`deploy-update.sh` در صورت `schema:false` خودکار `db:deploy` را اجرا می‌کند.
+
 ### Build شکست خورد
 
 ```bash

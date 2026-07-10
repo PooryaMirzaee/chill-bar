@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../prisma.js'
+import { isSchemaReady, SCHEMA_MIGRATION_HINT } from '../lib/dbSchema.js'
 
 export async function healthRoutes(app: FastifyInstance) {
   app.get('/api/health', async () => {
@@ -10,6 +11,14 @@ export async function healthRoutes(app: FastifyInstance) {
     } catch {
       db = false
     }
-    return { status: db ? 'ok' : 'degraded', db, time: new Date().toISOString() }
+    const schema = db ? await isSchemaReady() : false
+    const ok = db && schema
+    return {
+      status: ok ? 'ok' : 'degraded',
+      db,
+      schema,
+      hint: !schema && db ? SCHEMA_MIGRATION_HINT : undefined,
+      time: new Date().toISOString(),
+    }
   })
 }

@@ -47,6 +47,10 @@ export async function api<T>(
       if (contentType.includes('application/json')) {
         const data = (await res.json()) as { error?: string; message?: string }
         message = data.error ?? data.message ?? message
+        if (res.status === 500 && message === `خطای سرور (${res.status})`) {
+          message =
+            'خطای سرور — احتمالاً مایگریشن دیتابیس اجرا نشده. روی سرور: docker compose exec api npm run db:deploy'
+        }
       } else {
         if (res.status === 502 || res.status === 503) {
           message = 'سرور API در دسترس نیست — docker compose ps و logs api را بررسی کنید'
