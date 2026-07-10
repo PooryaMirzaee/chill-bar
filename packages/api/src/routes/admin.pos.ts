@@ -52,7 +52,12 @@ export async function adminPosRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const parsed = posSettingsSchema.safeParse(request.body)
       if (!parsed.success) {
-        return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'تنظیمات نامعتبر است' })
+        const issue = parsed.error.issues[0]
+        const field = issue?.path?.join('.') ?? ''
+        const detail = issue?.message ?? 'تنظیمات نامعتبر است'
+        return reply.code(400).send({
+          error: field ? `تنظیمات صندوق (${field}): ${detail}` : detail,
+        })
       }
       return savePosSettings(parsed.data as PosSettings)
     },

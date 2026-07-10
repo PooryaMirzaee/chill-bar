@@ -47,6 +47,18 @@ async function main() {
     decorateReply: false,
   })
 
+  app.setErrorHandler((error: unknown, request, reply) => {
+    request.log.error(error)
+    if (reply.sent) return
+    const err = error as { statusCode?: number; message?: string }
+    const statusCode = err.statusCode ?? 500
+    const message =
+      statusCode >= 500
+        ? 'خطای داخلی سرور — لاگ API را بررسی کنید'
+        : err.message || 'درخواست نامعتبر است'
+    reply.code(statusCode).send({ error: message })
+  })
+
   // Public
   await app.register(healthRoutes)
   await app.register(authRoutes)

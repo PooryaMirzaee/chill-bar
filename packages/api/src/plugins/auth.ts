@@ -42,7 +42,7 @@ export const authPlugin = fp(async function authPlugin(app: FastifyInstance) {
     try {
       await request.jwtVerify()
     } catch {
-      reply.code(401).send({ error: 'احراز هویت لازم است' })
+      return reply.code(401).send({ error: 'احراز هویت لازم است' })
     }
   })
 

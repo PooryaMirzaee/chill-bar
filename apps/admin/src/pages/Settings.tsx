@@ -61,6 +61,7 @@ export function Settings() {
   const [smsSaved, setSmsSaved] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
   const [posSaved, setPosSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (data) setForm(data)
@@ -88,8 +89,10 @@ export function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
       setSaved(true)
+      setSaveError(null)
       setTimeout(() => setSaved(false), 2000)
     },
+    onError: (err: Error) => setSaveError(err.message),
   })
 
   const aiMutation = useMutation({
@@ -98,8 +101,10 @@ export function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-settings'] })
       setAiSaved(true)
+      setSaveError(null)
       setTimeout(() => setAiSaved(false), 2000)
     },
+    onError: (err: Error) => setSaveError(err.message),
   })
 
   const smsMutation = useMutation({
@@ -108,8 +113,10 @@ export function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sms-settings'] })
       setSmsSaved(true)
+      setSaveError(null)
       setTimeout(() => setSmsSaved(false), 2000)
     },
+    onError: (err: Error) => setSaveError(err.message),
   })
 
   const alertMutation = useMutation({
@@ -118,8 +125,10 @@ export function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-alerts'] })
       setAlertSaved(true)
+      setSaveError(null)
       setTimeout(() => setAlertSaved(false), 2000)
     },
+    onError: (err: Error) => setSaveError(err.message),
   })
 
   const posMutation = useMutation({
@@ -128,8 +137,10 @@ export function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pos-settings'] })
       setPosSaved(true)
+      setSaveError(null)
       setTimeout(() => setPosSaved(false), 2000)
     },
+    onError: (err: Error) => setSaveError(err.message),
   })
 
   if (!form) {
@@ -141,6 +152,7 @@ export function Settings() {
   }
 
   const save = () => {
+    setSaveError(null)
     if (tab === 'ai') aiMutation.mutate(aiForm)
     else if (tab === 'sms') smsMutation.mutate(smsForm)
     else if (tab === 'alerts') alertMutation.mutate(alertForm)
@@ -182,6 +194,12 @@ export function Settings() {
           </button>
         </div>
       </header>
+
+      {saveError && (
+        <div className="settings-save-error" role="alert">
+          {saveError}
+        </div>
+      )}
 
       <div className="settings-tabs">
         <button type="button" className={tab === 'store' ? 'active' : ''} onClick={() => setTab('store')}>

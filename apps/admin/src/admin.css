@@ -1597,3 +1597,13 @@ textarea {
   line-height: 1.5;
   color: var(--text-muted);
 }
+
+.settings-save-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  font-size: 0.9rem;
+}

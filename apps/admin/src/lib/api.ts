@@ -41,12 +41,23 @@ export async function api<T>(
   }
 
   if (!res.ok) {
-    let message = 'خطایی رخ داد'
+    let message = `خطای سرور (${res.status})`
     try {
-      const data = await res.json()
-      message = data.error ?? message
+      const contentType = res.headers.get('content-type') ?? ''
+      if (contentType.includes('application/json')) {
+        const data = (await res.json()) as { error?: string; message?: string }
+        message = data.error ?? data.message ?? message
+      } else {
+        if (res.status === 502 || res.status === 503) {
+          message = 'سرور API در دسترس نیست — docker compose ps و logs api را بررسی کنید'
+        } else if (res.status === 504) {
+          message = 'زمان اتصال به سرور تمام شد'
+        }
+      }
     } catch {
-      /* ignore */
+      if (res.status === 502 || res.status === 503) {
+        message = 'سرور API در دسترس نیست — docker compose ps و logs api را بررسی کنید'
+      }
     }
     throw new ApiError(message, res.status)
   }
