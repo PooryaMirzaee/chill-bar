@@ -156,6 +156,7 @@ export function usePosCart(options: UsePosCartOptions = {}) {
   const normalizePhone = useCallback((): string | null => {
     const digits = customerPhone.replace(/\D/g, '')
     if (!digits) return null
+    if (!/^09\d{9}$/.test(digits)) return null
     return digits
   }, [customerPhone])
 

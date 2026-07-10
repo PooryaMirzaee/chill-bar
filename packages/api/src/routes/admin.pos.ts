@@ -20,6 +20,12 @@ import {
   validateDiscount,
 } from '../lib/pos/checkout.js'
 import { nextReceiptNumber } from '../lib/pos/receiptNumber.js'
+import {
+  isSchemaReady,
+  isRetryablePrismaError,
+  prismaErrorMessage,
+  SCHEMA_MIGRATION_HINT,
+} from '../lib/dbSchema.js'
 
 const orderInclude = {
   items: true,
@@ -118,110 +124,124 @@ export async function adminPosRoutes(app: FastifyInstance) {
     '/api/admin/pos/orders',
     { onRequest: [app.requireRole(['SUPER_ADMIN', 'MANAGER', 'STAFF'])] },
     async (request, reply) => {
-      const settings = await loadPosSettings()
-      if (!settings.enabled) {
-        return reply.code(403).send({ error: 'صندوق غیرفعال است' })
-      }
-
-      const parsed = posSaleSchema.safeParse(request.body)
-      if (!parsed.success) {
-        return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'فروش نامعتبر است' })
-      }
-
-      const { shift, error: shiftError } = await getOpenShift(settings.requireShiftOpen)
-      if (shiftError) return reply.code(400).send({ error: shiftError })
-
-      const role = request.user.role as UserRole
-      const input = parsed.data
-      const subtotal = calcSubtotal(input.items)
-      const discountAmount = input.discountAmount ?? 0
-      const discountErr = validateDiscount(subtotal, discountAmount, role, settings)
-      if (discountErr) return reply.code(400).send({ error: discountErr })
-
-      const total = calcOrderTotal(subtotal, discountAmount)
-      const paymentResult = resolvePayment(total, input.payment, settings)
-      if (!paymentResult.ok) return reply.code(400).send({ error: paymentResult.error })
-      const { resolved } = paymentResult
-
-      let order
-      for (let attempt = 0; attempt < 5; attempt++) {
-        try {
-          order = await prisma.$transaction(async (tx) => {
-            const receiptNumber = await nextReceiptNumber(tx, shift?.id)
-            const code = await nextOrderCode(tx)
-            const created = await tx.order.create({
-              data: {
-                code,
-                channel: 'POS',
-                status: 'DELIVERED',
-                customerName: input.customerName ?? null,
-                customerPhone: input.customerPhone ?? null,
-                note: input.note ?? null,
-                subtotal,
-                discountAmount,
-                discountNote: input.discountNote ?? null,
-                total,
-                paymentStatus: 'PAID',
-                paymentMethod: resolved.method,
-                paidAmount: resolved.paidAmount,
-                changeAmount: resolved.changeAmount,
-                receiptNumber,
-                createdByUserId: request.user.sub,
-                shiftId: shift?.id ?? null,
-                paidAt: new Date(),
-                completedAt: new Date(),
-                items: {
-                  create: input.items.map((item) => ({
-                    menuItemId: item.menuItemId ?? null,
-                    name: item.name,
-                    emoji: item.emoji,
-                    unitPrice: item.unitPrice,
-                    quantity: item.quantity,
-                    lineTotal: item.unitPrice * item.quantity,
-                    customConfig: (item.customConfig ?? undefined) as Prisma.InputJsonValue | undefined,
-                  })),
-                },
-                payments: {
-                  create: resolved.lines.map((line) => ({
-                    method: line.method,
-                    amount: line.amount,
-                  })),
-                },
-              },
-              include: orderInclude,
-            })
-
-            if (discountAmount > 0) {
-              await tx.orderAdjustment.create({
-                data: {
-                  orderId: created.id,
-                  type: 'DISCOUNT',
-                  amount: discountAmount,
-                  reason: input.discountNote ?? 'تخفیف صندوق',
-                  createdByUserId: request.user.sub,
-                },
-              })
-            }
-
-            return created
-          })
-          break
-        } catch (err) {
-          if (attempt === 4) throw err
+      try {
+        if (!(await isSchemaReady())) {
+          return reply.code(503).send({ error: SCHEMA_MIGRATION_HINT })
         }
+
+        const settings = await loadPosSettings()
+        if (!settings.enabled) {
+          return reply.code(403).send({ error: 'صندوق غیرفعال است' })
+        }
+
+        const parsed = posSaleSchema.safeParse(request.body)
+        if (!parsed.success) {
+          return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'فروش نامعتبر است' })
+        }
+
+        const { shift, error: shiftError } = await getOpenShift(settings.requireShiftOpen)
+        if (shiftError) return reply.code(400).send({ error: shiftError })
+
+        const role = request.user.role as UserRole
+        const input = parsed.data
+        const subtotal = calcSubtotal(input.items)
+        const discountAmount = input.discountAmount ?? 0
+        const discountErr = validateDiscount(subtotal, discountAmount, role, settings)
+        if (discountErr) return reply.code(400).send({ error: discountErr })
+
+        const total = calcOrderTotal(subtotal, discountAmount)
+        const paymentResult = resolvePayment(total, input.payment, settings)
+        if (!paymentResult.ok) return reply.code(400).send({ error: paymentResult.error })
+        const { resolved } = paymentResult
+
+        let order
+        for (let attempt = 0; attempt < 5; attempt++) {
+          try {
+            order = await prisma.$transaction(async (tx) => {
+              const receiptNumber = await nextReceiptNumber(tx, shift?.id)
+              const code = await nextOrderCode(tx)
+              const created = await tx.order.create({
+                data: {
+                  code,
+                  channel: 'POS',
+                  status: 'DELIVERED',
+                  customerName: input.customerName ?? null,
+                  customerPhone: input.customerPhone ?? null,
+                  note: input.note ?? null,
+                  subtotal,
+                  discountAmount,
+                  discountNote: input.discountNote ?? null,
+                  total,
+                  paymentStatus: 'PAID',
+                  paymentMethod: resolved.method,
+                  paidAmount: resolved.paidAmount,
+                  changeAmount: resolved.changeAmount,
+                  receiptNumber,
+                  createdByUserId: request.user.sub,
+                  shiftId: shift?.id ?? null,
+                  paidAt: new Date(),
+                  completedAt: new Date(),
+                  items: {
+                    create: input.items.map((item) => ({
+                      menuItemId: item.menuItemId ?? null,
+                      name: item.name,
+                      emoji: item.emoji,
+                      unitPrice: item.unitPrice,
+                      quantity: item.quantity,
+                      lineTotal: item.unitPrice * item.quantity,
+                      customConfig: (item.customConfig ?? undefined) as Prisma.InputJsonValue | undefined,
+                    })),
+                  },
+                  payments: {
+                    create: resolved.lines.map((line) => ({
+                      method: line.method,
+                      amount: line.amount,
+                    })),
+                  },
+                },
+                include: orderInclude,
+              })
+
+              if (discountAmount > 0) {
+                await tx.orderAdjustment.create({
+                  data: {
+                    orderId: created.id,
+                    type: 'DISCOUNT',
+                    amount: discountAmount,
+                    reason: input.discountNote ?? 'تخفیف صندوق',
+                    createdByUserId: request.user.sub,
+                  },
+                })
+              }
+
+              return created
+            })
+            break
+          } catch (err) {
+            if (!isRetryablePrismaError(err) || attempt === 4) throw err
+          }
+        }
+
+        if (!order) return reply.code(500).send({ error: 'ثبت فروش ناموفق بود' })
+
+        const serialized = serializePosOrder(order)
+        broadcast('admin', 'order:new', serialized)
+        broadcast('admin', 'order:paid', serialized)
+
+        try {
+          await prisma.analyticsEvent.create({
+            data: { type: 'pos_sale', payload: { orderId: order.id, total: order.total } },
+          })
+        } catch (analyticsErr) {
+          request.log.warn({ err: analyticsErr }, 'pos_sale analytics failed')
+        }
+
+        return serialized
+      } catch (err) {
+        const message = prismaErrorMessage(err)
+        if (message) return reply.code(500).send({ error: message })
+        throw err
       }
-
-      if (!order) return reply.code(500).send({ error: 'ثبت فروش ناموفق بود' })
-
-      const serialized = serializePosOrder(order)
-      broadcast('admin', 'order:new', serialized)
-      broadcast('admin', 'order:paid', serialized)
-
-      await prisma.analyticsEvent.create({
-        data: { type: 'pos_sale', payload: { orderId: order.id, total: order.total } },
-      })
-
-      return serialized
     },
   )
 

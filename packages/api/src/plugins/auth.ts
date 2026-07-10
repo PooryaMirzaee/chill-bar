@@ -3,6 +3,7 @@ import fp from 'fastify-plugin'
 import fastifyJwt from '@fastify/jwt'
 import { env } from '../env.js'
 import type { UserRole, AuthRole } from '@chill-bar/shared'
+import { prisma } from '../prisma.js'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -53,7 +54,14 @@ export const authPlugin = fp(async function authPlugin(app: FastifyInstance) {
       } catch {
         return reply.code(401).send({ error: 'احراز هویت لازم است' })
       }
-      if (request.user.role === 'CUSTOMER' || !roles.includes(request.user.role as UserRole)) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: request.user.sub },
+        select: { id: true, role: true },
+      })
+      if (!dbUser) {
+        return reply.code(401).send({ error: 'نشست کاربری منقضی شده — دوباره وارد شوید' })
+      }
+      if (dbUser.role === 'CUSTOMER' || !roles.includes(dbUser.role as UserRole)) {
         return reply.code(403).send({ error: 'دسترسی کافی ندارید' })
       }
     }

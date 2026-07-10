@@ -237,7 +237,14 @@ export function PosRegister() {
           settings={posSettings}
           onClose={() => setShowCheckout(false)}
           loading={saleMutation.isPending}
-          onConfirm={(payment) => saleMutation.mutate(payment)}
+          onConfirm={(payment) => {
+            const digits = cart.customerPhone.replace(/\D/g, '')
+            if (digits && !/^09\d{9}$/.test(digits)) {
+              setError('شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود')
+              return
+            }
+            saleMutation.mutate(payment)
+          }}
         />
       )}
 
@@ -255,6 +262,10 @@ export function PosRegister() {
           loading={settleMutation.isPending}
           onConfirm={(payment) => {
             const digits = settleCustomerPhone.replace(/\D/g, '')
+            if (digits && !/^09\d{9}$/.test(digits)) {
+              setError('شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود')
+              return
+            }
             settleMutation.mutate({
               orderId: settleOrder.id,
               payment,
