@@ -24,6 +24,7 @@ export function serializeOrder(order: OrderWithRelations): Order {
     channel: order.channel,
     customerName: order.customerName,
     customerPhone: order.customerPhone,
+    customerId: order.customerId,
     note: order.note,
     subtotal: order.subtotal,
     discountAmount: order.discountAmount,

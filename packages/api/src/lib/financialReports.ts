@@ -69,6 +69,8 @@ export function mapFinancialOrderRow(order: OrderWithRelations): FinancialOrderR
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
     customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    customerId: order.customerId,
     total: order.total,
     discountAmount: order.discountAmount,
     itemCount: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,

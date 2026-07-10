@@ -20,6 +20,7 @@ import {
   validateDiscount,
 } from '../lib/pos/checkout.js'
 import { nextReceiptNumber } from '../lib/pos/receiptNumber.js'
+import { ensureCustomerForOrder, normalizeIranPhone } from '../lib/customerLink.js'
 import {
   isSchemaReady,
   isRetryablePrismaError,
@@ -158,6 +159,10 @@ export async function adminPosRoutes(app: FastifyInstance) {
         for (let attempt = 0; attempt < 5; attempt++) {
           try {
             order = await prisma.$transaction(async (tx) => {
+              const linked = await ensureCustomerForOrder(tx, {
+                phone: input.customerPhone,
+                name: input.customerName,
+              })
               const receiptNumber = await nextReceiptNumber(tx, shift?.id)
               const code = await nextOrderCode(tx)
               const created = await tx.order.create({
@@ -166,7 +171,8 @@ export async function adminPosRoutes(app: FastifyInstance) {
                   channel: 'POS',
                   status: 'DELIVERED',
                   customerName: input.customerName ?? null,
-                  customerPhone: input.customerPhone ?? null,
+                  customerPhone: linked.customerPhone ?? normalizeIranPhone(input.customerPhone),
+                  customerId: linked.customerId,
                   note: input.note ?? null,
                   subtotal,
                   discountAmount,
@@ -280,6 +286,11 @@ export async function adminPosRoutes(app: FastifyInstance) {
       const { resolved } = paymentResult
 
       const order = await prisma.$transaction(async (tx) => {
+        const linked = await ensureCustomerForOrder(tx, {
+          phone: parsed.data.customerPhone ?? existing.customerPhone,
+          name: parsed.data.customerName ?? existing.customerName,
+          customerId: existing.customerId,
+        })
         const receiptNumber = await nextReceiptNumber(tx, shift?.id ?? existing.shiftId)
         const updated = await tx.order.update({
           where: { id },
@@ -288,7 +299,8 @@ export async function adminPosRoutes(app: FastifyInstance) {
             discountAmount,
             discountNote: parsed.data.discountNote ?? existing.discountNote,
             customerName: parsed.data.customerName ?? existing.customerName,
-            customerPhone: parsed.data.customerPhone ?? existing.customerPhone,
+            customerPhone: linked.customerPhone ?? normalizeIranPhone(parsed.data.customerPhone ?? existing.customerPhone),
+            customerId: linked.customerId ?? existing.customerId,
             total,
             paymentStatus: 'PAID',
             paymentMethod: resolved.method,

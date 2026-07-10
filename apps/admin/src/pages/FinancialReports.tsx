@@ -384,6 +384,7 @@ function OrdersTable({
                 <th>وضعیت</th>
                 <th>پرداخت</th>
                 <th>مشتری</th>
+                <th>موبایل</th>
                 <th>اقلام</th>
                 <th>عملیات</th>
               </tr>
@@ -410,6 +411,7 @@ function OrdersTable({
                       : '—'}
                   </td>
                   <td>{order.customerName ?? '—'}</td>
+                  <td dir="ltr">{order.customerPhone ?? '—'}</td>
                   <td>{order.itemCount.toLocaleString('fa-IR')}</td>
                   <td>
                     <div className="fin-row-actions">

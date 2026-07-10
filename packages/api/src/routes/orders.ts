@@ -7,6 +7,7 @@ import { serializeOrder } from '../lib/serializers.js'
 import { nextOrderCode } from '../lib/orderCode.js'
 import { getCustomerIdFromAuth } from './customers.js'
 import { loadSettings } from '../lib/storeSettings.js'
+import { normalizeIranPhone } from '../lib/customerLink.js'
 import { applyScratchRewardRules } from '../lib/scratchReward.js'
 import {
   applyLoyaltyRedeem,
@@ -25,6 +26,16 @@ export async function orderRoutes(app: FastifyInstance) {
     }
     const input = parsed.data
     const customerId = await getCustomerIdFromAuth(request)
+
+    let customerName = input.customerName ?? null
+    let customerPhone: string | null = null
+    if (customerId) {
+      const customer = await prisma.customer.findUnique({ where: { id: customerId } })
+      if (customer) {
+        customerPhone = customer.phone
+        customerName = customerName ?? customer.name
+      }
+    }
 
     const normalized = applyScratchRewardRules(input.items, store.scratchReward)
     if (normalized.error) {
@@ -53,7 +64,8 @@ export async function orderRoutes(app: FastifyInstance) {
             data: {
               code,
               channel: input.channel,
-              customerName: input.customerName ?? null,
+              customerName,
+              customerPhone: normalizeIranPhone(customerPhone) ?? customerPhone,
               note: input.note ?? null,
               customerId: customerId ?? null,
               subtotal: total,

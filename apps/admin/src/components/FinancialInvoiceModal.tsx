@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Printer } from 'lucide-react'
 import type {
   FinancialOrderRow,
@@ -98,6 +99,17 @@ export function FinancialInvoiceModal({ row, onClose }: FinancialInvoiceModalPro
               <span>مشتری</span>
               <strong>{row.customerName ?? '—'}</strong>
             </div>
+            <div>
+              <span>موبایل</span>
+              <strong dir="ltr">{row.customerPhone ?? order?.customerPhone ?? '—'}</strong>
+            </div>
+            {(row.customerId ?? order?.customerId) && (
+              <div className="field-full">
+                <Link to="/customers" className="btn-ghost btn-sm">
+                  مشاهده پروفایل مشتری
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="fin-invoice-status-row">

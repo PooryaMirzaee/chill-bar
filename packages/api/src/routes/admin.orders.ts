@@ -1,9 +1,11 @@
 import type { FastifyInstance } from 'fastify'
+import type { Prisma } from '@prisma/client'
 import { updateOrderStatusSchema } from '@chill-bar/shared'
 import type { OrderStatus } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
 import { broadcast } from '../ws.js'
 import { serializeOrder } from '../lib/serializers.js'
+import { ensureCustomerForOrder } from '../lib/customerLink.js'
 
 export async function adminOrderRoutes(app: FastifyInstance) {
   app.get(
@@ -60,11 +62,42 @@ export async function adminOrderRoutes(app: FastifyInstance) {
       const exists = await prisma.order.findUnique({ where: { id } })
       if (!exists) return reply.code(404).send({ error: 'سفارش پیدا نشد' })
 
-      const order = await prisma.order.update({
-        where: { id },
-        data: { status: parsed.data.status },
-        include: { items: true },
+      const markPaidOnDelivery =
+        parsed.data.status === 'DELIVERED' && exists.paymentStatus === 'UNPAID'
+
+      const order = await prisma.$transaction(async (tx) => {
+        const linked = await ensureCustomerForOrder(tx, {
+          phone: exists.customerPhone,
+          name: exists.customerName,
+          customerId: exists.customerId,
+        })
+
+        const data: Prisma.OrderUncheckedUpdateInput = {
+          status: parsed.data.status,
+          customerId: linked.customerId ?? exists.customerId,
+        }
+
+        if (linked.customerPhone && !exists.customerPhone) {
+          data.customerPhone = linked.customerPhone
+        }
+
+        if (markPaidOnDelivery) {
+          data.paymentStatus = 'PAID'
+          data.paidAmount = exists.total
+          data.paidAt = new Date()
+          data.completedAt = new Date()
+          if (exists.paymentMethod === 'UNPAID') {
+            data.paymentMethod = 'CASH'
+          }
+        }
+
+        return tx.order.update({
+          where: { id },
+          data,
+          include: { items: true },
+        })
       })
+
       const serialized = serializeOrder(order)
       broadcast('admin', 'order:updated', serialized)
       broadcast('orders', 'order:status', {
@@ -78,6 +111,10 @@ export async function adminOrderRoutes(app: FastifyInstance) {
           where: { orderId: id, closedAt: null },
           data: { closedAt: new Date() },
         })
+      }
+
+      if (markPaidOnDelivery) {
+        broadcast('admin', 'order:paid', serialized)
       }
 
       return serialized

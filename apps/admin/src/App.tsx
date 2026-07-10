@@ -12,6 +12,7 @@ import { Users } from './pages/Users'
 import { PosRegister } from './pages/pos/PosRegister'
 import { PosShiftHistory } from './pages/pos/PosShiftHistory'
 import { PosRecentReceipts } from './pages/pos/PosRecentReceipts'
+import { Customers } from './pages/Customers'
 import { FinancialReports } from './pages/FinancialReports'
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="menu/quick" element={<MenuQuickEntry />} />
         <Route path="ice-cream" element={<IceCreamManager />} />
         <Route path="reports" element={<FinancialReports />} />
+        <Route path="customers" element={<Customers />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<Users />} />
       </Route>

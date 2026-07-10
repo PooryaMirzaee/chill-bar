@@ -141,6 +141,7 @@ model Customer {
   id            String               @id @default(cuid())
   phone         String?              @unique
   name          String?
+  notes         String?
   isRegistered  Boolean              @default(false)
   preferences   Json                 @default("{}")
   chillPoints   Int                  @default(0)

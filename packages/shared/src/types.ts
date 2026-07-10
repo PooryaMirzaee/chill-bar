@@ -149,6 +149,7 @@ export interface Order {
   channel: OrderChannel
   customerName?: string | null
   customerPhone?: string | null
+  customerId?: string | null
   note?: string | null
   subtotal?: number
   discountAmount?: number
@@ -197,6 +198,32 @@ export interface CustomerProfile {
   preferences: CustomerPreferences
   orderCount: number
   createdAt: string
+}
+
+export interface AdminCustomerRow {
+  id: string
+  phone: string | null
+  name: string | null
+  notes: string | null
+  isRegistered: boolean
+  chillPoints: number
+  orderCount: number
+  totalSpent: number
+  lastOrderAt: string | null
+  createdAt: string
+}
+
+export interface AdminCustomerDetail extends AdminCustomerRow {
+  preferences: CustomerPreferences
+  orders: Order[]
+  loyaltyLedger: LoyaltyLedgerEntry[]
+}
+
+export interface AdminCustomerListResponse {
+  customers: AdminCustomerRow[]
+  total: number
+  page: number
+  limit: number
 }
 
 export interface CustomerAuthResponse {
@@ -264,6 +291,8 @@ export interface FinancialOrderRow {
   paymentMethod: PaymentMethod | null
   paymentStatus: PaymentStatus
   customerName: string | null
+  customerPhone: string | null
+  customerId: string | null
   total: number
   discountAmount: number
   itemCount: number
@@ -452,6 +481,7 @@ export interface LoyaltyLedgerEntry {
   type: string
   points: number
   orderId: string | null
+  meta?: Record<string, unknown>
   createdAt: string
 }
 

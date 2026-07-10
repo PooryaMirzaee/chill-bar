@@ -401,6 +401,28 @@ export const uploadImageSchema = z.object({
   mimeType: z.enum(['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'image/gif']),
 })
 
+const adminPhoneSchema = z
+  .string()
+  .min(10, 'شماره موبایل نامعتبر است')
+  .max(15)
+
+export const adminCustomerCreateSchema = z.object({
+  phone: adminPhoneSchema,
+  name: z.string().max(80).nullable().optional(),
+  notes: z.string().max(500).nullable().optional(),
+})
+
+export const adminCustomerUpdateSchema = z.object({
+  phone: adminPhoneSchema.optional(),
+  name: z.string().max(80).nullable().optional(),
+  notes: z.string().max(500).nullable().optional(),
+})
+
+export const adminCustomerPointsSchema = z.object({
+  delta: z.number().int().min(-100_000).max(100_000),
+  reason: z.string().max(200).optional(),
+})
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type MenuItemInput = z.infer<typeof menuItemInputSchema>

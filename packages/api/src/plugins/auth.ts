@@ -61,7 +61,7 @@ export const authPlugin = fp(async function authPlugin(app: FastifyInstance) {
       if (!dbUser) {
         return reply.code(401).send({ error: 'نشست کاربری منقضی شده — دوباره وارد شوید' })
       }
-      if (dbUser.role === 'CUSTOMER' || !roles.includes(dbUser.role as UserRole)) {
+      if (!roles.includes(dbUser.role as UserRole)) {
         return reply.code(403).send({ error: 'دسترسی کافی ندارید' })
       }
     }
