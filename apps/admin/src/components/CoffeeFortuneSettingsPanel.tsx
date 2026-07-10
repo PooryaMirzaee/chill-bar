@@ -1,11 +1,13 @@
 import type { CoffeeFortuneSettings, CoffeeFortuneEntry, CoffeeFortuneSymbol } from '@chill-bar/shared'
+import { mergeCoffeeFortuneSettings } from '@chill-bar/shared'
 
 interface Props {
-  settings: CoffeeFortuneSettings
+  settings: CoffeeFortuneSettings | undefined
   onChange: (settings: CoffeeFortuneSettings) => void
 }
 
-export function CoffeeFortuneSettingsPanel({ settings, onChange }: Props) {
+export function CoffeeFortuneSettingsPanel({ settings: rawSettings, onChange }: Props) {
+  const settings = mergeCoffeeFortuneSettings(rawSettings)
   const patch = (p: Partial<CoffeeFortuneSettings>) => onChange({ ...settings, ...p })
 
   const updateFortune = (index: number, p: Partial<CoffeeFortuneEntry>) => {

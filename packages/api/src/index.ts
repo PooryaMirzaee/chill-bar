@@ -32,7 +32,10 @@ import { UPLOADS_DIR, ensureUploadsDir } from './lib/uploads.js'
 import { prismaErrorMessage } from './lib/dbSchema.js'
 
 async function main() {
-  const app = Fastify({ logger: { level: isProd ? 'info' : 'debug' } })
+  const app = Fastify({
+    logger: { level: isProd ? 'info' : 'debug' },
+    bodyLimit: 3 * 1024 * 1024,
+  })
 
   await app.register(cors, {
     origin: env.corsOrigins.length ? env.corsOrigins : true,
@@ -51,14 +54,19 @@ async function main() {
   app.setErrorHandler((error: unknown, request, reply) => {
     request.log.error(error)
     if (reply.sent) return
-    const err = error as { statusCode?: number; message?: string }
-    const statusCode = err.statusCode ?? 500
+    const err = error as { statusCode?: number; message?: string; code?: string }
+    let statusCode = err.statusCode ?? 500
+    if (err.code === 'FST_ERR_CTP_BODY_TOO_LARGE') {
+      statusCode = 413
+    }
     const knownMessage = prismaErrorMessage(error)
     const message =
       knownMessage ??
-      (statusCode >= 500
-        ? 'خطای داخلی سرور — لاگ API را بررسی کنید'
-        : err.message || 'درخواست نامعتبر است')
+      (err.code === 'FST_ERR_CTP_BODY_TOO_LARGE'
+        ? 'حجم تصویر زیاد است — تصویر کوچک‌تر انتخاب کنید'
+        : statusCode >= 500
+          ? 'خطای داخلی سرور — لاگ API را بررسی کنید'
+          : err.message || 'درخواست نامعتبر است')
     reply.code(statusCode).send({ error: message })
   })
 

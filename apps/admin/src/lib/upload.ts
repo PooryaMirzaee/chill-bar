@@ -19,6 +19,9 @@ const EXT_MIME: Record<string, AllowedMime> = {
   svg: 'image/svg+xml',
 }
 
+const MAX_UPLOAD_BYTES = 1_400_000
+const MAX_DIMENSION = 1200
+
 function resolveMimeType(file: File): AllowedMime {
   if (ALLOWED_MIME.includes(file.type as AllowedMime)) {
     return file.type as AllowedMime
@@ -31,14 +34,71 @@ function resolveMimeType(file: File): AllowedMime {
   return mime
 }
 
+async function compressRasterImage(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file)
+  let { width, height } = bitmap
+  const ratio = Math.min(1, MAX_DIMENSION / Math.max(width, height))
+  if (ratio < 1) {
+    width = Math.round(width * ratio)
+    height = Math.round(height * ratio)
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    bitmap.close()
+    throw new Error('فشرده‌سازی تصویر ناموفق بود')
+  }
+  ctx.drawImage(bitmap, 0, 0, width, height)
+  bitmap.close()
+
+  let quality = 0.88
+  let blob: Blob | null = null
+  for (let attempt = 0; attempt < 6; attempt++) {
+    blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/webp', quality)
+    })
+    if (!blob) break
+    if (blob.size <= MAX_UPLOAD_BYTES) break
+    quality -= 0.12
+  }
+
+  if (!blob) {
+    throw new Error('فشرده‌سازی تصویر ناموفق بود')
+  }
+  if (blob.size > MAX_UPLOAD_BYTES) {
+    throw new Error('حجم تصویر بعد از فشرده‌سازی هنوز زیاد است — تصویر کوچک‌تری انتخاب کنید')
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, '') || 'image'
+  return new File([blob], `${baseName}.webp`, { type: 'image/webp' })
+}
+
+async function prepareUploadFile(file: File): Promise<File> {
+  const mime = resolveMimeType(file)
+  if (mime === 'image/svg+xml' || mime === 'image/gif') {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      throw new Error('حجم فایل بیش از ۱.۵ مگابایت است — SVG/GIF کوچک‌تری انتخاب کنید')
+    }
+    return file
+  }
+  if (file.size <= MAX_UPLOAD_BYTES) {
+    return file
+  }
+  return compressRasterImage(file)
+}
+
 export async function uploadImage(file: File): Promise<string> {
-  const mimeType = resolveMimeType(file)
-  const data = await fileToBase64(file)
+  const prepared = await prepareUploadFile(file)
+  const mimeType = resolveMimeType(prepared)
+  const data = await fileToBase64(prepared)
   const res = await api<{ url: string }>('/api/admin/upload', {
     method: 'POST',
     body: JSON.stringify({
       data,
-      filename: file.name,
+      filename: prepared.name,
       mimeType,
     }),
   })

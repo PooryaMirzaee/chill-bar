@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { categoryInputSchema, categoryReorderSchema, menuItemInputSchema } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
+import { prismaErrorMessage } from '../lib/dbSchema.js'
 
 function slugify(input: string): string {
   return (
@@ -104,43 +105,53 @@ export async function adminMenuRoutes(app: FastifyInstance) {
   app.post('/api/admin/items', manager, async (request, reply) => {
     const parsed = menuItemInputSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'داده آیتم نامعتبر است' })
-    const created = await prisma.menuItem.create({
-      data: {
-        name: parsed.data.name,
-        price: parsed.data.price,
-        emoji: parsed.data.emoji,
-        description: parsed.data.description,
-        tags: parsed.data.tags,
-        modifiers: parsed.data.modifiers,
-        imageUrl: parsed.data.imageUrl ?? null,
-        isAvailable: parsed.data.isAvailable,
-        posOnly: parsed.data.posOnly,
-        categoryId: parsed.data.category,
-      },
-    })
-    return reply.code(201).send(created)
+    try {
+      const created = await prisma.menuItem.create({
+        data: {
+          name: parsed.data.name,
+          price: parsed.data.price,
+          emoji: parsed.data.emoji,
+          description: parsed.data.description,
+          tags: parsed.data.tags,
+          modifiers: parsed.data.modifiers,
+          imageUrl: parsed.data.imageUrl ?? null,
+          isAvailable: parsed.data.isAvailable,
+          posOnly: parsed.data.posOnly,
+          categoryId: parsed.data.category,
+        },
+      })
+      return reply.code(201).send(created)
+    } catch (err) {
+      const message = prismaErrorMessage(err) ?? 'ذخیره آیتم ناموفق بود'
+      return reply.code(500).send({ error: message })
+    }
   })
 
   app.put('/api/admin/items/:id', manager, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = menuItemInputSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'داده آیتم نامعتبر است' })
-    const updated = await prisma.menuItem.update({
-      where: { id },
-      data: {
-        name: parsed.data.name,
-        price: parsed.data.price,
-        emoji: parsed.data.emoji,
-        description: parsed.data.description,
-        tags: parsed.data.tags,
-        modifiers: parsed.data.modifiers,
-        imageUrl: parsed.data.imageUrl ?? null,
-        isAvailable: parsed.data.isAvailable,
-        posOnly: parsed.data.posOnly,
-        categoryId: parsed.data.category,
-      },
-    })
-    return updated
+    try {
+      const updated = await prisma.menuItem.update({
+        where: { id },
+        data: {
+          name: parsed.data.name,
+          price: parsed.data.price,
+          emoji: parsed.data.emoji,
+          description: parsed.data.description,
+          tags: parsed.data.tags,
+          modifiers: parsed.data.modifiers,
+          imageUrl: parsed.data.imageUrl ?? null,
+          isAvailable: parsed.data.isAvailable,
+          posOnly: parsed.data.posOnly,
+          categoryId: parsed.data.category,
+        },
+      })
+      return updated
+    } catch (err) {
+      const message = prismaErrorMessage(err) ?? 'ذخیره آیتم ناموفق بود'
+      return reply.code(500).send({ error: message })
+    }
   })
 
   app.patch('/api/admin/items/:id/availability', { onRequest: [app.authenticate] }, async (request) => {

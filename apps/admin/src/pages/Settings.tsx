@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee } from 'lucide-react'
 import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
-import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS } from '@chill-bar/shared'
+import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { AppearanceSettings } from '../components/AppearanceSettings'
 import { AiSettingsPanel } from '../components/AiSettingsPanel'
@@ -66,7 +66,13 @@ export function Settings() {
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (data) setForm(data)
+    if (!data) return
+    setForm({
+      ...DEFAULT_STORE_SETTINGS,
+      ...data,
+      features: { ...DEFAULT_STORE_SETTINGS.features, ...data.features },
+      coffeeFortuneSettings: mergeCoffeeFortuneSettings(data.coffeeFortuneSettings),
+    })
   }, [data])
 
   useEffect(() => {
