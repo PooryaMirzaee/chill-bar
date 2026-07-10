@@ -1,5 +1,5 @@
 import type { StoreSettings } from '@chill-bar/shared'
-import { DEFAULT_STORE_SETTINGS } from '@chill-bar/shared'
+import { DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings } from '@chill-bar/shared'
 
 export function mergeSettings(raw: Partial<StoreSettings> | null | undefined): StoreSettings {
   return {
@@ -42,6 +42,7 @@ export function mergeSettings(raw: Partial<StoreSettings> | null | undefined): S
           ? raw.comboRecommendations.templates
           : DEFAULT_STORE_SETTINGS.comboRecommendations.templates,
     },
+    coffeeFortuneSettings: mergeCoffeeFortuneSettings(raw?.coffeeFortuneSettings),
   }
 }
 

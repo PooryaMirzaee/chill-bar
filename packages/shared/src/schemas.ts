@@ -331,6 +331,44 @@ export const moodDefinitionSchema = z.object({
   tagWeights: z.record(z.number()).default({}),
 })
 
+export const coffeeFortuneSymbolSchema = z.object({
+  id: z.string().min(1).max(40),
+  emoji: z.string().max(8),
+  label: z.string().max(40),
+  meaning: z.string().max(300),
+})
+
+export const coffeeFortuneEntrySchema = z.object({
+  id: z.string().min(1).max(40),
+  fortune: z.string().max(400),
+  mood: z.string().max(40),
+  moodEmoji: z.string().max(8),
+  love: z.string().max(200),
+  career: z.string().max(200),
+  luck: z.string().max(200),
+  enabled: z.boolean().default(true),
+})
+
+export const coffeeFortuneLuckyColorSchema = z.object({
+  name: z.string().max(40),
+  hex: hexColor,
+})
+
+export const coffeeFortuneSettingsSchema = z.object({
+  title: z.string().max(80).default('فال قهوه'),
+  subtitle: z.string().max(200).default(''),
+  ritualHint: z.string().max(120).default(''),
+  readingHint: z.string().max(120).default(''),
+  shareHashtag: z.string().max(60).default('#فال_قهوه'),
+  accentColor: hexColor.default('#D4A574'),
+  fortunes: z.array(coffeeFortuneEntrySchema).max(50).default([]),
+  symbols: z.array(coffeeFortuneSymbolSchema).max(30).default([]),
+  luckyEmojis: z.array(z.string().max(8)).max(20).default([]),
+  luckyColors: z.array(coffeeFortuneLuckyColorSchema).max(12).default([]),
+  luckyTimes: z.array(z.string().max(60)).max(12).default([]),
+  maxReadsPerVisit: z.number().int().min(0).max(20).default(3),
+})
+
 export const settingsInputSchema = z.object({
   storeName: z.string().min(1),
   storeSubtitle: z.string().default(''),
@@ -354,6 +392,7 @@ export const settingsInputSchema = z.object({
   scratchReward: scratchRewardSettingsSchema.default({}),
   waitLounge: waitLoungeSettingsSchema.default({}),
   comboRecommendations: comboRecommendationSettingsSchema.default({}),
+  coffeeFortuneSettings: coffeeFortuneSettingsSchema.default({}),
 })
 
 export const uploadImageSchema = z.object({

@@ -538,7 +538,12 @@ function AppContent() {
               className="space-y-6 py-4"
             >
               {features.coffeeFortune !== false && !hidePreOrderGames && (
-                <CoffeeFortune items={items} onPickDrink={handleAdd} />
+                <CoffeeFortune
+                  items={items}
+                  settings={settings.coffeeFortuneSettings}
+                  storeName={settings.storeName}
+                  onPickDrink={handleAdd}
+                />
               )}
               {features.swipeDeck !== false && !hidePreOrderGames && (
                 <SwipeDeck items={items} onAddToCart={handleAdd} onSelect={selectItem} />

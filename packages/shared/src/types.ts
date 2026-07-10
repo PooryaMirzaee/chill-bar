@@ -477,8 +477,10 @@ export interface MoodDefinition {
 }
 
 import type { ComboRecommendationSettings } from './comboSettings'
+import type { CoffeeFortuneSettings } from './coffeeFortune'
 
 export type { CategoryPairRule, ComboTemplate } from './comboSettings'
+export type { CoffeeFortuneSettings, CoffeeFortuneEntry, CoffeeFortuneSymbol, CoffeeFortuneReading } from './coffeeFortune'
 
 export interface StoreSettings {
   storeName: string
@@ -503,6 +505,7 @@ export interface StoreSettings {
   scratchReward: ScratchRewardSettings
   waitLounge: WaitLoungeSettings
   comboRecommendations: ComboRecommendationSettings
+  coffeeFortuneSettings: CoffeeFortuneSettings
 }
 
 export interface AiSettings {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator } from 'lucide-react'
+import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee } from 'lucide-react'
 import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
 import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS } from '@chill-bar/shared'
 import { api } from '../lib/api'
@@ -15,6 +15,7 @@ import { HomeAppearancePanel } from '../components/HomeAppearancePanel'
 import { MenuAppearancePanel } from '../components/MenuAppearancePanel'
 import { WaitLoungeSettingsPanel } from '../components/WaitLoungeSettingsPanel'
 import { ComboRecommendationSettingsPanel } from '../components/ComboRecommendationSettingsPanel'
+import { CoffeeFortuneSettingsPanel } from '../components/CoffeeFortuneSettingsPanel'
 import { PosSettingsPanel } from '../components/PosSettingsPanel'
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -27,7 +28,7 @@ const FEATURE_LABELS: Record<string, string> = {
   coffeeFortune: 'فال قهوه (سرگرمی روزانه)',
 }
 
-type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
+type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
 
 export function Settings() {
   const queryClient = useQueryClient()
@@ -224,6 +225,9 @@ export function Settings() {
         <button type="button" className={tab === 'combo' ? 'active' : ''} onClick={() => setTab('combo')}>
           <Sparkles size={16} /> پیشنهاد ترکیب
         </button>
+        <button type="button" className={tab === 'fortune' ? 'active' : ''} onClick={() => setTab('fortune')}>
+          <Coffee size={16} /> فال قهوه
+        </button>
         <button type="button" className={tab === 'pos' ? 'active' : ''} onClick={() => setTab('pos')}>
           <Calculator size={16} /> صندوق
         </button>
@@ -372,6 +376,13 @@ export function Settings() {
         <ComboRecommendationSettingsPanel
           settings={form.comboRecommendations}
           onChange={(comboRecommendations) => setForm({ ...form, comboRecommendations })}
+        />
+      )}
+
+      {tab === 'fortune' && (
+        <CoffeeFortuneSettingsPanel
+          settings={form.coffeeFortuneSettings}
+          onChange={(coffeeFortuneSettings) => setForm({ ...form, coffeeFortuneSettings })}
         />
       )}
 
