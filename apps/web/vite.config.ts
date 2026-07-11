@@ -8,6 +8,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  define: {
+    'import.meta.env.VITE_BUILD_SHA': JSON.stringify(process.env.VITE_BUILD_SHA ?? 'dev'),
+  },
   resolve: {
     alias: {
       '@': path.resolve(dirname, './src'),
@@ -46,9 +49,21 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}'],
-        navigateFallbackDenylist: [/^\/api/, /^\/ws/],
+        globPatterns: ['**/*.{js,css,ico,png,svg,json,woff2,webmanifest}'],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/ws/, /^\/uploads/],
         runtimeCaching: [
+          {
+            urlPattern: /^\/uploads\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^\/api\/.*/i,
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
             handler: 'CacheFirst',

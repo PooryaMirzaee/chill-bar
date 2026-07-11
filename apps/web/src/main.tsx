@@ -8,43 +8,71 @@ import './styles/legacy-features.css'
 import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CustomerProvider } from './lib/customerAuth'
-
-if (import.meta.env.PROD) {
-  registerSW({ immediate: true })
-} else if ('serviceWorker' in navigator) {
-  void navigator.serviceWorker.getRegistrations().then((regs) => {
-    regs.forEach((reg) => void reg.unregister())
-  })
-}
+import { enforceFreshDeploy, purgeStaleCaches } from './lib/deployFreshness'
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 2 },
+    queries: { retry: 2, staleTime: 30_000 },
   },
 })
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <CustomerProvider>
-          <App />
-        </CustomerProvider>
-      </ErrorBoundary>
-      <Toaster
-        position="top-center"
-        dir="rtl"
-        richColors
-        closeButton
-        expand
-        visibleToasts={2}
-        toastOptions={{
-          classNames: {
-            toast: 'cart-add-toast',
-            actionButton: 'cart-add-toast-action',
-          },
-        }}
-      />
-    </QueryClientProvider>
-  </StrictMode>,
-)
+async function boot() {
+  if (import.meta.env.PROD) {
+    const buildId = import.meta.env.VITE_BUILD_SHA ?? 'unknown'
+    const reloaded = await enforceFreshDeploy(buildId)
+    if (reloaded) return
+
+    registerSW({
+      immediate: true,
+      onRegisteredSW(_swUrl, registration) {
+        if (!registration) return
+
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing
+          if (!worker) return
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'activated' && navigator.serviceWorker.controller) {
+              void purgeStaleCaches().then(() => window.location.reload())
+            }
+          })
+        })
+
+        window.setInterval(() => {
+          void registration.update()
+        }, 5 * 60 * 1000)
+      },
+    })
+  } else if ('serviceWorker' in navigator) {
+    void navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((reg) => void reg.unregister())
+    })
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <CustomerProvider>
+            <App />
+          </CustomerProvider>
+        </ErrorBoundary>
+        <Toaster
+          position="top-center"
+          dir="rtl"
+          richColors
+          closeButton
+          expand
+          visibleToasts={2}
+          toastOptions={{
+            classNames: {
+              toast: 'cart-add-toast',
+              actionButton: 'cart-add-toast-action',
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+}
+
+void boot()

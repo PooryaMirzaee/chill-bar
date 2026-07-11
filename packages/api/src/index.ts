@@ -50,6 +50,9 @@ async function main() {
     root: UPLOADS_DIR,
     prefix: '/uploads/',
     decorateReply: false,
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate')
+    },
   })
 
   app.setErrorHandler((error: unknown, request, reply) => {
