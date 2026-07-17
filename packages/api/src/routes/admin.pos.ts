@@ -164,7 +164,10 @@ export async function adminPosRoutes(app: FastifyInstance) {
                 name: input.customerName,
               })
               const receiptNumber = await nextReceiptNumber(tx, shift?.id)
-              const code = await nextOrderCode(tx)
+              const code = await nextOrderCode(tx, {
+                shiftId: shift?.id,
+                receiptNumber,
+              })
               const created = await tx.order.create({
                 data: {
                   code,

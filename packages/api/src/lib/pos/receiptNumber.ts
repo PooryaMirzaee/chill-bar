@@ -8,7 +8,8 @@ export async function nextReceiptNumber(
   shiftId?: string | null,
 ): Promise<number> {
   // Per-shift sequence: after close/open, numbering restarts at 500.
-  const where = shiftId ? { shiftId } : {}
+  // When no shiftId, only consider orders that also have no shift (don't continue from other shifts).
+  const where = shiftId ? { shiftId } : { shiftId: null }
   const last = await tx.order.findFirst({
     where: { ...where, receiptNumber: { not: null } },
     orderBy: { receiptNumber: 'desc' },

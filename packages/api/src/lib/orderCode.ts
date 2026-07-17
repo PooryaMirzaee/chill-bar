@@ -31,10 +31,42 @@ function parseDailySequence(code: string): number | null {
   return Number.isFinite(value) ? value : null
 }
 
+async function codeExists(tx: Prisma.TransactionClient, code: string): Promise<boolean> {
+  const exists = await tx.order.findFirst({
+    where: { code },
+    select: { id: true },
+  })
+  return Boolean(exists)
+}
+
+/**
+ * Allocate a unique order code.
+ * When receiptNumber is provided (POS per-shift sequence), prefer CH{receiptNumber}.
+ * If that code was used in a previous shift, add a short unique suffix.
+ */
 export async function nextOrderCode(
   tx: Prisma.TransactionClient,
-  at = new Date(),
+  options?: { shiftId?: string | null; receiptNumber?: number; at?: Date },
 ): Promise<string> {
+  const at = options?.at ?? new Date()
+  const receiptNumber = options?.receiptNumber
+  const shiftId = options?.shiftId
+
+  if (receiptNumber != null) {
+    const preferred = `${CODE_PREFIX}${receiptNumber}`
+    if (!(await codeExists(tx, preferred))) return preferred
+
+    const shiftSuffix = (shiftId ?? 'x').replace(/[^a-zA-Z0-9]/g, '').slice(-4) || 'x'
+    const withShift = `${CODE_PREFIX}${receiptNumber}${shiftSuffix}`
+    if (!(await codeExists(tx, withShift))) return withShift
+
+    for (let i = 0; i < 50; i++) {
+      const candidate = `${CODE_PREFIX}${receiptNumber}T${Date.now().toString(36)}${i}`
+      if (!(await codeExists(tx, candidate))) return candidate
+    }
+    throw new Error('Could not allocate order code for receipt number')
+  }
+
   const { dayStart, dayEnd } = tehranDayBounds(at)
 
   const todaysCodes = await tx.order.findMany({
@@ -48,14 +80,9 @@ export async function nextOrderCode(
     if (parsed != null) seq = Math.max(seq, parsed + 1)
   }
 
-  // `code` is globally unique — skip numbers taken on previous days too
   for (let i = 0; i < 2000; i++) {
     const candidate = `${CODE_PREFIX}${seq}`
-    const exists = await tx.order.findFirst({
-      where: { code: candidate },
-      select: { id: true },
-    })
-    if (!exists) return candidate
+    if (!(await codeExists(tx, candidate))) return candidate
     seq++
   }
 
