@@ -175,10 +175,21 @@ export function ThermalReceipt({
         {(templateId === 'ticket' || templateId === 'kitchen-ticket') && receiptNumber != null && (
           <div className="tr-ticket-number">#{receiptNumber}</div>
         )}
+        {receiptNumber != null && templateId !== 'ticket' && templateId !== 'kitchen-ticket' && (
+          <div className="tr-ticket-number">#{receiptNumber}</div>
+        )}
         <div className="tr-row">
-          <span>{isKitchen ? 'سفارش' : 'فیش'}</span>
-          <strong className="tr-order-code">{orderCode}</strong>
+          <span>{isKitchen ? 'سفارش' : 'شماره فاکتور'}</span>
+          <strong className="tr-order-code">
+            {receiptNumber != null ? String(receiptNumber) : orderCode}
+          </strong>
         </div>
+        {receiptNumber != null && (
+          <div className="tr-row">
+            <span>کد پیگیری</span>
+            <span className="tr-tracking-code">{orderCode}</span>
+          </div>
+        )}
         <div className="tr-row">
           <span>تاریخ</span>
           <span>{formatReceiptDate(createdAt)}</span>
