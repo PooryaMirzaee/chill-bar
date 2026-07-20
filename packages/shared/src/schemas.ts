@@ -423,6 +423,36 @@ export const adminCustomerPointsSchema = z.object({
   reason: z.string().max(200).optional(),
 })
 
+export const expenseCategorySchema = z.enum([
+  'SUPPLIES',
+  'RENT',
+  'UTILITIES',
+  'SALARY',
+  'MARKETING',
+  'MAINTENANCE',
+  'TRANSPORT',
+  'EQUIPMENT',
+  'OTHER',
+])
+
+export const expensePaymentMethodSchema = z.enum(['CASH', 'CARD', 'TRANSFER'])
+
+export const expenseInputSchema = z.object({
+  title: z.string().min(1, 'عنوان لازم است').max(120),
+  amount: z.number().int().positive('مبلغ باید بیشتر از صفر باشد').max(100_000_000_000),
+  category: expenseCategorySchema.default('OTHER'),
+  paymentMethod: expensePaymentMethodSchema.default('CASH'),
+  vendor: z.string().max(120).nullable().optional(),
+  note: z.string().max(500).nullable().optional(),
+  /** Gregorian ISO date YYYY-MM-DD */
+  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'تاریخ نامعتبر است'),
+})
+
+export const expenseUpdateSchema = expenseInputSchema.partial()
+
+export type ExpenseInput = z.infer<typeof expenseInputSchema>
+export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type MenuItemInput = z.infer<typeof menuItemInputSchema>

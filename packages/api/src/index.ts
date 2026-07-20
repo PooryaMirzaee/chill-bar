@@ -25,6 +25,7 @@ import { adminShiftRoutes } from './routes/admin.shifts.js'
 import { adminPosRoutes } from './routes/admin.pos.js'
 import { adminReportRoutes } from './routes/admin.reports.js'
 import { adminCustomerRoutes } from './routes/admin.customers.js'
+import { adminExpenseRoutes } from './routes/admin.expenses.js'
 import { waitLoungeRoutes } from './routes/waitLounge.js'
 import { wsRoutes } from './routes/ws.js'
 import { prisma } from './prisma.js'
@@ -50,9 +51,6 @@ async function main() {
     root: UPLOADS_DIR,
     prefix: '/uploads/',
     decorateReply: false,
-    setHeaders: (res) => {
-      res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate')
-    },
   })
 
   app.setErrorHandler((error: unknown, request, reply) => {
@@ -99,6 +97,7 @@ async function main() {
   await app.register(adminPosRoutes)
   await app.register(adminReportRoutes)
   await app.register(adminCustomerRoutes)
+  await app.register(adminExpenseRoutes)
 
   // Realtime
   await app.register(wsRoutes)

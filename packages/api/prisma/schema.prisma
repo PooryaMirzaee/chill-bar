@@ -59,6 +59,24 @@ enum IceOptionType {
   FILLING
 }
 
+enum ExpenseCategory {
+  SUPPLIES
+  RENT
+  UTILITIES
+  SALARY
+  MARKETING
+  MAINTENANCE
+  TRANSPORT
+  EQUIPMENT
+  OTHER
+}
+
+enum ExpensePaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+}
+
 model User {
   id                 String            @id @default(cuid())
   name               String
@@ -70,8 +88,28 @@ model User {
   openedShifts       CashShift[]       @relation("ShiftOpenedBy")
   closedShifts       CashShift[]       @relation("ShiftClosedBy")
   orderAdjustments   OrderAdjustment[]
+  expenses           Expense[]
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+}
+
+model Expense {
+  id              String               @id @default(cuid())
+  title           String
+  amount          Int
+  category        ExpenseCategory      @default(OTHER)
+  paymentMethod   ExpensePaymentMethod @default(CASH)
+  vendor          String?
+  note            String?
+  expenseDate     DateTime
+  createdByUserId String?
+  createdBy       User?                @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([expenseDate])
+  @@index([category])
+  @@index([createdByUserId])
 }
 
 model Category {

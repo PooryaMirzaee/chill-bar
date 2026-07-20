@@ -1848,3 +1848,311 @@ textarea {
     max-height: none;
   }
 }
+
+/* ── Expenses + Jalali picker ── */
+.expense-quick-card {
+  margin-bottom: 16px;
+}
+
+.expense-quick-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.expense-quick-head strong {
+  color: var(--text);
+}
+
+.expense-quick-head span {
+  margin-right: auto;
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.expense-quick-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expense-quick-form .expense-amount-field input {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.expense-quick-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.expense-cat-chips,
+.expense-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.expense-chip {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.expense-chip:hover {
+  border-color: rgba(242, 101, 34, 0.45);
+  color: var(--text);
+}
+
+.expense-chip.active {
+  background: rgba(242, 101, 34, 0.15);
+  border-color: rgba(242, 101, 34, 0.55);
+  color: #ffd4b8;
+  font-weight: 600;
+}
+
+.expenses-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.expenses-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.expenses-search input {
+  flex: 1;
+}
+
+.expenses-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.expense-cat-summary {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expense-cat-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.expense-day-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expense-day-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.expense-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expense-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.expense-list-main {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.expense-list-emoji {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.expense-list-main strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.expense-list-main p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.expense-note {
+  margin-top: 4px !important;
+  opacity: 0.85;
+}
+
+.expense-list-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.jalali-picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jalali-picker-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.jalali-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  text-align: right;
+}
+
+.jalali-picker-trigger small {
+  margin-right: auto;
+  opacity: 0.55;
+  font-size: 0.75rem;
+}
+
+.jalali-picker-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: min(300px, 92vw);
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.jalali-picker-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.jalali-picker-weekdays,
+.jalali-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.jalali-picker-weekdays {
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.jalali-day {
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.jalali-day:hover:not(.empty) {
+  background: rgba(242, 101, 34, 0.12);
+}
+
+.jalali-day.today {
+  box-shadow: inset 0 0 0 1px rgba(242, 101, 34, 0.55);
+}
+
+.jalali-day.selected {
+  background: var(--orange, #f26522);
+  color: #fff;
+  font-weight: 700;
+}
+
+.jalali-day.empty {
+  cursor: default;
+}
+
+.jalali-picker-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.jalali-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jalali-month-nav-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 140px;
+}
+
+@media (max-width: 900px) {
+  .expense-quick-row,
+  .expenses-stats {
+    grid-template-columns: 1fr;
+  }
+}

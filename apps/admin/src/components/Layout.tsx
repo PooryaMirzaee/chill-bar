@@ -11,6 +11,7 @@ import {
   Zap,
   BarChart3,
   UserCircle,
+  Wallet,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { useOrderAlerts } from '../lib/useOrderAlerts'
@@ -23,6 +24,7 @@ const NAV = [
   { to: '/menu/quick', label: 'ورود سریع', icon: Zap },
   { to: '/ice-cream', label: 'گزینه‌های بستنی', icon: IceCreamCone },
   { to: '/reports', label: 'گزارش مالی', icon: BarChart3, roles: ['SUPER_ADMIN', 'MANAGER'] },
+  { to: '/expenses', label: 'هزینه‌ها', icon: Wallet, roles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'] },
   { to: '/customers', label: 'مشتریان', icon: UserCircle },
   { to: '/settings', label: 'تنظیمات', icon: SettingsIcon },
   { to: '/users', label: 'کاربران', icon: UsersIcon, roles: ['SUPER_ADMIN'] },
