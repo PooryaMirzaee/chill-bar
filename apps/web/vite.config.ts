@@ -49,25 +49,27 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Do not precache index.html — always fetch shell from network
         globPatterns: ['**/*.{js,css,ico,png,svg,json,woff2,webmanifest}'],
         cleanupOutdatedCaches: true,
-        skipWaiting: true,
-        clientsClaim: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/ws/, /^\/uploads/],
         runtimeCaching: [
           {
-            urlPattern: /^\/uploads\/.*/i,
+            urlPattern: ({ url }) => url.pathname.startsWith('/uploads/'),
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /^\/api\/.*/i,
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkOnly',
           },
           {
             urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
             handler: 'CacheFirst',
-            options: { cacheName: 'weather-cache', expiration: { maxEntries: 1, maxAgeSeconds: 1800 } },
+            options: {
+              cacheName: 'weather-cache',
+              expiration: { maxEntries: 1, maxAgeSeconds: 1800 },
+            },
           },
         ],
       },

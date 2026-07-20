@@ -8,7 +8,7 @@ import './styles/legacy-features.css'
 import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CustomerProvider } from './lib/customerAuth'
-import { enforceFreshDeploy, purgeStaleCaches } from './lib/deployFreshness'
+import { enforceFreshDeploy } from './lib/deployFreshness'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,26 +22,9 @@ async function boot() {
     const reloaded = await enforceFreshDeploy(buildId)
     if (reloaded) return
 
-    registerSW({
-      immediate: true,
-      onRegisteredSW(_swUrl, registration) {
-        if (!registration) return
-
-        registration.addEventListener('updatefound', () => {
-          const worker = registration.installing
-          if (!worker) return
-          worker.addEventListener('statechange', () => {
-            if (worker.state === 'activated' && navigator.serviceWorker.controller) {
-              void purgeStaleCaches().then(() => window.location.reload())
-            }
-          })
-        })
-
-        window.setInterval(() => {
-          void registration.update()
-        }, 5 * 60 * 1000)
-      },
-    })
+    // autoUpdate: apply new SW quietly. Do NOT force reload on every activation —
+    // that caused infinite refresh loops when sw.js was no-cache.
+    registerSW({ immediate: true })
   } else if ('serviceWorker' in navigator) {
     void navigator.serviceWorker.getRegistrations().then((regs) => {
       regs.forEach((reg) => void reg.unregister())
