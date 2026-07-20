@@ -22,6 +22,8 @@ function serializeExpense(
     category: row.category as ExpenseCategory,
     paymentMethod: row.paymentMethod,
     vendor: row.vendor,
+    cardLabel: row.cardLabel,
+    purchasedBy: row.purchasedBy,
     note: row.note,
     expenseDate: row.expenseDate.toISOString().slice(0, 10),
     createdByUserId: row.createdByUserId,
@@ -88,6 +90,8 @@ export async function adminExpenseRoutes(app: FastifyInstance) {
       where.OR = [
         { title: { contains: query.q.trim(), mode: 'insensitive' } },
         { vendor: { contains: query.q.trim(), mode: 'insensitive' } },
+        { cardLabel: { contains: query.q.trim(), mode: 'insensitive' } },
+        { purchasedBy: { contains: query.q.trim(), mode: 'insensitive' } },
         { note: { contains: query.q.trim(), mode: 'insensitive' } },
       ]
     }
@@ -145,6 +149,8 @@ export async function adminExpenseRoutes(app: FastifyInstance) {
           category: parsed.data.category,
           paymentMethod: parsed.data.paymentMethod,
           vendor: parsed.data.vendor?.trim() || null,
+          cardLabel: parsed.data.cardLabel?.trim() || null,
+          purchasedBy: parsed.data.purchasedBy?.trim() || null,
           note: parsed.data.note?.trim() || null,
           expenseDate: isoDateToUtcStart(parsed.data.expenseDate),
           createdByUserId: request.user.sub,
@@ -178,6 +184,12 @@ export async function adminExpenseRoutes(app: FastifyInstance) {
             : {}),
           ...(parsed.data.vendor !== undefined
             ? { vendor: parsed.data.vendor?.trim() || null }
+            : {}),
+          ...(parsed.data.cardLabel !== undefined
+            ? { cardLabel: parsed.data.cardLabel?.trim() || null }
+            : {}),
+          ...(parsed.data.purchasedBy !== undefined
+            ? { purchasedBy: parsed.data.purchasedBy?.trim() || null }
             : {}),
           ...(parsed.data.note !== undefined ? { note: parsed.data.note?.trim() || null } : {}),
           ...(parsed.data.expenseDate !== undefined

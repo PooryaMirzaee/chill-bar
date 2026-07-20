@@ -62,6 +62,8 @@ export interface ExpenseRow {
   category: ExpenseCategory
   paymentMethod: ExpensePaymentMethod
   vendor: string | null
+  cardLabel: string | null
+  purchasedBy: string | null
   note: string | null
   expenseDate: string
   createdByUserId: string | null

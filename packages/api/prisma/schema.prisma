@@ -100,6 +100,8 @@ model Expense {
   category        ExpenseCategory      @default(OTHER)
   paymentMethod   ExpensePaymentMethod @default(CASH)
   vendor          String?
+  cardLabel       String?
+  purchasedBy     String?
   note            String?
   expenseDate     DateTime
   createdByUserId String?

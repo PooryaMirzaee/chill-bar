@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Eye, Trash2, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Eye, FileSpreadsheet, Trash2, TrendingUp, Wallet } from 'lucide-react'
 import type {
   FinancialDailyReport,
   FinancialOrderRow,
@@ -17,9 +17,10 @@ import type {
   FinancialSortDirection,
   FinancialSummaryReport,
 } from '@chill-bar/shared'
-import { ORDER_CHANNEL_LABEL, ORDER_STATUS_LABEL, PAYMENT_METHOD_LABEL } from '@chill-bar/shared'
+import { ORDER_CHANNEL_LABEL, ORDER_STATUS_LABEL, PAYMENT_METHOD_LABEL, PAYMENT_STATUS_LABEL } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { formatDateTime, formatNumber, formatPrice } from '../lib/format'
+import { downloadExcelCsv } from '../lib/excelExport'
 import { FinancialInvoiceModal } from '../components/FinancialInvoiceModal'
 
 function todayInputValue(): string {
@@ -128,12 +129,46 @@ export function FinancialReports() {
     voidMutation.mutate({ id: voidTarget.id, reason: voidReason.trim() || undefined })
   }
 
+  const exportOrders = (orders: FinancialOrderRow[], filename: string) => {
+    downloadExcelCsv(
+      filename,
+      [
+        'زمان',
+        'کد',
+        'شماره فیش',
+        'کانال',
+        'وضعیت',
+        'پرداخت',
+        'روش پرداخت',
+        'مشتری',
+        'موبایل',
+        'تخفیف',
+        'مبلغ',
+        'تعداد اقلام',
+      ],
+      orders.map((order) => [
+        formatDateTime(order.createdAt),
+        order.code,
+        order.receiptNumber ?? '',
+        ORDER_CHANNEL_LABEL[order.channel],
+        ORDER_STATUS_LABEL[order.status],
+        PAYMENT_STATUS_LABEL[order.paymentStatus],
+        order.paymentMethod ? PAYMENT_METHOD_LABEL[order.paymentMethod] : '',
+        order.customerName ?? '',
+        order.customerPhone ?? '',
+        order.discountAmount,
+        order.total,
+        order.itemCount,
+      ]),
+    )
+  }
+
   return (
     <div className="page">
       <header className="page-head">
         <div>
           <h1>گزارش‌های مالی</h1>
-          <p className="page-sub">مدیریت فیش‌های روزانه و گزارش کامل با امکان مرتب‌سازی</p>
+          <p className="page-sub">مدیریت فیش‌های روزانه و گزارش کامل با امکان مرتب‌سازی و خروجی اکسل</p>
         </div>
       </header>
 
@@ -192,6 +227,7 @@ export function FinancialReports() {
               onSort={toggleDailySort}
               onVoid={setVoidTarget}
               onView={setViewTarget}
+              onExport={() => exportOrders(daily.orders ?? [], `sales-daily-${dailyDate}.csv`)}
             />
           </>
         )}
@@ -268,6 +304,9 @@ export function FinancialReports() {
               onSort={toggleSummarySort}
               onVoid={setVoidTarget}
               onView={setViewTarget}
+              onExport={() =>
+                exportOrders(summary.orders, `sales-${summaryFrom}_to_${summaryTo}.csv`)
+              }
             />
           </>
         )}
@@ -351,6 +390,7 @@ function OrdersTable({
   onSort,
   onVoid,
   onView,
+  onExport,
 }: {
   title: string
   orders: FinancialOrderRow[]
@@ -359,12 +399,25 @@ function OrdersTable({
   onSort: (field: FinancialOrderSortField) => void
   onVoid: (order: FinancialOrderRow) => void
   onView: (order: FinancialOrderRow) => void
+  onExport?: () => void
 }) {
   return (
     <div className="fin-orders-section">
       <div className="fin-orders-head">
         <h4>{title}</h4>
-        <span>{orders.length.toLocaleString('fa-IR')} فیش</span>
+        <div className="fin-orders-head-actions">
+          <span>{orders.length.toLocaleString('fa-IR')} فیش</span>
+          {onExport && (
+            <button
+              type="button"
+              className="btn-ghost btn-sm"
+              disabled={orders.length === 0}
+              onClick={onExport}
+            >
+              <FileSpreadsheet size={14} /> اکسل
+            </button>
+          )}
+        </div>
       </div>
       {orders.length === 0 ? (
         <p className="empty-hint">فیشی برای نمایش نیست</p>

@@ -8,6 +8,7 @@ import {
   Wallet,
   X,
   Check,
+  FileSpreadsheet,
 } from 'lucide-react'
 import type {
   ExpenseCategory,
@@ -22,21 +23,27 @@ import {
   EXPENSE_PAYMENT_LABEL,
   EXPENSE_PAYMENT_METHODS,
   formatJalaliDisplay,
+  formatJalaliShort,
+  JALALI_MONTH_NAMES,
   todayIsoDate,
   todayJalali,
 } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { formatNumber, formatPrice } from '../lib/format'
+import { downloadExcelCsv } from '../lib/excelExport'
 import { JalaliDatePicker, JalaliMonthNav } from '../components/JalaliDatePicker'
 import { useAuth } from '../lib/auth'
 
 interface ExpenseForm {
   id: string
   title: string
+  /** ASCII digits only */
   amount: string
   category: ExpenseCategory
   paymentMethod: ExpensePaymentMethod
   vendor: string
+  cardLabel: string
+  purchasedBy: string
   note: string
   expenseDate: string
 }
@@ -48,18 +55,33 @@ const emptyForm = (): ExpenseForm => ({
   category: 'SUPPLIES',
   paymentMethod: 'CASH',
   vendor: '',
+  cardLabel: '',
+  purchasedBy: '',
   note: '',
   expenseDate: todayIsoDate(),
 })
 
+/** Normalize Persian/Arabic digits → ASCII and strip everything else. */
+function toAsciiDigits(raw: string): string {
+  return raw
+    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[^\d]/g, '')
+}
+
 function parseAmount(raw: string): number {
-  const digits = raw.replace(/[^\d]/g, '')
+  const digits = toAsciiDigits(raw)
   return digits ? Number(digits) : 0
 }
 
-function formatAmountInput(raw: string): string {
-  const n = parseAmount(raw)
-  return n ? n.toLocaleString('fa-IR') : ''
+function formatAmountDisplay(asciiDigits: string): string {
+  const digits = toAsciiDigits(asciiDigits)
+  if (!digits) return ''
+  return Number(digits).toLocaleString('fa-IR')
+}
+
+function setAmountFromInput(raw: string): string {
+  return toAsciiDigits(raw)
 }
 
 export function Expenses() {
@@ -83,7 +105,7 @@ export function Expenses() {
       const params = new URLSearchParams({
         jy: String(jy),
         jm: String(jm),
-        limit: '100',
+        limit: '200',
       })
       if (category !== 'ALL') params.set('category', category)
       if (search) params.set('q', search)
@@ -104,6 +126,8 @@ export function Expenses() {
         category: form.category,
         paymentMethod: form.paymentMethod,
         vendor: form.vendor.trim() || null,
+        cardLabel: form.cardLabel.trim() || null,
+        purchasedBy: form.purchasedBy.trim() || null,
         note: form.note.trim() || null,
         expenseDate: form.expenseDate,
       })
@@ -113,7 +137,12 @@ export function Expenses() {
     },
     onSuccess: () => {
       invalidate()
-      setQuick(emptyForm())
+      setQuick((prev) => ({
+        ...emptyForm(),
+        purchasedBy: prev.purchasedBy,
+        cardLabel: prev.paymentMethod === 'CARD' || prev.paymentMethod === 'TRANSFER' ? prev.cardLabel : '',
+        paymentMethod: prev.paymentMethod,
+      }))
       setEdit(null)
       setError('')
     },
@@ -150,6 +179,8 @@ export function Expenses() {
       category: row.category,
       paymentMethod: row.paymentMethod,
       vendor: row.vendor ?? '',
+      cardLabel: row.cardLabel ?? '',
+      purchasedBy: row.purchasedBy ?? '',
       note: row.note ?? '',
       expenseDate: row.expenseDate,
     })
@@ -163,12 +194,55 @@ export function Expenses() {
     saveMutation.mutate(quick)
   }
 
+  const exportExcel = () => {
+    downloadExcelCsv(
+      `expenses-${jy}-${String(jm).padStart(2, '0')}.csv`,
+      [
+        'تاریخ شمسی',
+        'عنوان',
+        'مبلغ',
+        'دسته',
+        'روش پرداخت',
+        'کارت',
+        'مسئول خرید',
+        'فروشنده',
+        'یادداشت',
+        'ثبت‌کننده',
+      ],
+      expenses.map((row) => [
+        formatJalaliShort(row.expenseDate),
+        row.title,
+        row.amount,
+        EXPENSE_CATEGORY_LABEL[row.category],
+        EXPENSE_PAYMENT_LABEL[row.paymentMethod],
+        row.cardLabel ?? '',
+        row.purchasedBy ?? '',
+        row.vendor ?? '',
+        row.note ?? '',
+        row.createdByName ?? '',
+      ]),
+    )
+  }
+
+  const showCardField =
+    quick.paymentMethod === 'CARD' || quick.paymentMethod === 'TRANSFER'
+
   return (
     <div className="page expenses-page">
       <header className="page-head">
         <div>
           <h1>هزینه‌ها</h1>
           <p className="page-sub">ثبت سریع خریدها و هزینه‌های فروشگاه با تاریخ شمسی</p>
+        </div>
+        <div className="page-actions">
+          <button
+            type="button"
+            className="btn-ghost"
+            disabled={expenses.length === 0}
+            onClick={exportExcel}
+          >
+            <FileSpreadsheet size={18} /> خروجی اکسل
+          </button>
         </div>
       </header>
 
@@ -186,9 +260,10 @@ export function Expenses() {
               <input
                 inputMode="numeric"
                 autoFocus
-                placeholder="مثلاً ۲۵۰٬۰۰۰"
-                value={formatAmountInput(quick.amount)}
-                onChange={(e) => setQuick({ ...quick, amount: e.target.value })}
+                placeholder="مثلاً ۲۵۰۰۰۰"
+                dir="ltr"
+                value={formatAmountDisplay(quick.amount)}
+                onChange={(e) => setQuick({ ...quick, amount: setAmountFromInput(e.target.value) })}
               />
             </label>
             <label className="field expense-title-field">
@@ -215,7 +290,7 @@ export function Expenses() {
                 </button>
               ))}
             </div>
-            <div className="expense-quick-row">
+            <div className="expense-quick-row expense-quick-row-4">
               <label className="field">
                 <span>پرداخت</span>
                 <select
@@ -232,18 +307,32 @@ export function Expenses() {
                 </select>
               </label>
               <label className="field">
-                <span>فروشنده / فروشگاه</span>
+                <span>مسئول خرید</span>
+                <input
+                  placeholder="چه کسی خرید؟"
+                  value={quick.purchasedBy}
+                  onChange={(e) => setQuick({ ...quick, purchasedBy: e.target.value })}
+                />
+              </label>
+              {(showCardField || quick.cardLabel) && (
+                <label className="field">
+                  <span>کارت / حساب</span>
+                  <input
+                    placeholder="مثلاً ملت — ۶۰۳۷"
+                    value={quick.cardLabel}
+                    onChange={(e) => setQuick({ ...quick, cardLabel: e.target.value })}
+                  />
+                </label>
+              )}
+              <label className="field">
+                <span>فروشنده</span>
                 <input
                   placeholder="اختیاری"
                   value={quick.vendor}
                   onChange={(e) => setQuick({ ...quick, vendor: e.target.value })}
                 />
               </label>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={saveMutation.isPending}
-              >
+              <button type="submit" className="btn-primary" disabled={saveMutation.isPending}>
                 <Plus size={18} />
                 {saveMutation.isPending ? '…' : 'ثبت'}
               </button>
@@ -265,7 +354,7 @@ export function Expenses() {
           <Search size={16} />
           <input
             value={q}
-            placeholder="جستجو در عنوان یا فروشنده…"
+            placeholder="جستجو: عنوان، کارت، مسئول، فروشنده…"
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') setSearch(q.trim())
@@ -299,18 +388,16 @@ export function Expenses() {
       <div className="expenses-stats">
         <div className="card stat-card stat-orange">
           <div className="stat-body">
-            <span className="stat-label">جمع این ماه</span>
-            <strong className="stat-value">
-              {formatPrice(summary?.totalAmount ?? 0)}
-            </strong>
+            <span className="stat-label">
+              جمع {JALALI_MONTH_NAMES[jm - 1]} {jy.toLocaleString('fa-IR')}
+            </span>
+            <strong className="stat-value">{formatPrice(summary?.totalAmount ?? 0)}</strong>
           </div>
         </div>
         <div className="card stat-card stat-blue">
           <div className="stat-body">
             <span className="stat-label">تعداد ثبت</span>
-            <strong className="stat-value">
-              {formatNumber(summary?.count ?? 0)}
-            </strong>
+            <strong className="stat-value">{formatNumber(summary?.count ?? 0)}</strong>
           </div>
         </div>
         <div className="card expense-cat-summary">
@@ -355,10 +442,11 @@ export function Expenses() {
                           <strong>{row.title}</strong>
                           <p>
                             {EXPENSE_CATEGORY_LABEL[row.category]}
-                            {row.vendor ? ` · ${row.vendor}` : ''}
                             {' · '}
                             {EXPENSE_PAYMENT_LABEL[row.paymentMethod]}
-                            {row.createdByName ? ` · ${row.createdByName}` : ''}
+                            {row.cardLabel ? ` · کارت: ${row.cardLabel}` : ''}
+                            {row.purchasedBy ? ` · خریدار: ${row.purchasedBy}` : ''}
+                            {row.vendor ? ` · ${row.vendor}` : ''}
                           </p>
                           {row.note && <p className="expense-note">{row.note}</p>}
                         </div>
@@ -410,8 +498,9 @@ export function Expenses() {
                 <span>مبلغ</span>
                 <input
                   inputMode="numeric"
-                  value={formatAmountInput(edit.amount)}
-                  onChange={(e) => setEdit({ ...edit, amount: e.target.value })}
+                  dir="ltr"
+                  value={formatAmountDisplay(edit.amount)}
+                  onChange={(e) => setEdit({ ...edit, amount: setAmountFromInput(e.target.value) })}
                 />
               </label>
               <label className="field">
@@ -459,6 +548,21 @@ export function Expenses() {
                     </option>
                   ))}
                 </select>
+              </label>
+              <label className="field">
+                <span>مسئول خرید</span>
+                <input
+                  value={edit.purchasedBy}
+                  onChange={(e) => setEdit({ ...edit, purchasedBy: e.target.value })}
+                />
+              </label>
+              <label className="field">
+                <span>کارت / حساب</span>
+                <input
+                  value={edit.cardLabel}
+                  onChange={(e) => setEdit({ ...edit, cardLabel: e.target.value })}
+                  placeholder="مثلاً ملت — ۶۰۳۷"
+                />
               </label>
               <label className="field">
                 <span>فروشنده</span>

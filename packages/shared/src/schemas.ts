@@ -443,6 +443,8 @@ export const expenseInputSchema = z.object({
   category: expenseCategorySchema.default('OTHER'),
   paymentMethod: expensePaymentMethodSchema.default('CASH'),
   vendor: z.string().max(120).nullable().optional(),
+  cardLabel: z.string().max(80).nullable().optional(),
+  purchasedBy: z.string().max(80).nullable().optional(),
   note: z.string().max(500).nullable().optional(),
   /** Gregorian ISO date YYYY-MM-DD */
   expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'تاریخ نامعتبر است'),
