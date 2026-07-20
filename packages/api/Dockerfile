@@ -9,8 +9,19 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/api/package.json packages/api/
 COPY apps/web/package.json apps/web/
 COPY apps/admin/package.json apps/admin/
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-RUN npm ci
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000 \
+    NPM_CONFIG_NETWORK_TIMEOUT=300000
+RUN set -e; \
+  for attempt in 1 2 3 4 5; do \
+    echo "==> npm ci attempt $attempt"; \
+    npm ci && exit 0; \
+    echo "npm ci failed (attempt $attempt), retrying in 20s..."; \
+    sleep 20; \
+  done; \
+  exit 1
 
 # Copy source needed by the API
 COPY packages/shared packages/shared

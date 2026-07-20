@@ -16,11 +16,11 @@ fi
 echo "==> Pulling latest code..."
 git pull
 
-echo "==> Building admin + api (commit $BUILD_SHA)..."
-docker compose build "${NO_CACHE[@]}" admin api
+echo "==> Building web + admin + api (commit $BUILD_SHA)..."
+docker compose build "${NO_CACHE[@]}" web admin api
 
 echo "==> Recreating containers..."
-docker compose up -d --force-recreate admin api
+docker compose up -d --force-recreate web admin api
 
 echo "==> Status:"
 docker compose ps
