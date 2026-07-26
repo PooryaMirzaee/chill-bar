@@ -584,16 +584,38 @@ const iceCreamVisualProfileSchema = z.object({
   secondaryColor: z.string().optional(),
 })
 
+const optionalBoostSchema = z.preprocess((value) => {
+  if (value === '' || value === undefined) return null
+  if (typeof value === 'number' && !Number.isFinite(value)) return null
+  return value
+}, z.number().min(0).max(1).nullable().optional())
+
 export const iceCreamOptionInputSchema = z.object({
-  id: z.string().min(1).max(60).regex(/^[a-z0-9-]+$/),
-  type: z.enum(['BASE', 'COATING', 'FILLING']),
-  name: z.string().min(1).max(80),
-  color: z.string().min(1).max(20),
+  id: z
+    .string({ required_error: 'شناسه الزامی است' })
+    .trim()
+    .toLowerCase()
+    .transform((value) => value.replace(/_/g, '-').replace(/[^a-z0-9-]/g, ''))
+    .pipe(
+      z
+        .string()
+        .min(1, 'شناسه الزامی است — فقط حروف انگلیسی، عدد و خط تیره')
+        .max(60, 'شناسه خیلی طولانی است')
+        .regex(/^[a-z0-9-]+$/, 'شناسه فقط حروف انگلیسی کوچک، عدد و خط تیره باشد'),
+    ),
+  type: z.enum(['BASE', 'COATING', 'FILLING'], {
+    errorMap: () => ({ message: 'نوع گزینه نامعتبر است' }),
+  }),
+  name: z.string().trim().min(1, 'نام نمایشی الزامی است').max(80, 'نام خیلی طولانی است'),
+  color: z.string().min(1).max(32),
   texture: z.string().max(20).nullable().optional(),
-  priceMod: z.number().int().min(-100_000).max(100_000).default(0),
-  emoji: z.string().max(8).default('🍦'),
-  hotBoost: z.number().min(0).max(1).nullable().optional(),
-  coldBoost: z.number().min(0).max(1).nullable().optional(),
+  priceMod: z.preprocess(
+    (value) => (typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : 0),
+    z.number().int().min(-100_000).max(100_000).default(0),
+  ),
+  emoji: z.string().max(32).default('🍦'),
+  hotBoost: optionalBoostSchema,
+  coldBoost: optionalBoostSchema,
   visualProfile: iceCreamVisualProfileSchema.nullable().optional(),
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().min(0).max(999).optional(),

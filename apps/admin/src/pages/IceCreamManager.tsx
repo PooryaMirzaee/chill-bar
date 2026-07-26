@@ -38,13 +38,31 @@ function emptyOption(type: OptionType): IceCreamOption & { type: OptionType } {
   } as IceCreamOption & { type: OptionType }
 }
 
-function slugify(name: string): string {
-  return name
+function slugify(name: string, type: OptionType): string {
+  const fromName = name
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '-')
+    .replace(/_/g, '-')
     .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
     .slice(0, 40)
+  if (fromName) return fromName
+  return `${type.toLowerCase()}-${Date.now().toString(36)}`
+}
+
+function normalizeOptionId(raw: string, type: OptionType, name: string): string {
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/_/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60)
+  return cleaned || slugify(name, type)
 }
 
 function parsePriceInput(value: string): number {
@@ -119,23 +137,30 @@ export function IceCreamManager() {
 
   const saveOptionMutation = useMutation({
     mutationFn: async (opt: IceCreamOption & { type: OptionType }) => {
+      const id = normalizeOptionId(opt.id, opt.type, opt.name)
       const payload = {
-        id: opt.id,
+        id,
         type: opt.type,
-        name: opt.name,
+        name: opt.name.trim(),
         color: opt.color,
         texture: opt.texture ?? null,
-        priceMod: Math.round(opt.priceMod),
-        emoji: opt.emoji,
-        hotBoost: opt.hotBoost ?? null,
-        coldBoost: opt.coldBoost ?? null,
+        priceMod: Math.round(Number.isFinite(opt.priceMod) ? opt.priceMod : 0),
+        emoji: opt.emoji?.trim() || '🍦',
+        hotBoost: Number.isFinite(opt.hotBoost) ? opt.hotBoost : null,
+        coldBoost: Number.isFinite(opt.coldBoost) ? opt.coldBoost : null,
         visualProfile: opt.visualProfile ?? null,
         isActive: opt.isActive ?? true,
-        sortOrder: opt.sortOrder,
+        ...(typeof opt.sortOrder === 'number' ? { sortOrder: opt.sortOrder } : {}),
       }
-      const exists = listForType(opt.type).some((o) => o.id === opt.id)
+      if (!payload.name) {
+        throw new Error('نام نمایشی الزامی است')
+      }
+      if (!payload.id) {
+        throw new Error('شناسه الزامی است — فقط حروف انگلیسی، عدد و خط تیره')
+      }
+      const exists = listForType(opt.type).some((o) => o.id === payload.id)
       if (exists) {
-        return api(`/api/admin/ice-cream/options/${opt.type}/${opt.id}`, {
+        return api(`/api/admin/ice-cream/options/${opt.type}/${payload.id}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
         })
@@ -380,15 +405,24 @@ export function IceCreamManager() {
                       <span>شناسه (انگلیسی، مثلاً mango-base)</span>
                       <input
                         value={editing.id}
-                        onChange={(e) => setEditing({ ...editing, id: e.target.value })}
+                        onChange={(e) =>
+                          setEditing({
+                            ...editing,
+                            id: e.target.value.toLowerCase().replace(/\s+/g, '-'),
+                          })
+                        }
                         onBlur={() => {
-                          if (!editing.id && editing.name) {
-                            setEditing({ ...editing, id: slugify(editing.name) })
+                          const nextId = normalizeOptionId(editing.id, tab, editing.name)
+                          if (nextId !== editing.id) {
+                            setEditing({ ...editing, id: nextId })
                           }
                         }}
                         dir="ltr"
                         placeholder="vanilla-special"
                       />
+                      <span className="field-hint">
+                        فقط a-z، عدد و خط تیره. اگر خالی بماند از روی نام یا خودکار ساخته می‌شود.
+                      </span>
                     </label>
                   )}
                   <label className="field field-full">
@@ -622,12 +656,15 @@ export function IceCreamManager() {
                   <button
                     type="button"
                     className="btn-primary"
-                    disabled={!editing.id || !editing.name || saveOptionMutation.isPending}
-                    onClick={() =>
-                      saveOptionMutation.mutate({ ...editing, type: tab } as IceCreamOption & {
-                        type: OptionType
-                      })
-                    }
+                    disabled={!editing.name.trim() || saveOptionMutation.isPending}
+                    onClick={() => {
+                      const id = normalizeOptionId(editing.id, tab, editing.name)
+                      saveOptionMutation.mutate({
+                        ...editing,
+                        id,
+                        type: tab,
+                      } as IceCreamOption & { type: OptionType })
+                    }}
                   >
                     ذخیره گزینه
                   </button>

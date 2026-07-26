@@ -10,6 +10,11 @@ import {
   saveIceCreamBuilderSettings,
 } from '../lib/iceCream.js'
 import { prisma } from '../prisma.js'
+import { isRetryablePrismaError, prismaErrorMessage } from '../lib/dbSchema.js'
+
+function validationError(parsed: { success: false; error: { issues: { message: string }[] } }) {
+  return parsed.error.issues[0]?.message || 'گزینه نامعتبر است'
+}
 
 export async function adminIceCreamRoutes(app: FastifyInstance) {
   const guard = { onRequest: [app.requireRole(['SUPER_ADMIN', 'MANAGER'])] }
@@ -27,45 +32,53 @@ export async function adminIceCreamRoutes(app: FastifyInstance) {
   app.post('/api/admin/ice-cream/options', guard, async (request, reply) => {
     const parsed = iceCreamOptionInputSchema.safeParse(request.body)
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'گزینه نامعتبر است' })
+      return reply.code(400).send({ error: validationError(parsed) })
     }
 
     const input = parsed.data
-    const existing = await prisma.iceCreamOption.findUnique({
-      where: { type_id: { type: input.type, id: input.id } },
-    })
+    // id is the primary key — must be unique across all option types
+    const existing = await prisma.iceCreamOption.findUnique({ where: { id: input.id } })
     if (existing) {
-      return reply.code(409).send({ error: 'این شناسه قبلاً ثبت شده است' })
+      return reply.code(409).send({
+        error: `شناسه «${input.id}» قبلاً ثبت شده است — شناسه دیگری انتخاب کنید`,
+      })
     }
 
     const sortOrder = input.sortOrder ?? (await nextSortOrder(input.type))
     const visualProfile = normalizeVisualProfile(input.type, input.color, input.visualProfile)
 
-    const created = await prisma.iceCreamOption.create({
-      data: {
-        id: input.id,
-        type: input.type,
-        name: input.name,
-        color: input.color,
-        texture: input.texture ?? null,
-        priceMod: input.priceMod,
-        emoji: input.emoji,
-        hotBoost: input.hotBoost ?? null,
-        coldBoost: input.coldBoost ?? null,
-        isActive: input.isActive,
-        sortOrder,
-        visualProfile: visualProfile as object,
-      },
-    })
-
-    return mapIceCreamOption(created, true)
+    try {
+      const created = await prisma.iceCreamOption.create({
+        data: {
+          id: input.id,
+          type: input.type,
+          name: input.name,
+          color: input.color,
+          texture: input.texture ?? null,
+          priceMod: input.priceMod,
+          emoji: input.emoji || '🍦',
+          hotBoost: input.hotBoost ?? null,
+          coldBoost: input.coldBoost ?? null,
+          isActive: input.isActive,
+          sortOrder,
+          visualProfile: visualProfile as object,
+        },
+      })
+      return mapIceCreamOption(created, true)
+    } catch (err) {
+      if (isRetryablePrismaError(err)) {
+        return reply.code(409).send({ error: 'این شناسه قبلاً ثبت شده است' })
+      }
+      const message = prismaErrorMessage(err) ?? 'ذخیره گزینه ناموفق بود'
+      return reply.code(400).send({ error: message })
+    }
   })
 
   app.put('/api/admin/ice-cream/options/:type/:id', guard, async (request, reply) => {
     const { type, id } = request.params as { type: 'BASE' | 'COATING' | 'FILLING'; id: string }
     const parsed = iceCreamOptionInputSchema.safeParse({ ...(request.body as object), type, id })
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'گزینه نامعتبر است' })
+      return reply.code(400).send({ error: validationError(parsed) })
     }
 
     const input = parsed.data
@@ -82,23 +95,27 @@ export async function adminIceCreamRoutes(app: FastifyInstance) {
       input.visualProfile ?? (existing.visualProfile as object | null),
     )
 
-    const updated = await prisma.iceCreamOption.update({
-      where: { type_id: { type, id } },
-      data: {
-        name: input.name,
-        color: input.color,
-        texture: input.texture ?? null,
-        priceMod: input.priceMod,
-        emoji: input.emoji,
-        hotBoost: input.hotBoost ?? null,
-        coldBoost: input.coldBoost ?? null,
-        isActive: input.isActive,
-        sortOrder: input.sortOrder ?? existing.sortOrder,
-        visualProfile: visualProfile as object,
-      },
-    })
-
-    return mapIceCreamOption(updated, true)
+    try {
+      const updated = await prisma.iceCreamOption.update({
+        where: { type_id: { type, id } },
+        data: {
+          name: input.name,
+          color: input.color,
+          texture: input.texture ?? null,
+          priceMod: input.priceMod,
+          emoji: input.emoji || '🍦',
+          hotBoost: input.hotBoost ?? null,
+          coldBoost: input.coldBoost ?? null,
+          isActive: input.isActive,
+          sortOrder: input.sortOrder ?? existing.sortOrder,
+          visualProfile: visualProfile as object,
+        },
+      })
+      return mapIceCreamOption(updated, true)
+    } catch (err) {
+      const message = prismaErrorMessage(err) ?? 'به‌روزرسانی گزینه ناموفق بود'
+      return reply.code(400).send({ error: message })
+    }
   })
 
   app.delete('/api/admin/ice-cream/options/:type/:id', guard, async (request, reply) => {
