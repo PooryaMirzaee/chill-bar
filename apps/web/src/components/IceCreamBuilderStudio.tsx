@@ -85,31 +85,28 @@ function BuildSummary({
   ]
 
   return (
-    <div className="pointer-events-none absolute start-3 top-1/2 z-30 w-[min(42%,11.5rem)] -translate-y-1/2">
-      <div className="rounded-2xl border border-border/50 bg-white/90 p-2.5 shadow-sm backdrop-blur-md dark:bg-background/90">
-        <p className="mb-1.5 text-[10px] font-bold tracking-wide text-muted-foreground">
-          بستنی شما
-        </p>
-        <ul className="space-y-1.5">
-          {rows.map((row) => (
-            <li key={row.label} className="min-w-0">
-              <p className="text-[10px] font-medium text-muted-foreground">{row.label}</p>
-              <p className="truncate text-[12px] font-bold leading-tight text-foreground">
-                {row.value ? (
-                  <>
-                    <span className="me-1" aria-hidden>
-                      {row.emoji}
-                    </span>
-                    {row.value}
-                  </>
-                ) : (
-                  <span className="font-medium text-muted-foreground/70">انتخاب نشده</span>
-                )}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div className="rounded-xl border border-border/40 bg-muted/40 px-3 py-2">
+      <ul className="space-y-1">
+        {rows.map((row) => (
+          <li key={row.label} className="flex min-w-0 items-baseline gap-2">
+            <span className="w-12 shrink-0 text-[11px] font-medium text-muted-foreground">
+              {row.label}:
+            </span>
+            <span className="min-w-0 truncate text-[12px] font-bold leading-snug text-foreground">
+              {row.value ? (
+                <>
+                  <span className="me-1" aria-hidden>
+                    {row.emoji}
+                  </span>
+                  {row.value}
+                </>
+              ) : (
+                <span className="font-medium text-muted-foreground/65">انتخاب نشده</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -218,11 +215,13 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
           immersive
           className="h-full"
         />
-        <BuildSummary build={build} labels={stepLabels} />
       </div>
 
       <div className="flex shrink-0 flex-col rounded-t-2xl border border-border/50 border-b-0 bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div className="shrink-0 px-3 pb-1.5 pt-2">
+          <div className="mb-2">
+            <BuildSummary build={build} labels={stepLabels} />
+          </div>
           <div className="flex items-center gap-2">
             <div className="flex min-w-0 flex-1 rounded-lg bg-muted/60 p-0.5">
               {steps.map((s) => (
@@ -293,25 +292,9 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
             </div>
             <div className="min-w-0 flex-1">
               {isComplete ? (
-                <>
-                  <div className="space-y-0.5 text-[11px] leading-tight text-muted-foreground">
-                    <p>
-                      <span className="font-semibold text-foreground/80">{stepLabels[0]}:</span>{' '}
-                      {build.base?.name}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-foreground/80">{stepLabels[1]}:</span>{' '}
-                      {build.coating?.name}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-foreground/80">{stepLabels[2]}:</span>{' '}
-                      {build.filling?.name}
-                    </p>
-                  </div>
-                  <p className="mt-0.5 text-base font-black text-primary">
-                    {formatPrice(price, currencySuffix)}
-                  </p>
-                </>
+                <p className="text-base font-black text-primary">
+                  {formatPrice(price, currencySuffix)}
+                </p>
               ) : (
                 <p className="text-[11px] font-medium text-muted-foreground">
                   {steps[step - 1].title}
