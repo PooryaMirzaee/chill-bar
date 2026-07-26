@@ -1596,7 +1596,7 @@ textarea {
 }
 
 .fin-invoice-modal {
-  width: min(560px, 96vw);
+  width: min(640px, 96vw);
   max-height: 90vh;
   overflow: auto;
 }
@@ -1649,6 +1649,23 @@ textarea {
   border-bottom: 1px solid var(--border);
   padding: 8px 6px;
   text-align: right;
+}
+
+.fin-invoice-items-edit .fin-edit-input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.fin-invoice-items-edit .fin-edit-num {
+  width: 5.5rem;
+  text-align: center;
+  direction: ltr;
 }
 
 .fin-invoice-totals {

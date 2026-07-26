@@ -25,7 +25,10 @@ export async function adminCustomerRoutes(app: FastifyInstance) {
     const skip = (page - 1) * limit
     const q = query.q?.trim()
 
-    const where: Record<string, unknown> = {}
+    const where: Record<string, unknown> = {
+      // CRM only lists real customers — guests without a phone stay out of this menu
+      AND: [{ phone: { not: null } }, { NOT: { phone: '' } }],
+    }
     if (q) {
       where.OR = [
         { phone: { contains: q } },

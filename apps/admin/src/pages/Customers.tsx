@@ -128,7 +128,7 @@ export function Customers() {
       <header className="page-head">
         <div>
           <h1>مشتریان</h1>
-          <p className="page-sub">مدیریت مشتریان، تاریخچه سفارش و امتیاز وفاداری</p>
+          <p className="page-sub">فقط مشتریانی که شماره تماسشان ثبت شده نمایش داده می‌شوند</p>
         </div>
         <div className="page-actions">
           <button className="btn-primary" type="button" onClick={() => setCreateOpen(true)}>

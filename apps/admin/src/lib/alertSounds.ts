@@ -36,9 +36,16 @@ function tone(
   osc.stop(start + duration + 0.02)
 }
 
+/** Unlock Web Audio after a user gesture so alerts work on every admin page. */
+export function unlockAlertAudio() {
+  const ctx = getCtx()
+  if (ctx?.state === 'suspended') void ctx.resume()
+}
+
 export function playAlertSound(id: AdminAlertSoundId, volume = 0.7) {
   const ctx = getCtx()
   if (!ctx) return
+  if (ctx.state === 'suspended') void ctx.resume()
   const v = Math.max(0.05, Math.min(1, volume))
   const t0 = ctx.currentTime
 

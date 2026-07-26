@@ -59,6 +59,31 @@ export const updateOrderStatusSchema = z.object({
   status: orderStatusSchema,
 })
 
+/** Admin invoice/order edit — customer fields always; line items when unpaid. */
+export const updateOrderSchema = z.object({
+  customerName: z.string().max(80).nullable().optional(),
+  customerPhone: z.string().max(20).nullable().optional(),
+  note: z.string().max(500).nullable().optional(),
+  discountAmount: z.number().int().nonnegative().optional(),
+  discountNote: z.string().max(200).nullable().optional(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        menuItemId: z.string().nullable().optional().default(null),
+        name: z.string().min(1),
+        emoji: z.string().default('🍦'),
+        unitPrice: z.number().int().nonnegative(),
+        quantity: z.number().int().positive().max(50),
+        customConfig: z.record(z.unknown()).nullable().optional().default(null),
+      }),
+    )
+    .min(1)
+    .optional(),
+})
+
+export type UpdateOrderInput = z.infer<typeof updateOrderSchema>
+
 export const loginSchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),

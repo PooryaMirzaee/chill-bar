@@ -45,25 +45,72 @@ function OptionChip({
     <motion.button
       type="button"
       onClick={onSelect}
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.97 }}
       className={cn(
-        'relative flex w-[4.75rem] shrink-0 snap-center flex-col items-center gap-1 rounded-xl border p-1.5 transition-colors',
+        'relative flex w-[7.25rem] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-2 transition-colors',
         selected
           ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
           : 'border-border/60 bg-card hover:border-primary/30',
       )}
     >
-      <span className="text-lg leading-none">{option.emoji}</span>
-      <div className="flex h-10 w-full items-center justify-center rounded-md bg-muted/50">
+      <div className="flex h-12 w-full items-center justify-center rounded-xl bg-muted/50">
         <MiniIceSwatch option={option} type={optionType} selectedBuild={currentBuild} />
       </div>
-      <p className="line-clamp-2 w-full text-center text-[9px] font-semibold leading-tight">{option.name}</p>
+      <p className="line-clamp-2 min-h-[2.4em] w-full text-center text-[12px] font-semibold leading-snug tracking-tight">
+        <span className="me-0.5" aria-hidden>
+          {option.emoji}
+        </span>
+        {option.name}
+      </p>
       {selected && (
-        <span className="absolute -end-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
-          <Check className="h-2.5 w-2.5" />
+        <span className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+          <Check className="h-3 w-3" />
         </span>
       )}
     </motion.button>
+  )
+}
+
+function BuildSummary({
+  build,
+  labels,
+}: {
+  build: IceCreamBuild
+  labels: [string, string, string]
+}) {
+  const rows = [
+    { label: labels[0], value: build.base?.name, emoji: build.base?.emoji },
+    { label: labels[1], value: build.coating?.name, emoji: build.coating?.emoji },
+    { label: labels[2], value: build.filling?.name, emoji: build.filling?.emoji },
+  ]
+
+  return (
+    <div className="pointer-events-none absolute start-3 top-1/2 z-30 w-[min(42%,11.5rem)] -translate-y-1/2">
+      <div className="rounded-2xl border border-border/50 bg-white/90 p-2.5 shadow-sm backdrop-blur-md dark:bg-background/90">
+        <p className="mb-1.5 text-[10px] font-bold tracking-wide text-muted-foreground">
+          بستنی شما
+        </p>
+        <ul className="space-y-1.5">
+          {rows.map((row) => (
+            <li key={row.label} className="min-w-0">
+              <p className="text-[10px] font-medium text-muted-foreground">{row.label}</p>
+              <p className="truncate text-[12px] font-bold leading-tight text-foreground">
+                {row.value ? (
+                  <>
+                    <span className="me-1" aria-hidden>
+                      {row.emoji}
+                    </span>
+                    {row.value}
+                  </>
+                ) : (
+                  <span className="font-medium text-muted-foreground/70">انتخاب نشده</span>
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   )
 }
 
@@ -79,14 +126,14 @@ function SwipeOptionsRow({
   const scrollerRef = useRef<HTMLDivElement>(null)
 
   const nudge = (dir: -1 | 1) => {
-    scrollerRef.current?.scrollBy({ left: dir * 120, behavior: 'smooth' })
+    scrollerRef.current?.scrollBy({ left: dir * 140, behavior: 'smooth' })
   }
 
   return (
     <div className="relative">
       <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
-        <p className="text-[10px] font-medium text-muted-foreground">{hint}</p>
-        <p className="flex items-center gap-0.5 text-[9px] font-semibold text-primary/80">
+        <p className="text-[11px] font-medium text-muted-foreground">{hint}</p>
+        <p className="flex items-center gap-0.5 text-[10px] font-semibold text-primary/80">
           <ChevronRight className="h-3 w-3" />
           بکشید
           <ChevronLeft className="h-3 w-3" />
@@ -115,7 +162,7 @@ function SwipeOptionsRow({
 
       <div
         ref={scrollerRef}
-        className="-mx-0.5 flex gap-2 overflow-x-auto overscroll-x-contain scroll-smooth px-7 py-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-0.5 flex gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth px-7 py-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -124,7 +171,7 @@ function SwipeOptionsRow({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.16 }}
-            className="flex gap-2"
+            className="flex gap-2.5"
           >
             {children}
           </motion.div>
@@ -171,6 +218,7 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
           immersive
           className="h-full"
         />
+        <BuildSummary build={build} labels={stepLabels} />
       </div>
 
       <div className="flex shrink-0 flex-col rounded-t-2xl border border-border/50 border-b-0 bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
@@ -246,10 +294,23 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
             <div className="min-w-0 flex-1">
               {isComplete ? (
                 <>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {build.base?.name} · {build.coating?.name} · {build.filling?.name}
+                  <div className="space-y-0.5 text-[11px] leading-tight text-muted-foreground">
+                    <p>
+                      <span className="font-semibold text-foreground/80">{stepLabels[0]}:</span>{' '}
+                      {build.base?.name}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-foreground/80">{stepLabels[1]}:</span>{' '}
+                      {build.coating?.name}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-foreground/80">{stepLabels[2]}:</span>{' '}
+                      {build.filling?.name}
+                    </p>
+                  </div>
+                  <p className="mt-0.5 text-base font-black text-primary">
+                    {formatPrice(price, currencySuffix)}
                   </p>
-                  <p className="text-base font-black text-primary">{formatPrice(price, currencySuffix)}</p>
                 </>
               ) : (
                 <p className="text-[11px] font-medium text-muted-foreground">

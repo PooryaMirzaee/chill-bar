@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BellOff, Calculator, ChefHat, Printer, RefreshCw, User } from 'lucide-react'
+import { Bell, BellOff, Calculator, ChefHat, Pencil, Printer, RefreshCw, User } from 'lucide-react'
 import type { Order, OrderStatus, PosOrder, PosSettings, StoreSettings } from '@chill-bar/shared'
 import {
   DEFAULT_POS_SETTINGS,
@@ -244,6 +244,19 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [showCheckout, setShowCheckout] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [customerName, setCustomerName] = useState(order.customerName ?? '')
+  const [customerPhone, setCustomerPhone] = useState(order.customerPhone ?? '')
+  const [note, setNote] = useState(order.note ?? '')
+  const [editError, setEditError] = useState('')
+  const [liveOrder, setLiveOrder] = useState(order)
+
+  useEffect(() => {
+    setLiveOrder(order)
+    setCustomerName(order.customerName ?? '')
+    setCustomerPhone(order.customerPhone ?? '')
+    setNote(order.note ?? '')
+  }, [order])
 
   const { data: store } = useQuery({
     queryKey: ['settings'],
@@ -256,18 +269,40 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
   const checkoutMutation = useMutation({
     mutationFn: (payment: { method: string; cashReceived?: number }) =>
-      api<PosOrder>(`/api/admin/orders/${order.id}/checkout`, {
+      api<PosOrder>(`/api/admin/orders/${liveOrder.id}/checkout`, {
         method: 'POST',
         body: JSON.stringify({ payment, discountAmount: 0, markDelivered: true }),
       }),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       setShowCheckout(false)
+      setLiveOrder(updated)
       printOrderReceipt(updated)
     },
   })
 
-  const printOrderReceipt = (o: Order = order, copyType: 'kitchen' | 'customer' | 'both' = 'both') => {
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      api<Order>(`/api/admin/orders/${liveOrder.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          customerName: customerName.trim() || null,
+          customerPhone: customerPhone.trim() || null,
+          note: note.trim() || null,
+        }),
+      }),
+    onSuccess: (updated) => {
+      setEditError('')
+      setEditing(false)
+      setLiveOrder(updated)
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+    onError: (err) => {
+      setEditError(err instanceof Error ? err.message : 'ویرایش ناموفق بود')
+    },
+  })
+
+  const printOrderReceipt = (o: Order = liveOrder, copyType: 'kitchen' | 'customer' | 'both' = 'both') => {
     if (!store) return
     printOrderReceipts(o, store, posSettings, {
       cashierName: user?.name,
@@ -276,30 +311,67 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
     })
   }
 
-  const unpaid = order.paymentStatus === 'UNPAID' || !order.paymentStatus
+  const unpaid = liveOrder.paymentStatus === 'UNPAID' || !liveOrder.paymentStatus
+  const canEdit = liveOrder.status !== 'CANCELLED'
 
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <header className="modal-head">
-            <h3>سفارش {order.code}</h3>
+            <h3>سفارش {liveOrder.code}</h3>
             <button className="icon-btn" onClick={onClose}>
               ✕
             </button>
           </header>
           <div className="modal-body">
             <div className="order-detail-meta">
-              <span>{ORDER_STATUS_LABEL[order.status]}</span>
-              <span>{ORDER_CHANNEL_LABEL[order.channel]}</span>
-              {order.paymentStatus && (
-                <span>{PAYMENT_STATUS_LABEL[order.paymentStatus]}</span>
+              <span>{ORDER_STATUS_LABEL[liveOrder.status]}</span>
+              <span>{ORDER_CHANNEL_LABEL[liveOrder.channel]}</span>
+              {liveOrder.paymentStatus && (
+                <span>{PAYMENT_STATUS_LABEL[liveOrder.paymentStatus]}</span>
               )}
-              {order.customerName && <span>{order.customerName}</span>}
+              {!editing && liveOrder.customerName && <span>{liveOrder.customerName}</span>}
             </div>
-            {order.note && <p className="order-note">یادداشت: {order.note}</p>}
+
+            {editing ? (
+              <div className="form-grid" style={{ marginBottom: 12 }}>
+                <label className="field">
+                  <span>نام مشتری</span>
+                  <input
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="اختیاری"
+                  />
+                </label>
+                <label className="field">
+                  <span>موبایل</span>
+                  <input
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    dir="ltr"
+                    placeholder="09…"
+                  />
+                </label>
+                <label className="field field-full">
+                  <span>یادداشت</span>
+                  <input value={note} onChange={(e) => setNote(e.target.value)} />
+                </label>
+                {editError && <p className="error-text field-full">{editError}</p>}
+              </div>
+            ) : (
+              <>
+                {liveOrder.customerPhone && (
+                  <p className="order-note" dir="ltr">
+                    موبایل: {liveOrder.customerPhone}
+                  </p>
+                )}
+                {liveOrder.note && <p className="order-note">یادداشت: {liveOrder.note}</p>}
+              </>
+            )}
+
             <ul className="order-detail-items">
-              {order.items.map((item) => (
+              {liveOrder.items.map((item) => (
                 <li key={item.id}>
                   <span className="odi-emoji">{item.emoji}</span>
                   <div className="odi-info">
@@ -313,33 +385,65 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
             </ul>
             <div className="order-detail-total">
               <span>جمع کل</span>
-              <strong>{formatPrice(order.total)}</strong>
+              <strong>{formatPrice(liveOrder.total)}</strong>
             </div>
           </div>
           <footer className="modal-foot">
-            {unpaid && order.channel !== 'POS' && (
-              <button className="btn-primary" onClick={() => setShowCheckout(true)}>
-                <Calculator size={16} /> تسویه در صندوق
-              </button>
+            {editing ? (
+              <>
+                <button
+                  className="btn-ghost"
+                  onClick={() => {
+                    setEditing(false)
+                    setEditError('')
+                    setCustomerName(liveOrder.customerName ?? '')
+                    setCustomerPhone(liveOrder.customerPhone ?? '')
+                    setNote(liveOrder.note ?? '')
+                  }}
+                  disabled={saveMutation.isPending}
+                >
+                  انصراف
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                >
+                  ذخیره
+                </button>
+              </>
+            ) : (
+              <>
+                {canEdit && (
+                  <button className="btn-ghost" onClick={() => setEditing(true)}>
+                    <Pencil size={16} /> ویرایش
+                  </button>
+                )}
+                {unpaid && liveOrder.channel !== 'POS' && (
+                  <button className="btn-primary" onClick={() => setShowCheckout(true)}>
+                    <Calculator size={16} /> تسویه در صندوق
+                  </button>
+                )}
+                <button className="btn-ghost" onClick={() => printOrderReceipt(liveOrder, 'kitchen')}>
+                  <ChefHat size={16} /> چاپ آشپزخانه
+                </button>
+                <button className="btn-ghost" onClick={() => printOrderReceipt(liveOrder, 'customer')}>
+                  <User size={16} /> چاپ مشتری
+                </button>
+                <button className="btn-ghost" onClick={() => printOrderReceipt(liveOrder, 'both')}>
+                  <Printer size={16} /> چاپ هر دو
+                </button>
+              </>
             )}
-            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'kitchen')}>
-              <ChefHat size={16} /> چاپ آشپزخانه
-            </button>
-            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'customer')}>
-              <User size={16} /> چاپ مشتری
-            </button>
-            <button className="btn-ghost" onClick={() => printOrderReceipt(order, 'both')}>
-              <Printer size={16} /> چاپ هر دو
-            </button>
           </footer>
         </div>
       </div>
 
       {showCheckout && (
         <PosCheckoutModal
-          total={order.total}
+          total={liveOrder.total}
           settings={posSettings}
-          title={`تسویه ${order.code}`}
+          title={`تسویه ${liveOrder.code}`}
           onClose={() => setShowCheckout(false)}
           loading={checkoutMutation.isPending}
           onConfirm={(payment) => checkoutMutation.mutate(payment)}

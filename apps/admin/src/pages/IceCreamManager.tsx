@@ -66,7 +66,15 @@ export function IceCreamManager() {
   const settingsSyncedRef = useRef(false)
   const [tab, setTab] = useState<OptionType>('BASE')
   const [editing, setEditing] = useState<(IceCreamOption & { type?: OptionType }) | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const switchTab = (next: OptionType) => {
+    setTab(next)
+    setEditing(null)
+    setIsCreating(false)
+    setOptionError(null)
+  }
 
   useEffect(() => {
     if (!data) return
@@ -141,6 +149,7 @@ export function IceCreamManager() {
       setOptionError(null)
       queryClient.invalidateQueries({ queryKey: ['admin-ice-cream'] })
       setEditing(null)
+      setIsCreating(false)
     },
     onError: (err: Error) => setOptionError(err.message),
   })
@@ -294,10 +303,7 @@ export function IceCreamManager() {
             key={t}
             type="button"
             className={tab === t ? 'active' : ''}
-            onClick={() => {
-              setTab(t)
-              setEditing(null)
-            }}
+            onClick={() => switchTab(t)}
           >
             {TYPE_LABELS[t]} ({listForType(t).length})
           </button>
@@ -306,7 +312,11 @@ export function IceCreamManager() {
           type="button"
           className="btn-secondary btn-sm"
           style={{ marginRight: 'auto' }}
-          onClick={() => setEditing(emptyOption(tab))}
+          onClick={() => {
+            setIsCreating(true)
+            setOptionError(null)
+            setEditing(emptyOption(tab))
+          }}
         >
           <Plus size={16} /> گزینه جدید
         </button>
@@ -319,8 +329,12 @@ export function IceCreamManager() {
               <button
                 key={opt.id}
                 type="button"
-                className={`ice-opt ice-opt-btn ${editing?.id === opt.id ? 'active' : ''} ${!opt.isActive ? 'inactive' : ''}`}
-                onClick={() => setEditing({ ...opt, type: tab })}
+                className={`ice-opt ice-opt-btn ${!isCreating && editing?.id === opt.id ? 'active' : ''} ${!opt.isActive ? 'inactive' : ''}`}
+                onClick={() => {
+                  setIsCreating(false)
+                  setOptionError(null)
+                  setEditing({ ...opt, type: tab })
+                }}
               >
                 <span
                   className="ice-swatch"
@@ -356,12 +370,12 @@ export function IceCreamManager() {
 
         {editing && (
           <section className="card ice-admin-editor">
-            <h3>{editing.id ? 'ویرایش' : 'گزینه جدید'}</h3>
+            <h3>{isCreating ? 'گزینه جدید' : 'ویرایش'}</h3>
             {optionError && <p className="field-error">{optionError}</p>}
             <div className="ice-editor-grid">
               <div className="ice-editor-form">
                 <div className="form-grid">
-                  {!editing.id && (
+                  {isCreating && (
                     <label className="field field-full">
                       <span>شناسه (انگلیسی، مثلاً mango-base)</span>
                       <input
@@ -617,7 +631,7 @@ export function IceCreamManager() {
                   >
                     ذخیره گزینه
                   </button>
-                  {editing.id && listForType(tab).some((o) => o.id === editing.id) && (
+                  {!isCreating && editing.id && listForType(tab).some((o) => o.id === editing.id) && (
                     <button
                       type="button"
                       className="btn-ghost danger"
@@ -626,7 +640,14 @@ export function IceCreamManager() {
                       <Trash2 size={16} /> حذف
                     </button>
                   )}
-                  <button type="button" className="btn-ghost" onClick={() => setEditing(null)}>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => {
+                      setEditing(null)
+                      setIsCreating(false)
+                    }}
+                  >
                     انصراف
                   </button>
                 </div>

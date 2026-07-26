@@ -14,7 +14,6 @@ import {
   Wallet,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
-import { useOrderAlerts } from '../lib/useOrderAlerts'
 
 const NAV = [
   { to: '/', label: 'داشبورد', icon: LayoutDashboard, end: true },
@@ -33,7 +32,6 @@ const NAV = [
 export function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  useOrderAlerts()
 
   const handleLogout = () => {
     logout()

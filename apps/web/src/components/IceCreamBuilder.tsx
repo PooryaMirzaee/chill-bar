@@ -66,7 +66,7 @@ function OptionCard({
           </div>
         </div>
 
-        <p className="line-clamp-2 px-0.5 text-center text-xs font-semibold leading-snug">
+        <p className="line-clamp-2 px-0.5 text-center text-[13px] font-semibold leading-snug">
           {option.name}
         </p>
 
@@ -121,7 +121,39 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
 
   return (
     <section className="pb-24">
-      <IceCreamPreview build={build} activeStep={step} stepLabels={stepLabels} />
+      <div className="relative">
+        <IceCreamPreview build={build} activeStep={step} stepLabels={stepLabels} />
+        <div className="pointer-events-none absolute start-3 top-1/2 z-30 w-[min(42%,11.5rem)] -translate-y-1/2">
+          <div className="rounded-2xl border border-border/50 bg-white/90 p-2.5 shadow-sm backdrop-blur-md dark:bg-background/90">
+            <p className="mb-1.5 text-[10px] font-bold tracking-wide text-muted-foreground">
+              بستنی شما
+            </p>
+            <ul className="space-y-1.5">
+              {[
+                { label: stepLabels[0], value: build.base?.name, emoji: build.base?.emoji },
+                { label: stepLabels[1], value: build.coating?.name, emoji: build.coating?.emoji },
+                { label: stepLabels[2], value: build.filling?.name, emoji: build.filling?.emoji },
+              ].map((row) => (
+                <li key={row.label} className="min-w-0">
+                  <p className="text-[10px] font-medium text-muted-foreground">{row.label}</p>
+                  <p className="truncate text-[12px] font-bold leading-tight text-foreground">
+                    {row.value ? (
+                      <>
+                        <span className="me-1" aria-hidden>
+                          {row.emoji}
+                        </span>
+                        {row.value}
+                      </>
+                    ) : (
+                      <span className="font-medium text-muted-foreground/70">انتخاب نشده</span>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div className="relative z-10 mt-2 rounded-t-[1.75rem] border border-border/60 border-b-0 bg-background/95 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] backdrop-blur-xl">
         <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-muted-foreground/20" />
@@ -249,10 +281,21 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
                 🍦
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs text-muted-foreground">
-                  {build.base?.name} · {build.coating?.name} · {build.filling?.name}
-                </p>
-                <p className="text-lg font-black text-primary">
+                <div className="space-y-0.5 text-[11px] leading-tight text-muted-foreground">
+                  <p>
+                    <span className="font-semibold text-foreground/80">{stepLabels[0]}:</span>{' '}
+                    {build.base?.name}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-foreground/80">{stepLabels[1]}:</span>{' '}
+                    {build.coating?.name}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-foreground/80">{stepLabels[2]}:</span>{' '}
+                    {build.filling?.name}
+                  </p>
+                </div>
+                <p className="mt-0.5 text-lg font-black text-primary">
                   {formatPrice(price, currencySuffix)}
                 </p>
               </div>

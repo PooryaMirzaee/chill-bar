@@ -19,7 +19,6 @@ export function MenuItemMedia({ item, size = 'md', className }: Props) {
         alt={item.name}
         className={cn('h-full w-full object-cover', className)}
         loading="lazy"
-        decoding="async"
       />
     )
   }

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './lib/auth'
+import { useOrderAlerts } from './lib/useOrderAlerts'
 import { Layout } from './components/Layout'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
@@ -16,6 +17,12 @@ import { Customers } from './pages/Customers'
 import { Expenses } from './pages/Expenses'
 import { FinancialReports } from './pages/FinancialReports'
 
+/** Keeps order alert sound alive on every protected route (including POS). */
+function OrderAlertsHost() {
+  useOrderAlerts()
+  return null
+}
+
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) {
@@ -27,7 +34,12 @@ function Protected({ children }: { children: React.ReactNode }) {
     )
   }
   if (!user) return <Navigate to="/login" replace />
-  return <>{children}</>
+  return (
+    <>
+      <OrderAlertsHost />
+      {children}
+    </>
+  )
 }
 
 export default function App() {
