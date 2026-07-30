@@ -11,6 +11,7 @@ import {
 } from '@chill-bar/shared'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 
 type ModalPhase = 'ritual' | 'reading' | 'revealed'
 
@@ -127,6 +128,7 @@ function FortuneStoryCard({
 }
 
 export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickDrink, className }: Props) {
+  const reducedMotion = useReducedMotion()
   const settings = useMemo(() => mergeCoffeeFortuneSettings(rawSettings), [rawSettings])
   const [open, setOpen] = useState(false)
   const [modalPhase, setModalPhase] = useState<ModalPhase>('ritual')
@@ -201,11 +203,15 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
   useEffect(() => {
     if (modalPhase !== 'revealed' || !reading) return
     setRevealedSections(0)
+    if (reducedMotion) {
+      setRevealedSections(6)
+      return
+    }
     const timers = [0, 1, 2, 3, 4, 5].map((n) =>
       window.setTimeout(() => setRevealedSections(n + 1), 300 + n * 280),
     )
     return () => timers.forEach(clearTimeout)
-  }, [modalPhase, reading?.id])
+  }, [modalPhase, reading?.id, reducedMotion])
 
   useEffect(() => () => clearHold(), [clearHold])
 
@@ -249,23 +255,27 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
   return (
     <>
       <section
-        className={cn('cf-teaser overflow-hidden rounded-2xl border border-amber-500/25 p-0 shadow-lg', className)}
+        className={cn(
+          'cf-teaser mx-4 overflow-hidden rounded-2xl border border-primary/25 bg-card p-0 shadow-sm',
+          className,
+        )}
         style={{ '--cf-accent': settings.accentColor } as React.CSSProperties}
       >
         <div className="cf-teaser__bg" aria-hidden>
-          {PARTICLES.map((p) => (
-            <motion.span
-              key={p.id}
-              className="cf-teaser__particle"
-              style={{ left: p.left, width: p.size, height: p.size }}
-              animate={{ y: [0, -24, 0], opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 3 + p.delay, repeat: Infinity, delay: p.delay }}
-            />
-          ))}
+          {!reducedMotion &&
+            PARTICLES.map((p) => (
+              <motion.span
+                key={p.id}
+                className="cf-teaser__particle"
+                style={{ left: p.left, width: p.size, height: p.size }}
+                animate={{ y: [0, -24, 0], opacity: [0.2, 0.8, 0.2] }}
+                transition={{ duration: 3 + p.delay, repeat: Infinity, delay: p.delay }}
+              />
+            ))}
         </div>
 
         <div className="relative z-10 p-5 text-center">
-          <div className="mb-2 flex items-center justify-center gap-2 text-amber-200">
+          <div className="mb-2 flex items-center justify-center gap-2 text-primary">
             <Sparkles className="h-5 w-5" />
             <h3 className="text-lg font-bold">{settings.title}</h3>
           </div>
@@ -273,8 +283,8 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
 
           <motion.div
             className="cf-teaser__cup mx-auto"
-            animate={{ rotate: [0, -3, 3, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            animate={reducedMotion ? undefined : { rotate: [0, -3, 3, 0] }}
+            transition={reducedMotion ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
             ☕
           </motion.div>
@@ -298,9 +308,10 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
         {open && (
           <motion.div
             className="cf-modal"
-            initial={{ opacity: 0 }}
+            initial={reducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0 }}
+            transition={reducedMotion ? { duration: 0 } : undefined}
             role="dialog"
             aria-modal
             aria-label={settings.title}
@@ -313,9 +324,10 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
               {modalPhase === 'ritual' && (
                 <motion.div
                   key="ritual"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={reducedMotion ? false : { opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
+                  exit={reducedMotion ? undefined : { opacity: 0 }}
+                  transition={reducedMotion ? { duration: 0 } : undefined}
                   className="cf-ritual"
                 >
                   <p className="cf-ritual__hint">{settings.ritualHint}</p>
@@ -327,11 +339,13 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
                     onPointerLeave={clearHold}
                     onPointerCancel={clearHold}
                     animate={
-                      holding
-                        ? { rotate: [0, -12, 12, -8, 8, 0], scale: [1, 1.08, 1] }
-                        : { rotate: 0 }
+                      reducedMotion
+                        ? { rotate: 0 }
+                        : holding
+                          ? { rotate: [0, -12, 12, -8, 8, 0], scale: [1, 1.08, 1] }
+                          : { rotate: 0 }
                     }
-                    transition={holding ? { duration: 0.5, repeat: Infinity } : {}}
+                    transition={holding && !reducedMotion ? { duration: 0.5, repeat: Infinity } : {}}
                   >
                     <span className="cf-ritual__cup-icon">☕</span>
                     <svg className="cf-ritual__ring" viewBox="0 0 120 120">
@@ -357,8 +371,9 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
               {modalPhase === 'reading' && (
                 <motion.div
                   key="reading"
-                  initial={{ opacity: 0 }}
+                  initial={reducedMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  transition={reducedMotion ? { duration: 0 } : undefined}
                   className="cf-reading"
                 >
                   <div className="cf-reading__cup">
@@ -366,9 +381,9 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
                       <motion.span
                         key={sym.id}
                         className="cf-reading__symbol"
-                        initial={{ opacity: 0, scale: 0, y: 20 }}
-                        animate={{ opacity: [0, 1, 0.6], scale: [0, 1.2, 1], y: [20, -10, 0] }}
-                        transition={{ delay: i * 0.35, duration: 0.8 }}
+                        initial={reducedMotion ? false : { opacity: 0, scale: 0, y: 20 }}
+                        animate={reducedMotion ? { opacity: 1, scale: 1, y: 0 } : { opacity: [0, 1, 0.6], scale: [0, 1.2, 1], y: [20, -10, 0] }}
+                        transition={reducedMotion ? { duration: 0 } : { delay: i * 0.35, duration: 0.8 }}
                       >
                         {sym.emoji}
                       </motion.span>
@@ -379,8 +394,8 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
                     {[0, 1, 2].map((i) => (
                       <motion.span
                         key={i}
-                        animate={{ y: [-4, -28], opacity: [0.6, 0] }}
-                        transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.4 }}
+                        animate={reducedMotion ? undefined : { y: [-4, -28], opacity: [0.6, 0] }}
+                        transition={reducedMotion ? undefined : { duration: 1.8, repeat: Infinity, delay: i * 0.4 }}
                       />
                     ))}
                   </div>
@@ -390,13 +405,15 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
               {modalPhase === 'revealed' && reading && (
                 <motion.div
                   key="revealed"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={reducedMotion ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={reducedMotion ? { duration: 0 } : undefined}
                   className="cf-reveal"
                 >
                   <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={reducedMotion ? false : { opacity: 0, y: 30 }}
                     animate={{ opacity: revealedSections >= 1 ? 1 : 0, y: revealedSections >= 1 ? 0 : 30 }}
+                    transition={reducedMotion ? { duration: 0 } : undefined}
                   >
                     <FortuneStoryCard
                       reading={reading}
@@ -408,8 +425,9 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
 
                   <motion.div
                     className="cf-reveal__actions"
-                    initial={{ opacity: 0 }}
+                    initial={reducedMotion ? false : { opacity: 0 }}
                     animate={{ opacity: revealedSections >= 4 ? 1 : 0 }}
+                    transition={reducedMotion ? { duration: 0 } : undefined}
                   >
                     <Button type="button" variant="outline" className="flex-1" onClick={shareFortune}>
                       {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
@@ -424,7 +442,11 @@ export function CoffeeFortune({ items, settings: rawSettings, storeName, onPickD
                   </motion.div>
 
                   {suggestedItem && onPickDrink && revealedSections >= 5 && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <motion.div
+                      initial={reducedMotion ? false : { opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={reducedMotion ? { duration: 0 } : undefined}
+                    >
                       <Button
                         type="button"
                         className="w-full"

@@ -64,7 +64,7 @@ export function WaitLounge() {
         className="flex h-[92vh] flex-col overflow-hidden rounded-t-3xl border-t-0 p-0"
       >
         {/* Hero header */}
-        <div className="relative shrink-0 overflow-hidden bg-gradient-to-bl from-slate-950 via-slate-900 to-violet-950 px-4 pb-4 pt-3 text-white">
+        <div className="relative shrink-0 overflow-hidden bg-gradient-to-bl from-stone-950 via-stone-900 to-orange-950 px-4 pb-4 pt-3 text-white">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.15),transparent_60%)]" />
           <div className="relative">
             <div className="mb-3 flex items-start justify-between">
@@ -75,7 +75,7 @@ export function WaitLounge() {
               <button
                 type="button"
                 onClick={() => setLoungeOpen(false)}
-                className="rounded-full bg-white/10 p-1.5 backdrop-blur-sm transition hover:bg-white/20"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm transition hover:bg-white/20"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -96,7 +96,7 @@ export function WaitLounge() {
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-black/25">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-l from-violet-500 to-primary"
+                    className="h-full rounded-full bg-gradient-to-l from-orange-500 to-primary"
                     initial={{ width: 0 }}
                     animate={{ width: `${pointsPct}%` }}
                     transition={{ duration: 0.5 }}

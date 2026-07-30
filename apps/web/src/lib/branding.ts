@@ -24,6 +24,8 @@ export function applyBranding(settings: StoreSettings) {
   root.style.setProperty('--primary', appearance.primaryColor)
   root.style.setProperty('--primary-foreground', appearance.primaryForegroundColor)
   root.style.setProperty('--radius', `${appearance.borderRadius}rem`)
+  root.style.setProperty('--cb-orange', appearance.primaryColor)
+  root.style.setProperty('--ring', appearance.primaryColor)
 
   if (appearance.backgroundColor) {
     root.style.setProperty('--background', appearance.backgroundColor)

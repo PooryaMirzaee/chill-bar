@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { MenuItem } from '../types'
 import type { AddToCartHandler } from '../lib/cartFeedback'
 import { formatPrice } from '../lib/comboBuilder'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,7 +21,7 @@ const CY = WHEEL_SIZE / 2
 const R = 132
 const INNER_R = 44
 
-const SEGMENT_COLORS = ['#F26522', '#1B2838'] as const
+const SEGMENT_COLORS = ['#F26522', '#78350F'] as const
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180
@@ -54,6 +55,7 @@ function pickDiverseItems(all: MenuItem[], count = SEGMENT_COUNT): MenuItem[] {
 }
 
 export function SpinWheel({ items, onWin, hint }: Props) {
+  const reducedMotion = useReducedMotion()
   const [prizes] = useState(() => pickDiverseItems(items, SEGMENT_COUNT))
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState<MenuItem | null>(null)
@@ -96,10 +98,11 @@ export function SpinWheel({ items, onWin, hint }: Props) {
 
     setRotation((r) => r + 5 * 360 + delta)
 
+    const spinMs = reducedMotion ? 0 : 4000
     setTimeout(() => {
       setSpinning(false)
       setResult(winner)
-    }, 4000)
+    }, spinMs)
   }
 
   const handleAccept = (e: MouseEvent) => {
@@ -109,7 +112,7 @@ export function SpinWheel({ items, onWin, hint }: Props) {
   }
 
   return (
-    <section className="px-4 pb-6 text-center">
+    <section className="mx-4 overflow-hidden rounded-2xl border border-border bg-card px-4 pb-6 pt-5 text-center shadow-sm">
       <div className="mb-6">
         <span className="mb-2 inline-block rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
           نمی‌دونی چی بگیری؟
@@ -141,17 +144,21 @@ export function SpinWheel({ items, onWin, hint }: Props) {
         <motion.div
           className="absolute inset-0 origin-center"
           animate={{ rotate: rotation }}
-          transition={{ duration: 4, ease: [0.12, 0.85, 0.22, 1] }}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { duration: 4, ease: [0.12, 0.85, 0.22, 1] }
+          }
         >
           <svg
             viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
-            className="h-full w-full drop-shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+            className="h-full w-full drop-shadow-[0_12px_32px_rgba(120,53,15,0.18)]"
             aria-hidden
           >
             <defs>
               <radialGradient id="spin-wheel-hub" cx="40%" cy="35%">
-                <stop offset="0%" stopColor="#2a2a2a" />
-                <stop offset="100%" stopColor="#0a0a0a" />
+                <stop offset="0%" stopColor="#fef3c7" />
+                <stop offset="100%" stopColor="#fff8f0" />
               </radialGradient>
             </defs>
 
@@ -186,7 +193,7 @@ export function SpinWheel({ items, onWin, hint }: Props) {
               </g>
             ))}
 
-            <circle cx={CX} cy={CY} r={INNER_R + 3} fill="#0a0a0a" stroke="rgba(242, 101, 34, 0.5)" strokeWidth="2" />
+            <circle cx={CX} cy={CY} r={INNER_R + 3} fill="#fff8f0" stroke="rgba(242, 101, 34, 0.5)" strokeWidth="2" />
             <circle cx={CX} cy={CY} r={INNER_R} fill="url(#spin-wheel-hub)" />
             <text
               x={CX}
@@ -202,7 +209,7 @@ export function SpinWheel({ items, onWin, hint }: Props) {
               y={CY + 14}
               textAnchor="middle"
               fill="#F26522"
-              fontSize="9"
+              fontSize="10"
               fontWeight="800"
               letterSpacing="2"
             >
@@ -213,7 +220,7 @@ export function SpinWheel({ items, onWin, hint }: Props) {
       </div>
 
       <Button
-        className="mx-auto h-12 w-full max-w-[280px] rounded-full text-base font-bold shadow-lg shadow-primary/20"
+        className="mx-auto h-11 min-h-11 w-full max-w-[280px] rounded-full text-base font-bold shadow-lg shadow-primary/20"
         onClick={spin}
         disabled={spinning}
       >
@@ -223,10 +230,10 @@ export function SpinWheel({ items, onWin, hint }: Props) {
       <AnimatePresence>
         {result && (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 220 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: 8 }}
+            transition={reducedMotion ? { duration: 0 } : { type: 'spring', damping: 20, stiffness: 220 }}
             className="mt-6"
           >
             <Card className="mx-auto max-w-sm overflow-hidden border-primary/30 text-center shadow-lg shadow-primary/10">

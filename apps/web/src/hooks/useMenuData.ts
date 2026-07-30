@@ -37,5 +37,6 @@ export function useMenuData() {
     isLoading: query.isLoading,
     isError: query.isError,
     isLive: query.isSuccess,
+    refetch: query.refetch,
   }
 }

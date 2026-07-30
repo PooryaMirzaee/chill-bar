@@ -435,7 +435,7 @@ export function MemoryBrew({ tuning, menuItems, disabled, onDone }: Props) {
                     <img src={src} alt={card.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : null}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-1">
-                    <p className="truncate text-center text-[9px] font-medium text-white/90">{card.name}</p>
+                    <p className="truncate text-center text-xs font-medium text-white/90">{card.name}</p>
                   </div>
                 </div>
               </motion.div>

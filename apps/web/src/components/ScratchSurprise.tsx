@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { MenuItem } from '../types'
 import { formatPrice } from '../lib/comboBuilder'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 
 interface ScratchCopy {
   title: string
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Props) {
+  const reducedMotion = useReducedMotion()
   const [revealed, setRevealed] = useState(false)
   const [prize, setPrize] = useState<MenuItem | null>(null)
   const [scratchPct, setScratchPct] = useState(0)
@@ -43,9 +45,9 @@ export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Pro
     setClaimed(false)
     setScratchPct(0)
     ctx.globalCompositeOperation = 'source-over'
-    ctx.fillStyle = '#2a2a35'
+    ctx.fillStyle = '#b8956a'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = '#888'
+    ctx.fillStyle = '#fff8f0'
     ctx.font = 'bold 14px Vazirmatn'
     ctx.textAlign = 'center'
     ctx.fillText(copy.canvasHint, canvas.width / 2, canvas.height / 2)
@@ -91,9 +93,12 @@ export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Pro
     return () => clearTimeout(t)
   }, [rewardPool])
 
+  const sectionChrome =
+    'section scratch-surprise mx-4 overflow-hidden rounded-2xl border border-border bg-card shadow-sm'
+
   if (pool.length === 0) {
     return (
-      <section className="section scratch-surprise">
+      <section className={sectionChrome}>
         <div className="section-header">
           <h2>🎫 {copy.title}</h2>
           <p>جایزه‌ای در پنل ادمین تنظیم نشده است.</p>
@@ -103,7 +108,7 @@ export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Pro
   }
 
   return (
-    <section className="section scratch-surprise">
+    <section className={sectionChrome}>
       <div className="section-header">
         <h2>🎫 {copy.title}</h2>
         <p>{copy.subtitle}</p>
@@ -127,6 +132,7 @@ export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Pro
           className="scratch-canvas"
           width={280}
           height={120}
+          aria-label={copy.canvasHint}
           onMouseDown={() => {
             scratching.current = true
           }}
@@ -143,13 +149,22 @@ export function ScratchSurprise({ rewardPool, rewardPrice, copy, onReward }: Pro
           onTouchMove={scratch}
         />
         {revealed && prize && (
-          <motion.div className="scratch-revealed" initial={{ scale: 0 }} animate={{ scale: 1 }}>
+          <motion.div
+            className="scratch-revealed"
+            initial={reducedMotion ? false : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={reducedMotion ? { duration: 0 } : undefined}
+          >
             🎉 {prize.name} — در مرحله تکمیل سفارش اضافه می‌شود
           </motion.div>
         )}
       </div>
 
-      <button className="btn-secondary" onClick={initScratch} style={{ margin: '12px auto', display: 'block' }}>
+      <button
+        type="button"
+        className="btn-secondary scratch-new-btn"
+        onClick={initScratch}
+      >
         کارت جدید
       </button>
       {scratchPct > 0 && scratchPct < 40 && (

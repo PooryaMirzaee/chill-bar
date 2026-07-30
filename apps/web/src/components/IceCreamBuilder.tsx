@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react'
+import { Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ShoppingBag, ChevronRight, ChevronLeft, Shuffle } from 'lucide-react'
 import type { MenuItem } from '../types'
@@ -51,14 +51,14 @@ function OptionCard({
     >
       <Card
         className={cn(
-          'relative flex h-full flex-col gap-2 overflow-hidden p-2.5 transition-all duration-200',
+          'relative flex h-full min-h-[44px] flex-col gap-2 overflow-hidden p-3 transition-all duration-200',
           selected
-            ? 'border-primary bg-primary/5 ring-2 ring-primary/25 shadow-md'
-            : 'border-border/60 hover:border-primary/35 hover:bg-accent/20',
+            ? 'border-primary bg-primary/5 ring-2 ring-primary/25 shadow-md shadow-primary/10'
+            : 'border-border/60 bg-card hover:border-primary/35 hover:bg-primary/[0.03]',
         )}
       >
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted/80 text-lg">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted/80 text-lg">
             {option.emoji}
           </span>
           <div className="flex h-[68px] flex-1 items-center justify-center rounded-lg bg-muted/40">
@@ -66,7 +66,7 @@ function OptionCard({
           </div>
         </div>
 
-        <p className="line-clamp-2 px-0.5 text-center text-[13px] font-semibold leading-snug">
+        <p className="line-clamp-2 px-0.5 text-center text-sm font-semibold leading-snug">
           {option.name}
         </p>
 
@@ -103,42 +103,26 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
     currencySuffix,
   } = useIceCreamBuild({ iceOptions, copy, iceCreamCategoryId, onOrder })
 
-  const orderBarRef = useRef<HTMLDivElement>(null)
-  const wasCompleteRef = useRef(false)
-
-  useEffect(() => {
-    if (!isComplete) {
-      wasCompleteRef.current = false
-      return
-    }
-    if (wasCompleteRef.current) return
-    wasCompleteRef.current = true
-    const t = window.setTimeout(() => {
-      orderBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-    }, 120)
-    return () => window.clearTimeout(t)
-  }, [isComplete])
-
   return (
-    <section className="pb-24">
+    <section>
       <IceCreamPreview build={build} activeStep={step} stepLabels={stepLabels} />
 
-      <div className="relative z-10 mt-2 rounded-t-[1.75rem] border border-border/60 border-b-0 bg-background/95 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] backdrop-blur-xl">
-        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-muted-foreground/20" />
+      <div className="relative z-10 mt-2 flex flex-col rounded-t-[1.75rem] border border-primary/15 border-b-0 bg-card shadow-[0_-8px_32px_rgba(242,101,34,0.08)]">
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-primary/20" />
 
         <div className="space-y-4 px-4 pb-4 pt-4">
-          <div className="rounded-xl border border-border/40 bg-muted/40 px-3 py-2">
-            <ul className="space-y-1">
+          <div className="rounded-xl border border-primary/15 bg-card px-3 py-2.5 shadow-sm">
+            <ul className="space-y-1.5">
               {[
                 { label: stepLabels[0], value: build.base?.name, emoji: build.base?.emoji },
                 { label: stepLabels[1], value: build.coating?.name, emoji: build.coating?.emoji },
                 { label: stepLabels[2], value: build.filling?.name, emoji: build.filling?.emoji },
               ].map((row) => (
                 <li key={row.label} className="flex min-w-0 items-baseline gap-2">
-                  <span className="w-12 shrink-0 text-[11px] font-medium text-muted-foreground">
+                  <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">
                     {row.label}:
                   </span>
-                  <span className="min-w-0 truncate text-[12px] font-bold leading-snug text-foreground">
+                  <span className="min-w-0 truncate text-sm font-bold leading-snug text-foreground">
                     {row.value ? (
                       <>
                         <span className="me-1" aria-hidden>
@@ -158,7 +142,7 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
           <Button
             variant="outline"
             className={cn(
-              'h-10 w-full gap-2 rounded-xl border-dashed text-sm font-semibold',
+              'h-11 w-full gap-2 rounded-xl border-dashed border-primary/25 text-sm font-semibold',
               shaking && 'animate-pulse border-primary/40 bg-primary/5',
             )}
             onClick={surpriseMe}
@@ -174,13 +158,13 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
                   type="button"
                   onClick={() => setStep(s.num)}
                   className={cn(
-                    'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 transition-colors',
+                    'flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 transition-colors',
                     step === s.num ? 'bg-primary/10' : 'hover:bg-muted/50',
                   )}
                 >
                   <div
                     className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all',
+                      'flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-all',
                       step === s.num
                         ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                         : stepDone(s.num)
@@ -192,7 +176,7 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
                   </div>
                   <span
                     className={cn(
-                      'truncate text-[10px] font-medium',
+                      'truncate text-xs font-medium',
                       step === s.num ? 'text-primary' : 'text-muted-foreground',
                     )}
                   >
@@ -214,8 +198,7 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
           <div className="flex items-center justify-between gap-2">
             <Button
               variant="ghost"
-              size="sm"
-              className="gap-1 text-xs"
+              className="h-11 gap-1 px-3 text-sm"
               onClick={goBack}
               disabled={step === 1}
             >
@@ -223,12 +206,11 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
               قبلی
             </Button>
             <div className="min-w-0 flex-1 text-center">
-              <p className="truncate text-sm font-bold">{steps[step - 1].title}</p>
+              <p className="truncate text-base font-bold">{steps[step - 1].title}</p>
             </div>
             <Button
               variant="ghost"
-              size="sm"
-              className="gap-1 text-xs"
+              className="h-11 gap-1 px-3 text-sm"
               onClick={goNext}
               disabled={step === 3 || !stepDone(step)}
             >
@@ -260,36 +242,39 @@ export function IceCreamBuilder({ onOrder, iceOptions, copy, iceCreamCategoryId 
             </motion.div>
           </AnimatePresence>
         </div>
-      </div>
 
-      <AnimatePresence>
-        {isComplete && (
-          <motion.div
-            ref={orderBarRef}
-            className="fixed inset-x-4 bottom-[calc(4.25rem+var(--safe-bottom,0px))] z-40 mx-auto max-w-lg"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 28 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-          >
-            <Card className="flex items-center gap-3 border-primary/35 bg-background/98 p-3 shadow-2xl backdrop-blur-xl">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl">
-                🍦
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs text-muted-foreground">بستنی سفارشی آماده است</p>
-                <p className="text-lg font-black text-primary">
-                  {formatPrice(price, currencySuffix)}
+        <div className="sticky bottom-0 border-t border-primary/10 bg-card/95 px-4 py-3 backdrop-blur-md pb-[calc(0.75rem+var(--safe-bottom,0px))]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl">
+              🍦
+            </div>
+            <div className="min-w-0 flex-1">
+              {isComplete ? (
+                <>
+                  <p className="truncate text-xs text-muted-foreground">بستنی سفارشی آماده است</p>
+                  <p className="text-base font-black text-primary">
+                    {formatPrice(price, currencySuffix)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm font-medium text-muted-foreground">
+                  {steps[step - 1].title}
+                  {stepDone(step) ? ' — مرحله بعد' : ''}
                 </p>
-              </div>
-              <Button size="lg" className="shrink-0 gap-2 rounded-xl px-5" onClick={handleOrder}>
-                <ShoppingBag className="h-4 w-4" />
-                سفارش
-              </Button>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              )}
+            </div>
+            <Button
+              size="lg"
+              className="h-11 shrink-0 gap-2 rounded-xl px-5 text-sm font-semibold"
+              disabled={!isComplete}
+              onClick={handleOrder}
+            >
+              <ShoppingBag className="h-4 w-4" />
+              سفارش
+            </Button>
+          </div>
+        </div>
+      </div>
     </section>
   )
 }

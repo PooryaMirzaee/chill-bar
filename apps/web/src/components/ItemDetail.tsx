@@ -87,10 +87,10 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
         }
       }}
     >
-      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-2xl px-0">
+      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-3xl px-0 pb-[max(1rem,var(--safe-bottom))]">
         {item && (
           <>
-            <div className="relative flex h-48 items-center justify-center bg-muted">
+            <div className="relative flex h-52 items-center justify-center bg-gradient-to-b from-secondary/80 to-muted">
               {imageSrc ? (
                 <img className="h-full w-full object-cover" src={imageSrc} alt={item.name} />
               ) : (
@@ -100,7 +100,7 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
 
             <div className="space-y-4 p-6">
               <SheetHeader className="space-y-2 text-right">
-                <Badge variant="secondary" className="w-fit">
+                <Badge variant="secondary" className="w-fit text-xs">
                   {item.categoryName}
                 </Badge>
                 <SheetTitle className="text-xl">{item.name}</SheetTitle>
@@ -111,7 +111,7 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
                 )}
               </SheetHeader>
 
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-2xl font-bold tabular-nums text-primary">
                 {formatPrice(unitPrice)}
                 {unitPrice !== item.price && (
                   <span className="mr-2 text-sm font-normal text-muted-foreground line-through">
@@ -146,8 +146,8 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
                 </div>
               )}
 
-              <Button className="w-full" size="lg" onClick={(e) => handleAdd(item, e)}>
-                <Plus className="h-4 w-4" />
+              <Button className="min-h-12 w-full text-base" size="lg" onClick={(e) => handleAdd(item, e)}>
+                <Plus className="h-5 w-5" />
                 افزودن به سفارش
               </Button>
             </div>

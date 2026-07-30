@@ -14,7 +14,7 @@ export const WAIT_GAME_META: Record<
     title: 'حافظه منو',
     emoji: '🧠',
     description: 'مراحل سخت‌شونده — عکس‌های منو را به خاطر بسپار',
-    gradient: 'from-violet-700 via-purple-600 to-indigo-800',
+    gradient: 'from-orange-700 via-orange-600 to-amber-800',
     featured: true,
   },
   chillStack: {

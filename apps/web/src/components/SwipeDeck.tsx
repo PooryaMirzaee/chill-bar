@@ -13,6 +13,8 @@ import {
   type TasteProfile,
 } from '../lib/tasteProfile'
 import { useTasteSync } from '../lib/customerAuth'
+import { useReducedMotion } from '../hooks/useReducedMotion'
+import { cn } from '@/lib/utils'
 
 import type { AddToCartHandler } from '../lib/cartFeedback'
 
@@ -32,6 +34,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
+  const reducedMotion = useReducedMotion()
   const [profile, setProfile] = useState<TasteProfile>(loadTasteProfile)
   const tasteSync = useTasteSync()
   const [deck, setDeck] = useState(() => shuffle(items))
@@ -39,9 +42,9 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
   const [lastAction, setLastAction] = useState<'like' | 'skip' | null>(null)
 
   const x = useMotionValue(0)
-  const rotate = useTransform(x, [-200, 200], [-15, 15])
-  const likeOpacity = useTransform(x, [50, 150], [0, 1])
-  const skipOpacity = useTransform(x, [-150, -50], [1, 0])
+  const rotate = useTransform(x, [-200, 200], reducedMotion ? [0, 0] : [-15, 15])
+  const likeOpacity = useTransform(x, [50, 150], reducedMotion ? [0, 0] : [0, 1])
+  const skipOpacity = useTransform(x, [-150, -50], reducedMotion ? [0, 0] : [1, 0])
 
   const swipedIds = useMemo(
     () => new Set([...profile.likedIds, ...profile.skippedIds]),
@@ -84,6 +87,7 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
   }
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (reducedMotion) return
     if (info.offset.x > 100) handleLike()
     else if (info.offset.x < -100) handleSkip()
   }
@@ -96,10 +100,14 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
   const categoryLabel = (catId: string) =>
     items.find((i) => i.category === catId)?.categoryName || catId
 
+  const instant = reducedMotion ? { duration: 0 } : undefined
+
   return (
-    <section className="section swipe-deck">
+    <section className="section swipe-deck mx-4 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="section-header">
-        <span className="section-eyebrow">Taste Discovery</span>
+        <span className="mb-1 inline-block text-xs font-semibold uppercase tracking-wider text-primary">
+          Taste Discovery
+        </span>
         <h2>کشف سلیقه</h2>
         <p>راست = به سلیقه‌م می‌خوره · چپ = نه مال منه — فقط برای شناختن ذائقه‌ات، نه سبد خرید</p>
       </div>
@@ -120,30 +128,42 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
 
       <AnimatePresence mode="wait">
         {!isDone ? (
-          <motion.div key="deck" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div
+            key="deck"
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reducedMotion ? undefined : { opacity: 0 }}
+            transition={instant}
+          >
             <div className="swipe-container">
-              <motion.div className="swipe-label like-label" style={{ opacity: likeOpacity }}>
-                ✓ سلیقه‌امه
-              </motion.div>
-              <motion.div className="swipe-label skip-label" style={{ opacity: skipOpacity }}>
-                ✕ نه
-              </motion.div>
+              {!reducedMotion && (
+                <>
+                  <motion.div className="swipe-label like-label" style={{ opacity: likeOpacity }}>
+                    ✓ سلیقه‌امه
+                  </motion.div>
+                  <motion.div className="swipe-label skip-label" style={{ opacity: skipOpacity }}>
+                    ✕ نه
+                  </motion.div>
+                </>
+              )}
               <motion.div
                 key={`${current.id}-${index}`}
                 className="swipe-card"
-                style={{ x, rotate }}
-                drag="x"
+                style={reducedMotion ? undefined : { x, rotate }}
+                drag={reducedMotion ? false : 'x'}
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={handleDragEnd}
-                whileTap={{ cursor: 'grabbing' }}
-                initial={{ scale: 0.95, opacity: 0 }}
+                whileTap={reducedMotion ? undefined : { cursor: 'grabbing' }}
+                initial={reducedMotion ? false : { scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
+                transition={instant}
               >
                 <div className="swipe-emoji">{current.emoji}</div>
                 <h3>{current.name}</h3>
                 <p className="swipe-category">{current.categoryName}</p>
                 <p className="swipe-price">{formatPrice(current.price)}</p>
                 <button
+                  type="button"
                   className="swipe-detail-btn"
                   onClick={(e) => { e.stopPropagation(); onSelect?.(current) }}
                 >
@@ -153,8 +173,8 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
             </div>
 
             <div className="swipe-actions">
-              <button className="swipe-btn skip" onClick={handleSkip} aria-label="رد کن">✕</button>
-              <button className="swipe-btn like" onClick={handleLike} aria-label="به سلیقه‌ام می‌خوره">✓</button>
+              <button type="button" className="swipe-btn skip" onClick={handleSkip} aria-label="رد کن">✕</button>
+              <button type="button" className="swipe-btn like" onClick={handleLike} aria-label="به سلیقه‌ام می‌خوره">✓</button>
             </div>
 
             <p className="swipe-remaining">{remaining.length} مورد برای کشف باقی‌ست</p>
@@ -163,14 +183,15 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
           <motion.div
             key="done"
             className="taste-complete"
-            initial={{ opacity: 0, y: 16 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={instant}
           >
             <span className="taste-complete-icon">🎯</span>
             <h3>سلیقه‌ات رو شناختیم!</h3>
             <p>بر اساس انتخاب‌هات، این‌ها رو امتحان کن</p>
             {remaining.length === 0 && items.length > swipedIds.size && (
-              <button className="btn-secondary" onClick={reshuffle} style={{ marginTop: 12 }}>
+              <button type="button" className="btn-secondary" onClick={reshuffle} style={{ marginTop: 12 }}>
                 ادامه کشف
               </button>
             )}
@@ -181,10 +202,11 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
       <AnimatePresence>
         {lastAction && (
           <motion.p
-            className={`swipe-feedback swipe-feedback--${lastAction}`}
-            initial={{ opacity: 0, y: 8 }}
+            className={cn('swipe-feedback', `swipe-feedback--${lastAction}`)}
+            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0 }}
+            transition={instant}
           >
             {lastAction === 'like' ? '✓ به پروفایل سلیقه‌ات اضافه شد' : 'ثبت شد — کمتر پیشنهاد می‌شه'}
           </motion.p>
@@ -205,7 +227,7 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
           <div className="taste-picks-list">
             {recommendations.map((item) => (
               <article key={item.id} className="taste-pick-card">
-                <button className="taste-pick-main" onClick={() => onSelect?.(item)}>
+                <button type="button" className="taste-pick-main" onClick={() => onSelect?.(item)}>
                   <span className="taste-pick-emoji">{item.emoji}</span>
                   <div className="taste-pick-info">
                     <strong>{item.name.split('(')[0].trim()}</strong>
@@ -215,6 +237,7 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
                 </button>
                 {onAddToCart && (
                   <button
+                    type="button"
                     className="taste-pick-add"
                     onClick={(e) => onAddToCart(item, e)}
                     aria-label="اضافه به سبد"

@@ -47,16 +47,16 @@ function OptionChip({
       onClick={onSelect}
       whileTap={{ scale: 0.97 }}
       className={cn(
-        'relative flex w-[7.25rem] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-2 transition-colors',
+        'relative flex min-h-11 w-[7.5rem] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-2.5 transition-colors',
         selected
-          ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-          : 'border-border/60 bg-card hover:border-primary/30',
+          ? 'border-primary bg-primary/10 ring-2 ring-primary/30 shadow-sm shadow-primary/10'
+          : 'border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.03]',
       )}
     >
       <div className="flex h-12 w-full items-center justify-center rounded-xl bg-muted/50">
         <MiniIceSwatch option={option} type={optionType} selectedBuild={currentBuild} />
       </div>
-      <p className="line-clamp-2 min-h-[2.4em] w-full text-center text-[12px] font-semibold leading-snug tracking-tight">
+      <p className="line-clamp-2 min-h-[2.4em] w-full text-center text-xs font-semibold leading-snug tracking-tight sm:text-sm">
         <span className="me-0.5" aria-hidden>
           {option.emoji}
         </span>
@@ -85,14 +85,14 @@ function BuildSummary({
   ]
 
   return (
-    <div className="rounded-xl border border-border/40 bg-muted/40 px-3 py-2">
-      <ul className="space-y-1">
+    <div className="rounded-xl border border-primary/15 bg-card px-3 py-2.5 shadow-sm">
+      <ul className="space-y-1.5">
         {rows.map((row) => (
           <li key={row.label} className="flex min-w-0 items-baseline gap-2">
-            <span className="w-12 shrink-0 text-[11px] font-medium text-muted-foreground">
+            <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">
               {row.label}:
             </span>
-            <span className="min-w-0 truncate text-[12px] font-bold leading-snug text-foreground">
+            <span className="min-w-0 truncate text-sm font-bold leading-snug text-foreground">
               {row.value ? (
                 <>
                   <span className="me-1" aria-hidden>
@@ -129,11 +129,11 @@ function SwipeOptionsRow({
   return (
     <div className="relative">
       <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
-        <p className="text-[11px] font-medium text-muted-foreground">{hint}</p>
-        <p className="flex items-center gap-0.5 text-[10px] font-semibold text-primary/80">
-          <ChevronRight className="h-3 w-3" />
+        <p className="text-xs font-medium text-muted-foreground">{hint}</p>
+        <p className="flex items-center gap-0.5 text-xs font-semibold text-primary/80">
+          <ChevronRight className="h-3.5 w-3.5" />
           بکشید
-          <ChevronLeft className="h-3 w-3" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </p>
       </div>
 
@@ -143,7 +143,7 @@ function SwipeOptionsRow({
       <button
         type="button"
         aria-label="گزینه قبلی"
-        className="absolute start-0 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border bg-background/90 text-muted-foreground shadow-sm backdrop-blur"
+        className="absolute start-0 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/20 bg-card/95 text-muted-foreground shadow-sm backdrop-blur"
         onClick={() => nudge(1)}
       >
         <ChevronRight className="h-4 w-4" />
@@ -151,7 +151,7 @@ function SwipeOptionsRow({
       <button
         type="button"
         aria-label="گزینه بعدی"
-        className="absolute end-0 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border bg-background/90 text-muted-foreground shadow-sm backdrop-blur"
+        className="absolute end-0 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/20 bg-card/95 text-muted-foreground shadow-sm backdrop-blur"
         onClick={() => nudge(-1)}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -159,7 +159,7 @@ function SwipeOptionsRow({
 
       <div
         ref={scrollerRef}
-        className="-mx-0.5 flex gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth px-7 py-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-0.5 flex gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth px-11 py-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -217,20 +217,20 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
         />
       </div>
 
-      <div className="flex shrink-0 flex-col rounded-t-2xl border border-border/50 border-b-0 bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="shrink-0 px-3 pb-1.5 pt-2">
-          <div className="mb-2">
+      <div className="flex shrink-0 flex-col rounded-t-2xl border border-primary/15 border-b-0 bg-card shadow-[0_-4px_24px_rgba(242,101,34,0.08)]">
+        <div className="shrink-0 px-3 pb-1.5 pt-2.5">
+          <div className="mb-2.5">
             <BuildSummary build={build} labels={stepLabels} />
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-1 rounded-lg bg-muted/60 p-0.5">
+            <div className="flex min-h-11 min-w-0 flex-1 rounded-xl border border-border/40 bg-muted/40 p-0.5">
               {steps.map((s) => (
                 <button
                   key={s.num}
                   type="button"
                   onClick={() => setStep(s.num)}
                   className={cn(
-                    'flex min-w-0 flex-1 items-center justify-center gap-0.5 rounded-md px-0.5 py-1.5 text-[10px] font-semibold transition-all',
+                    'flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-semibold transition-all',
                     step === s.num
                       ? 'bg-background text-primary shadow-sm'
                       : stepDone(s.num)
@@ -240,7 +240,7 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
                 >
                   <span
                     className={cn(
-                      'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px]',
+                      'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]',
                       step === s.num
                         ? 'bg-primary text-primary-foreground'
                         : stepDone(s.num)
@@ -248,7 +248,7 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
                           : 'bg-muted',
                     )}
                   >
-                    {stepDone(s.num) && step !== s.num ? <Check className="h-2.5 w-2.5" /> : s.num}
+                    {stepDone(s.num) && step !== s.num ? <Check className="h-3 w-3" /> : s.num}
                   </span>
                   <span className="truncate">{s.label}</span>
                 </button>
@@ -258,14 +258,14 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
               variant="outline"
               size="icon"
               className={cn(
-                'h-8 w-8 shrink-0 rounded-lg border-dashed',
+                'h-11 w-11 shrink-0 rounded-xl border-dashed border-primary/25',
                 shaking && 'animate-pulse border-primary/40 bg-primary/5',
               )}
               onClick={surpriseMe}
               aria-label="شانسی انتخاب کن"
               title="شانسی انتخاب کن!"
             >
-              <Shuffle className="h-3.5 w-3.5" />
+              <Shuffle className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -285,18 +285,21 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
           </SwipeOptionsRow>
         </div>
 
-        <div className="shrink-0 border-t bg-background/95 px-3 py-2 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-lg">
+        <div className="sticky bottom-0 shrink-0 border-t border-primary/10 bg-card/95 px-3 py-3 backdrop-blur-md pb-[calc(0.75rem+var(--safe-bottom,0px))]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl">
               🍦
             </div>
             <div className="min-w-0 flex-1">
               {isComplete ? (
-                <p className="text-base font-black text-primary">
-                  {formatPrice(price, currencySuffix)}
-                </p>
+                <>
+                  <p className="text-xs text-muted-foreground">بستنی سفارشی آماده است</p>
+                  <p className="text-base font-black text-primary">
+                    {formatPrice(price, currencySuffix)}
+                  </p>
+                </>
               ) : (
-                <p className="text-[11px] font-medium text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground">
                   {steps[step - 1].title}
                   {stepDone(step as IceCreamStep) ? ' — مرحله بعد' : ''}
                 </p>
@@ -304,11 +307,11 @@ export function IceCreamBuilderStudio({ onOrder, iceOptions, copy, iceCreamCateg
             </div>
             <Button
               size="default"
-              className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-sm"
+              className="h-11 shrink-0 gap-1.5 rounded-xl px-4 text-sm font-semibold"
               disabled={!isComplete}
               onClick={handleOrder}
             >
-              <ShoppingBag className="h-3.5 w-3.5" />
+              <ShoppingBag className="h-4 w-4" />
               سفارش
             </Button>
           </div>

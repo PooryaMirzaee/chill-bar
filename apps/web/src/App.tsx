@@ -15,6 +15,7 @@ import {
 import type { MenuItem, Mood, ContextData, ComboSuggestion } from './types'
 import { useMenuData } from './hooks/useMenuData'
 import { useKioskMode } from './hooks/useKioskMode'
+import { useReducedMotion } from './hooks/useReducedMotion'
 import { CartProvider, useCart } from './store/cart'
 import { WaitLoungeProvider, useWaitLounge } from './store/waitLounge'
 import { CartFeedbackProvider, useCartFeedback, type AddToCartHandler } from './lib/cartFeedback'
@@ -67,7 +68,7 @@ const TAB_ICONS = {
 function AppContent() {
   const { addItem, setPendingReward, syncMenuMetadata } = useCart()
   const { notifyItemAdded, registerOpenCart } = useCartFeedback()
-  const { categories, visibleCategories, items } = useMenuData()
+  const { categories, visibleCategories, items, isLoading: menuLoading, isError: menuError, refetch: refetchMenu } = useMenuData()
   const { loungeOpen, loungeEnabled, activeOrder } = useWaitLounge()
   const { isKiosk, idle, resetIdle } = useKioskMode({ suppressIdle: loungeOpen })
   const { data: iceOptions } = useIceCreamOptions()
@@ -143,6 +144,11 @@ function AppContent() {
   const [profileOpen, setProfileOpen] = useState(false)
   const { isRegistered, syncPreferences } = useCustomer()
   const { enabled: aiEnabled } = useAiConfig()
+  const reducedMotion = useReducedMotion()
+  const tabTransition = reducedMotion ? { duration: 0 } : { duration: 0.2 }
+  const tabMotion = reducedMotion
+    ? { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 1, y: 0 } }
+    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } }
   const showAiFab = features.aiWaiter !== false && aiEnabled && activeTab !== 'icecream'
   const smartComboOn = features.smartCombo !== false
   const inWaitSession = loungeEnabled && !!activeOrder
@@ -420,9 +426,9 @@ function AppContent() {
       {!iceCreamImmersive && (
       <header
         className={cn(
-          'sticky top-0 z-50 border-b',
+          'sticky top-0 z-50 border-b pt-[var(--safe-top)]',
           appearance.headerBlur
-            ? 'bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60'
+            ? 'bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70'
             : 'bg-background',
         )}
       >
@@ -432,10 +438,10 @@ function AppContent() {
               <img
                 src={logoUrl}
                 alt={settings.storeName}
-                className="h-11 w-11 shrink-0 rounded-xl object-contain shadow-md"
+                className="h-11 w-11 shrink-0 rounded-2xl object-contain shadow-md shadow-primary/15"
               />
             ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-md">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-md shadow-primary/25">
                 {brandFallback}
               </div>
             )}
@@ -448,13 +454,13 @@ function AppContent() {
           <Button
             variant="ghost"
             size="icon"
-            className="relative h-10 w-10 shrink-0"
+            className="relative h-11 w-11 shrink-0"
             onClick={() => setProfileOpen(true)}
             aria-label="پروفایل"
           >
             <User className="h-5 w-5" />
             {isRegistered && (
-              <span className="absolute end-1 top-1 h-2 w-2 rounded-full bg-primary" />
+              <span className="absolute end-1 top-1 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
             )}
           </Button>
         </div>
@@ -483,10 +489,8 @@ function AppContent() {
           {activeTab === 'home' && (
             <motion.div
               key="home"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              {...tabMotion}
+              transition={tabTransition}
               className="py-4"
               style={{ display: 'flex', flexDirection: 'column', gap: `${homeAppearance.sectionGap}rem` }}
             >
@@ -497,10 +501,8 @@ function AppContent() {
           {activeTab === 'icecream' && (
             <motion.div
               key="icecream"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              {...tabMotion}
+              transition={tabTransition}
               className={iceCreamImmersive ? 'relative pt-0 pb-0' : 'pt-0 pb-4'}
             >
               {iceCreamImmersive && (
@@ -531,10 +533,8 @@ function AppContent() {
           {activeTab === 'discover' && (
             <motion.div
               key="discover"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              {...tabMotion}
+              transition={tabTransition}
               className="space-y-6 py-4"
             >
               {features.coffeeFortune !== false && !hidePreOrderGames && (
@@ -569,10 +569,8 @@ function AppContent() {
           {activeTab === 'menu' && (
             <motion.div
               key="menu"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              {...tabMotion}
+              transition={tabTransition}
               className="space-y-4 py-4"
             >
               <div className="px-4">
@@ -580,27 +578,41 @@ function AppContent() {
                   <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={copy.searchPlaceholder} />
                 )}
               </div>
-              <MenuGrid
-                categories={visibleCategories}
-                items={items}
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
-                onSelect={selectItem}
-                onAdd={handleAdd}
-                searchQuery={searchQuery}
-                title={formatCopy(copy.menuTitle, vars)}
-                appearance={menuAppearance}
-              />
+              {menuLoading && items.length === 0 ? (
+                <div className="menu-skeleton-grid" aria-busy="true" aria-label="در حال بارگذاری منو">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="menu-skeleton-card" />
+                  ))}
+                </div>
+              ) : menuError && items.length === 0 ? (
+                <div className="mx-4 flex flex-col items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-8 text-center">
+                  <p className="text-sm font-medium text-destructive">بارگذاری منو ناموفق بود</p>
+                  <p className="text-xs text-muted-foreground">اتصال را بررسی کنید و دوباره تلاش کنید</p>
+                  <Button type="button" className="min-h-11 px-6" onClick={() => void refetchMenu()}>
+                    تلاش مجدد
+                  </Button>
+                </div>
+              ) : (
+                <MenuGrid
+                  categories={visibleCategories}
+                  items={items}
+                  activeCategory={activeCategory}
+                  onCategoryChange={setActiveCategory}
+                  onSelect={selectItem}
+                  onAdd={handleAdd}
+                  searchQuery={searchQuery}
+                  title={formatCopy(copy.menuTitle, vars)}
+                  appearance={menuAppearance}
+                />
+              )}
             </motion.div>
           )}
 
           {activeTab === 'play' && (
             <motion.div
               key="play"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              {...tabMotion}
+              transition={tabTransition}
               className="space-y-6 py-4"
             >
               {features.spinWheel !== false && !hidePreOrderGames && (
@@ -622,8 +634,11 @@ function AppContent() {
         </AnimatePresence>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex max-w-lg items-stretch px-1 pb-[var(--safe-bottom)] pt-1">
+      <nav
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 shadow-[0_-8px_24px_rgba(120,53,15,0.06)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/85"
+        aria-label="ناوبری اصلی"
+      >
+        <div className="mx-auto flex max-w-lg items-stretch px-1 pb-[max(0.35rem,var(--safe-bottom))] pt-1">
           {navItems.map((tab) => {
             const Icon = TAB_ICONS[tab.id]
             const active = activeTab === tab.id
@@ -631,14 +646,15 @@ function AppContent() {
               <button
                 key={tab.id}
                 type="button"
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors',
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                  'flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <Icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} />
-                <span>{tab.label}</span>
+                <Icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} aria-hidden />
+                <span className="leading-tight">{tab.label}</span>
               </button>
             )
           })}
@@ -646,14 +662,14 @@ function AppContent() {
       </nav>
 
       <CartFab
-        className="bottom-[calc(5.5rem+var(--safe-bottom))] start-4"
+        className="bottom-[calc(5.75rem+var(--safe-bottom))] start-4"
         onClick={() => setCartOpen(true)}
       />
 
       {showAiFab && (
         <Button
           size="icon"
-          className="fixed bottom-[calc(5.5rem+var(--safe-bottom))] end-4 z-40 h-12 w-12 rounded-full shadow-lg"
+          className="fixed bottom-[calc(5.75rem+var(--safe-bottom))] end-4 z-40 h-12 w-12 rounded-full shadow-lg shadow-primary/25"
           onClick={() => setAiOpen(true)}
           aria-label="دستیار هوشمند"
         >

@@ -60,7 +60,7 @@ export function OrderStatusStepper({ status, estimatedMinutes, bonusMultiplier }
               </div>
               <span
                 className={cn(
-                  'text-[10px] leading-tight',
+                  'text-xs leading-tight',
                   active ? 'font-semibold text-primary' : 'text-muted-foreground',
                 )}
               >

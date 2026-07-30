@@ -51,15 +51,15 @@ export function WaitLoungeCelebrationPopup({
           />
 
           <motion.div
-            className="relative z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-violet-400/30 bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 text-white shadow-2xl shadow-violet-950/50 touch-manipulation"
+            className="relative z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-orange-400/30 bg-gradient-to-br from-stone-950 via-orange-950 to-amber-950 text-white shadow-2xl shadow-orange-950/50 touch-manipulation"
             initial={{ opacity: 0, y: 48, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 32, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 420, damping: 28 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-violet-500/25 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-8 -right-8 h-36 w-36 rounded-full bg-fuchsia-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-orange-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-8 -right-8 h-36 w-36 rounded-full bg-amber-500/20 blur-3xl" />
 
             {FLOATERS.map((emoji, i) => (
               <motion.span
@@ -87,7 +87,7 @@ export function WaitLoungeCelebrationPopup({
             <button
               type="button"
               onClick={onDismiss}
-              className="absolute end-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur hover:bg-white/20 touch-manipulation"
+              className="absolute end-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur hover:bg-white/20 touch-manipulation"
               aria-label="بستن"
             >
               <X className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function WaitLoungeCelebrationPopup({
 
             <div className="relative space-y-4 px-5 pb-5 pt-8 text-center">
               <motion.div
-                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 shadow-lg shadow-violet-500/40"
+                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-primary shadow-lg shadow-orange-500/40"
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.08 }}
@@ -104,7 +104,7 @@ export function WaitLoungeCelebrationPopup({
               </motion.div>
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-violet-200/90">
+                <p className="text-xs font-semibold uppercase tracking-wide text-orange-200/90">
                   کد سفارش
                 </p>
                 <div className="mx-auto inline-flex rounded-2xl border border-white/15 bg-white/10 px-4 py-2 backdrop-blur">
@@ -126,7 +126,7 @@ export function WaitLoungeCelebrationPopup({
                     تا {formatChillPoints(maxPoints)} {pointsLabel}
                   </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium">
-                    <Sparkles className="h-3.5 w-3.5 text-violet-200" />
+                    <Sparkles className="h-3.5 w-3.5 text-orange-200" />
                     بازی حافظه و بیشتر
                   </span>
                 </div>
@@ -136,8 +136,8 @@ export function WaitLoungeCelebrationPopup({
                 <Button
                   size="lg"
                   className={cn(
-                    'h-12 w-full gap-2 rounded-2xl border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500',
-                    'text-base font-bold text-white shadow-lg shadow-violet-600/30 hover:from-violet-400 hover:to-fuchsia-400 touch-manipulation',
+                    'h-12 w-full gap-2 rounded-2xl border-0 bg-gradient-to-r from-orange-500 to-primary',
+                    'text-base font-bold text-white shadow-lg shadow-orange-600/30 hover:from-orange-400 hover:to-orange-400 touch-manipulation',
                   )}
                   onClick={onPlay}
                 >

@@ -134,9 +134,31 @@ export function Cart({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-      <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
-        <SheetHeader className="border-b px-6 py-4 text-right">
-          <SheetTitle>{titles[stage]}</SheetTitle>
+      <SheetContent side="right" className="flex w-full flex-col bg-background sm:max-w-md">
+        <SheetHeader className="border-b border-border/80 bg-card px-6 py-4 text-right">
+          <div className="mb-2 flex items-center justify-center gap-1.5" aria-label="مراحل سفارش">
+            {(['cart', 'checkout', 'done'] as Stage[]).map((s, i) => {
+              const stageIndex = stage === 'cart' ? 0 : stage === 'checkout' ? 1 : 2
+              const reached = i <= stageIndex
+              const current = i === stageIndex
+              return (
+                <div key={s} className="flex items-center gap-1.5">
+                  {i > 0 && <div className={cn('h-0.5 w-6 rounded-full', reached ? 'bg-primary' : 'bg-border')} />}
+                  <span
+                    className={cn(
+                      'flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-bold',
+                      current && 'bg-primary text-primary-foreground',
+                      reached && !current && 'bg-primary/15 text-primary',
+                      !reached && 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {i + 1}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          <SheetTitle className="text-lg">{titles[stage]}</SheetTitle>
           {stage === 'cart' && count > 0 && (
             <SheetDescription>{count} آیتم در سبد</SheetDescription>
           )}
@@ -173,39 +195,44 @@ export function Cart({
                   return (
                   <li
                     key={item.cartLineId}
-                    className="space-y-3 rounded-xl border bg-card p-3 shadow-sm"
+                    className="space-y-3 rounded-2xl border border-border/80 bg-card p-3.5 shadow-sm shadow-primary/5"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.emoji}</span>
+                      <span className="text-2xl" aria-hidden>{item.emoji}</span>
                       <div className="min-w-0 flex-1">
-                        <h4 className="truncate text-sm font-medium">{item.name}</h4>
-                        <span className="text-sm font-semibold text-primary">
+                        <h4 className="truncate text-sm font-semibold">{item.name}</h4>
+                        <span className="text-sm font-semibold tabular-nums text-primary">
                           {formatPrice(item.unitPrice ?? item.price)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 rounded-lg border bg-background">
+                      <div className="flex items-center gap-0.5 rounded-xl border bg-background">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-11 w-11"
+                          aria-label={`کاهش تعداد ${item.name}`}
                           onClick={() => updateQuantity(item.cartLineId, item.quantity - 1)}
                         >
-                          <Minus className="h-3.5 w-3.5" />
+                          <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                        <span className="w-7 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-11 w-11"
+                          aria-label={`افزایش تعداد ${item.name}`}
                           onClick={() => updateQuantity(item.cartLineId, item.quantity + 1)}
                         >
-                          <Plus className="h-3.5 w-3.5" />
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-11 w-11 text-muted-foreground hover:text-destructive"
+                        aria-label={`حذف ${item.name}`}
                         onClick={() => removeItem(item.cartLineId)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -227,7 +254,7 @@ export function Cart({
               </ul>
               )}
             </ScrollArea>
-            <div className="space-y-3 border-t p-4">
+            <div className="space-y-3 border-t border-border/80 bg-card p-4 pb-[max(1rem,var(--safe-bottom))]">
               {pendingReward && items.length > 0 && (
                 <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
                   🎁 جایزه کارت شانس در مرحله «تکمیل سفارش» به سفارش اضافه می‌شود
@@ -236,16 +263,16 @@ export function Cart({
               {items.length > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">جمع کل ({count} آیتم)</span>
-                <strong className="text-lg">{formatPrice(total)}</strong>
+                <strong className="text-lg tabular-nums text-primary">{formatPrice(total)}</strong>
               </div>
               )}
               {items.length > 0 && (
-              <Button variant="outline" className="w-full" onClick={clearCart}>
+              <Button variant="outline" className="min-h-11 w-full" onClick={clearCart}>
                 خالی کردن سبد
               </Button>
               )}
               <Button
-                className="w-full"
+                className="min-h-12 w-full text-base shadow-md shadow-primary/20"
                 size="lg"
                 disabled={items.length === 0}
                 onClick={() => setStage('checkout')}
@@ -271,32 +298,37 @@ export function Cart({
                           {formatPrice(item.unitPrice ?? item.price)} × {item.quantity}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 rounded-lg border">
+                      <div className="flex items-center gap-0.5 rounded-xl border">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-11 w-11"
+                          aria-label={`کاهش تعداد ${item.name}`}
                           onClick={() => updateQuantity(item.cartLineId, item.quantity - 1)}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-5 text-center text-xs">{item.quantity}</span>
+                        <span className="w-6 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-11 w-11"
+                          aria-label={`افزایش تعداد ${item.name}`}
                           onClick={() => updateQuantity(item.cartLineId, item.quantity + 1)}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        className="h-11 w-11 text-muted-foreground hover:text-destructive"
+                        aria-label={`حذف ${item.name}`}
                         onClick={() => removeItem(item.cartLineId)}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </li>
                   ))}
@@ -427,17 +459,17 @@ export function Cart({
               </div>
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3">
               <span className="text-sm text-muted-foreground">
                 {count} آیتم{pendingReward ? ' + جایزه' : ''}
               </span>
-              <strong className="text-lg">
+              <strong className="text-lg tabular-nums text-primary">
                 {formatPrice(checkoutTotal)}
               </strong>
             </div>
 
             {redeemDiscount > 0 && (
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-center text-xs text-muted-foreground">
                 قبل از تخفیف: {formatPrice(checkoutSubtotal)}
               </p>
             )}
@@ -448,16 +480,16 @@ export function Cart({
               </div>
             )}
 
-            <div className="mt-auto space-y-2">
+            <div className="mt-auto space-y-2 pb-[max(0.5rem,var(--safe-bottom))]">
               <Button
                 variant="outline"
-                className="w-full"
+                className="min-h-11 w-full"
                 onClick={() => (items.length > 0 ? setStage('cart') : close())}
               >
                 {items.length > 0 ? 'بازگشت' : 'بستن'}
               </Button>
               <Button
-                className="w-full"
+                className="min-h-12 w-full text-base shadow-md shadow-primary/20"
                 size="lg"
                 onClick={handleSubmit}
                 disabled={

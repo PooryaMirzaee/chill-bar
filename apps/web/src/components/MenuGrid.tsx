@@ -83,10 +83,10 @@ export function MenuGrid({
       }, {})
 
   const cardClass = cn(
-    'cursor-pointer overflow-hidden transition-shadow',
-    a.cardVariant === 'minimal' && 'border-0 shadow-none bg-muted/30',
-    a.cardVariant === 'elevated' && 'shadow-lg hover:shadow-xl',
-    a.cardVariant === 'default' && a.cardShowShadow && 'hover:shadow-md',
+    'cursor-pointer overflow-hidden rounded-2xl transition-shadow',
+    a.cardVariant === 'minimal' && 'border-0 shadow-none bg-muted/40',
+    a.cardVariant === 'elevated' && 'border-primary/10 shadow-lg shadow-primary/10 hover:shadow-xl',
+    a.cardVariant === 'default' && a.cardShowShadow && 'border-border/80 shadow-sm hover:shadow-md hover:shadow-primary/10',
     !a.cardShowShadow && 'shadow-none',
   )
 
@@ -95,13 +95,14 @@ export function MenuGrid({
       return (
         <Button
           size="sm"
-          className="h-8 rounded-full px-3 text-xs"
+          className="min-h-11 rounded-full px-4 text-sm"
           onClick={(ev) => {
             ev.stopPropagation()
             onAdd(item, ev)
           }}
+          aria-label={`افزودن ${item.name}`}
         >
-          <ShoppingBag className="ml-1 h-3.5 w-3.5" />
+          <ShoppingBag className="ml-1 h-4 w-4" />
           افزودن
         </Button>
       )
@@ -109,13 +110,14 @@ export function MenuGrid({
     return (
       <Button
         size="icon"
-        className="h-8 w-8 rounded-full"
+        className="h-11 w-11 rounded-full shadow-sm shadow-primary/20"
         onClick={(ev) => {
           ev.stopPropagation()
           onAdd(item, ev)
         }}
+        aria-label={`افزودن ${item.name}`}
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-5 w-5" />
       </Button>
     )
   }
@@ -128,25 +130,25 @@ export function MenuGrid({
             <div className={cn('relative overflow-hidden bg-muted/50', IMAGE_RATIO_CLASS[a.imageRatio])}>
               <MenuItemMedia item={item} size="fill" />
             </div>
-            <CardContent className={cn('space-y-2', a.cardVariant === 'minimal' ? 'p-2.5' : 'p-3')}>
+            <CardContent className={cn('space-y-2', a.cardVariant === 'minimal' ? 'p-3' : 'p-3.5')}>
               {(a.showItemCategoryBadge || a.showModifierBadge) && (
                 <div className="flex flex-wrap items-center gap-1">
                   {a.showItemCategoryBadge && (
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-xs">
                       {item.categoryName}
                     </Badge>
                   )}
                   {a.showModifierBadge && (item.modifiers?.length ?? 0) > 0 && (
-                    <Badge variant="outline" className="text-[10px]">
+                    <Badge variant="outline" className="text-xs">
                       {item.modifiers!.length} آپشن
                     </Badge>
                   )}
                 </div>
               )}
-              <h4 className="line-clamp-2 text-sm font-semibold leading-snug">{item.name}</h4>
+              <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{item.name}</h4>
               <div className="flex items-center justify-between gap-2">
                 {a.showPrice ? (
-                  <span className="text-sm font-bold text-primary">{formatPrice(item.price)}</span>
+                  <span className="text-sm font-bold tabular-nums text-primary">{formatPrice(item.price)}</span>
                 ) : (
                   <span />
                 )}
@@ -163,13 +165,15 @@ export function MenuGrid({
               <MenuItemMedia item={item} size="fill" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
-              <h4 className="truncate text-sm font-semibold">{item.name}</h4>
+              <h4 className="truncate text-sm font-semibold text-foreground">{item.name}</h4>
               {a.showItemCategoryBadge && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-xs">
                   {item.categoryName}
                 </Badge>
               )}
-              {a.showPrice && <p className="text-sm font-bold text-primary">{formatPrice(item.price)}</p>}
+              {a.showPrice && (
+                <p className="text-sm font-bold tabular-nums text-primary">{formatPrice(item.price)}</p>
+              )}
             </div>
             {renderAddButton(item)}
           </CardContent>
@@ -211,7 +215,8 @@ export function MenuGrid({
         <ScrollArea
           className={cn(
             'w-full whitespace-nowrap px-4 pb-4',
-            a.stickyCategoryBar && 'sticky top-[calc(3.5rem+1px)] z-40 bg-background/95 py-2 backdrop-blur-md',
+            a.stickyCategoryBar &&
+              'sticky top-[calc(3.75rem+var(--safe-top))] z-40 bg-background/95 py-2 backdrop-blur-md',
           )}
         >
           <div className="flex gap-2">
@@ -219,7 +224,7 @@ export function MenuGrid({
               <Button
                 variant={!activeCategory ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
                 size="sm"
-                className={chipClass(a.chipVariant, !activeCategory)}
+                className={cn('min-h-11 px-4 text-sm', chipClass(a.chipVariant, !activeCategory))}
                 onClick={() => onCategoryChange(null)}
               >
                 همه
@@ -230,7 +235,7 @@ export function MenuGrid({
                 key={cat.id}
                 variant={activeCategory === cat.id ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
                 size="sm"
-                className={chipClass(a.chipVariant, activeCategory === cat.id)}
+                className={cn('min-h-11 px-4 text-sm', chipClass(a.chipVariant, activeCategory === cat.id))}
                 onClick={() => onCategoryChange(cat.id)}
               >
                 {cat.emoji} {cat.name}
