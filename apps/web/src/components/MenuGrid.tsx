@@ -83,10 +83,10 @@ export function MenuGrid({
       }, {})
 
   const cardClass = cn(
-    'cursor-pointer overflow-hidden rounded-2xl transition-shadow',
-    a.cardVariant === 'minimal' && 'border-0 shadow-none bg-muted/40',
-    a.cardVariant === 'elevated' && 'border-primary/10 shadow-lg shadow-primary/10 hover:shadow-xl',
-    a.cardVariant === 'default' && a.cardShowShadow && 'border-border/80 shadow-sm hover:shadow-md hover:shadow-primary/10',
+    'press group cursor-pointer overflow-hidden rounded-2xl',
+    a.cardVariant === 'minimal' && 'border-0 shadow-none bg-muted/40 hover:bg-muted/60',
+    a.cardVariant === 'elevated' && 'border-primary/10 shadow-soft-lg hover:shadow-brand',
+    a.cardVariant === 'default' && a.cardShowShadow && 'border-border/70 shadow-soft-sm hover:shadow-soft-md',
     !a.cardShowShadow && 'shadow-none',
   )
 
@@ -110,7 +110,7 @@ export function MenuGrid({
     return (
       <Button
         size="icon"
-        className="h-11 w-11 rounded-full shadow-sm shadow-primary/20"
+        className="h-11 w-11 rounded-full"
         onClick={(ev) => {
           ev.stopPropagation()
           onAdd(item, ev)
@@ -127,7 +127,12 @@ export function MenuGrid({
       <>
         {a.layout === 'cards' ? (
           <>
-            <div className={cn('relative overflow-hidden bg-muted/50', IMAGE_RATIO_CLASS[a.imageRatio])}>
+            <div
+              className={cn(
+                'relative overflow-hidden bg-muted/50 [&_img]:h-full [&_img]:w-full [&_img]:transition-transform [&_img]:duration-500 [&_img]:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:[&_img]:scale-[1.07]',
+                IMAGE_RATIO_CLASS[a.imageRatio],
+              )}
+            >
               <MenuItemMedia item={item} size="fill" />
             </div>
             <CardContent className={cn('space-y-2', a.cardVariant === 'minimal' ? 'p-3' : 'p-3.5')}>
@@ -161,7 +166,7 @@ export function MenuGrid({
           </>
         ) : (
           <CardContent className="flex items-center gap-3 p-3">
-            <div className={cn('relative shrink-0 overflow-hidden rounded-xl bg-muted/50', LIST_THUMB[a.listThumbnailSize])}>
+            <div className={cn('relative shrink-0 overflow-hidden rounded-xl bg-muted/50 [&_img]:h-full [&_img]:w-full [&_img]:transition-transform [&_img]:duration-500 group-hover:[&_img]:scale-[1.07]', LIST_THUMB[a.listThumbnailSize])}>
               <MenuItemMedia item={item} size="fill" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
@@ -192,9 +197,9 @@ export function MenuGrid({
     return (
       <motion.div
         key={item.id}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: Math.min(i * 0.03, 0.3) }}
+        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: Math.min(i * 0.04, 0.4), type: 'spring', stiffness: 320, damping: 26 }}
       >
         {card}
       </motion.div>

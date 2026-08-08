@@ -52,6 +52,22 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --cb-orange: #f26522;
+
+  /* Brand gradient (glossy, top-lit) for CTAs & accents */
+  --primary-hi: #ff8442;
+  --primary-lo: #e0530f;
+  --gradient-primary: linear-gradient(180deg, var(--primary-hi) 0%, var(--primary) 52%, var(--primary-lo) 100%);
+  --gradient-warm: linear-gradient(135deg, #ffedd5 0%, #ffe0c2 45%, #ffd3ae 100%);
+
+  /* Tactile / deformable motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Warm elevation scale (tinted, not neutral) */
+  --shadow-sm: 0 1px 2px rgba(120, 53, 15, 0.06), 0 1px 3px rgba(120, 53, 15, 0.05);
+  --shadow-md: 0 4px 10px -2px rgba(120, 53, 15, 0.10), 0 2px 6px -2px rgba(120, 53, 15, 0.07);
+  --shadow-lg: 0 14px 32px -8px rgba(120, 53, 15, 0.16), 0 6px 14px -6px rgba(120, 53, 15, 0.10);
+  --shadow-primary: 0 8px 20px -6px color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
 .dark {
@@ -73,6 +89,14 @@
   --border: rgb(255 255 255 / 10%);
   --input: rgb(255 255 255 / 12%);
   --ring: #f26522;
+
+  --primary-hi: #ff8442;
+  --primary-lo: #d94e10;
+  --gradient-warm: linear-gradient(135deg, #3d2418 0%, #2a1810 45%, #1c1207 100%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.65);
+  --shadow-primary: 0 8px 24px -6px color-mix(in srgb, var(--primary) 55%, transparent);
 }
 
 @layer base {
@@ -108,6 +132,46 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Tactile press feedback — springy squish on tap, bounce-back on release */
+  .press {
+    transition: transform 240ms var(--ease-spring), box-shadow 240ms var(--ease-out-soft);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .press:active {
+    transform: scale(0.955);
+    transition-duration: 90ms;
+  }
+  .press-lg:active {
+    transform: scale(0.97);
+  }
+
+  /* Warm tinted elevation utilities */
+  .shadow-soft-sm { box-shadow: var(--shadow-sm); }
+  .shadow-soft-md { box-shadow: var(--shadow-md); }
+  .shadow-soft-lg { box-shadow: var(--shadow-lg); }
+  .shadow-brand { box-shadow: var(--shadow-primary); }
+
+  /* Glossy brand surface for primary CTAs */
+  .surface-brand {
+    background-image: var(--gradient-primary);
+    box-shadow: var(--shadow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  .surface-brand:hover {
+    filter: brightness(1.04);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press,
+    .press:active,
+    .press-lg:active {
+      transform: none;
+      transition-duration: 0.01ms;
     }
   }
 }

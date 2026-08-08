@@ -438,10 +438,10 @@ function AppContent() {
               <img
                 src={logoUrl}
                 alt={settings.storeName}
-                className="h-11 w-11 shrink-0 rounded-2xl object-contain shadow-md shadow-primary/15"
+                className="h-11 w-11 shrink-0 rounded-2xl object-contain shadow-brand ring-1 ring-primary/10"
               />
             ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-md shadow-primary/25">
+              <div className="surface-brand flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-primary-foreground">
                 {brandFallback}
               </div>
             )}
@@ -648,13 +648,26 @@ function AppContent() {
                 type="button"
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground',
+                  'press relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <Icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} aria-hidden />
-                <span className="leading-tight">{tab.label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="navPill"
+                    className="absolute inset-x-1.5 inset-y-1 -z-0 rounded-2xl bg-primary/12"
+                    transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 480, damping: 34 }}
+                  />
+                )}
+                <motion.span
+                  className="relative z-10 flex flex-col items-center gap-0.5"
+                  animate={reducedMotion ? undefined : { y: active ? -1 : 0, scale: active ? 1.06 : 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                >
+                  <Icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} aria-hidden />
+                  <span className="leading-tight">{tab.label}</span>
+                </motion.span>
               </button>
             )
           })}
