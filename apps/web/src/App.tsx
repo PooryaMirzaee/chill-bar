@@ -53,6 +53,7 @@ import { useStoreSettings } from './hooks/useStoreSettings'
 import { useAiConfig } from './hooks/useAiConfig'
 import { getBrandFallback, getBrandLogoUrl, resolveAssetUrl } from './lib/branding'
 import { menuItemForCart, resolveLiveMenuItem } from './lib/menuItem'
+import { syncSpinPath, tabFromLocation } from './lib/spinRoute'
 
 type Tab = 'home' | 'icecream' | 'menu' | 'discover' | 'play'
 
@@ -119,18 +120,13 @@ function AppContent() {
     return tabs
   }, [copy, features])
 
-  useEffect(() => {
-    if (tabBootstrapped.current) return
-    const ids = navItems.map((t) => t.id)
-    const preferred = menuAppearance.defaultTab as Tab
-    setActiveTab(ids.includes(preferred) ? preferred : ids.includes('menu') ? 'menu' : ids[0])
-    tabBootstrapped.current = true
-  }, [navItems, menuAppearance.defaultTab])
-
   const [hour, setHour] = useState(new Date().getHours())
   const [weather, setWeather] = useState<ContextData['weather']>(null)
   const [mood, setMood] = useState<Mood | null>(null)
-  const [activeTab, setActiveTab] = useState<Tab>('menu')
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const fromUrl = tabFromLocation() as Tab | null
+    return fromUrl === 'play' ? 'play' : 'menu'
+  })
   const tabBootstrapped = useRef(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -141,9 +137,44 @@ function AppContent() {
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+
+  useEffect(() => {
+    if (tabBootstrapped.current) return
+    const ids = navItems.map((t) => t.id)
+    const fromUrl = tabFromLocation() as Tab | null
+    const preferred = menuAppearance.defaultTab as Tab
+    const next =
+      fromUrl && ids.includes(fromUrl)
+        ? fromUrl
+        : ids.includes(preferred)
+          ? preferred
+          : ids.includes('menu')
+            ? 'menu'
+            : ids[0]
+    setActiveTab(next)
+    tabBootstrapped.current = true
+  }, [navItems, menuAppearance.defaultTab])
+
+  useEffect(() => {
+    if (!tabBootstrapped.current) return
+    syncSpinPath(activeTab)
+  }, [activeTab])
+
+  useEffect(() => {
+    const onPopState = () => {
+      const fromUrl = tabFromLocation() as Tab | null
+      if (fromUrl && navItems.some((t) => t.id === fromUrl)) {
+        setActiveTab(fromUrl)
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [navItems])
+
   const { isRegistered, syncPreferences } = useCustomer()
   const { enabled: aiEnabled } = useAiConfig()
-  const showAiFab = features.aiWaiter !== false && aiEnabled && activeTab !== 'icecream'
+  const showAiFab =
+    features.aiWaiter !== false && aiEnabled && activeTab !== 'icecream' && activeTab !== 'play'
   const smartComboOn = features.smartCombo !== false
   const inWaitSession = loungeEnabled && !!activeOrder
   const hidePreOrderGames = loungeOpen || inWaitSession
@@ -398,7 +429,7 @@ function AppContent() {
   }
 
   return (
-    <div className={cn('relative min-h-dvh overflow-x-clip bg-background pb-[calc(5rem+var(--safe-bottom))]', isKiosk && 'select-none')}>
+    <div className={cn('atelier-shell relative min-h-dvh overflow-x-clip bg-background pb-[calc(5.75rem+var(--safe-bottom))]', isKiosk && 'select-none')}>
       {isKiosk && idle && (
         <KioskScreensaver
           storeName={settings.storeName}
@@ -420,43 +451,46 @@ function AppContent() {
       {!iceCreamImmersive && (
       <header
         className={cn(
-          'sticky top-0 z-50 border-b',
-          appearance.headerBlur
-            ? 'bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60'
-            : 'bg-background',
+          'atelier-header sticky top-0 z-[100]',
+          !appearance.headerBlur && 'bg-background',
         )}
       >
-        <div className="mx-auto flex max-w-lg items-center justify-between gap-2 px-4 py-3">
+        <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3.5">
           <div className="flex min-w-0 items-center gap-3">
             {logoUrl ? (
-              <img
+              <motion.img
                 src={logoUrl}
                 alt={settings.storeName}
-                className="h-11 w-11 shrink-0 rounded-xl object-contain shadow-md"
+                className="atelier-brand-mark shrink-0"
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 22 }}
               />
             ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-md">
+              <div className="atelier-brand-mark flex shrink-0 items-center justify-center bg-primary text-lg font-bold text-primary-foreground">
                 {brandFallback}
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="truncate text-base font-bold tracking-tight">{settings.storeName}</h1>
-              <p className="truncate text-xs text-muted-foreground">{settings.storeSubtitle}</p>
+              <h1 className="atelier-brand-title truncate">{settings.storeName}</h1>
+              <p className="atelier-brand-sub truncate">{settings.storeSubtitle}</p>
             </div>
           </div>
-          <WeatherWidget weather={weather} hour={hour} />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative h-10 w-10 shrink-0"
-            onClick={() => setProfileOpen(true)}
-            aria-label="پروفایل"
-          >
-            <User className="h-5 w-5" />
-            {isRegistered && (
-              <span className="absolute end-1 top-1 h-2 w-2 rounded-full bg-primary" />
-            )}
-          </Button>
+          <div className="flex shrink-0 items-center gap-1">
+            <WeatherWidget weather={weather} hour={hour} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-10 w-10 shrink-0 rounded-full"
+              onClick={() => setProfileOpen(true)}
+              aria-label="پروفایل"
+            >
+              <User className="h-5 w-5" />
+              {isRegistered && (
+                <span className="absolute end-1 top-1 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </Button>
+          </div>
         </div>
       </header>
       )}
@@ -601,29 +635,18 @@ function AppContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="space-y-6 py-4"
+              className="campaign-play"
             >
               {features.spinWheel !== false && !hidePreOrderGames && (
-                <SpinWheel items={items} onWin={handleAdd} hint={formatCopy(copy.spinWheelHint, vars)} />
-              )}
-              {smartComboOn && combo && (
-                <ComboBuilder
-                  combo={combo}
-                  eyebrow={homeAppearance.comboEyebrow}
-                  description={formatCopy(copy.comboDescription, vars)}
-                  onOrder={() => {
-                    handleAddCombo(combo.items)
-                  }}
-                  onRefresh={refreshCombo}
-                />
+                <SpinWheel campaign={settings.spinCampaign} logoUrl={logoUrl} />
               )}
             </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex max-w-lg items-stretch px-1 pb-[var(--safe-bottom)] pt-1">
+      <nav className="atelier-dock fixed inset-x-0 bottom-0 z-50">
+        <div className="atelier-dock__tray">
           {navItems.map((tab) => {
             const Icon = TAB_ICONS[tab.id]
             const active = activeTab === tab.id
@@ -631,10 +654,8 @@ function AppContent() {
               <button
                 key={tab.id}
                 type="button"
-                className={cn(
-                  'flex flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors',
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-                )}
+                data-active={active}
+                className="atelier-dock__tab"
                 onClick={() => setActiveTab(tab.id)}
               >
                 <Icon className={cn('h-5 w-5', active && 'stroke-[2.5]')} />
@@ -645,10 +666,12 @@ function AppContent() {
         </div>
       </nav>
 
-      <CartFab
-        className="bottom-[calc(5.5rem+var(--safe-bottom))] start-4"
-        onClick={() => setCartOpen(true)}
-      />
+      {activeTab !== 'play' && (
+        <CartFab
+          className="bottom-[calc(6.35rem+var(--safe-bottom))] start-4"
+          onClick={() => setCartOpen(true)}
+        />
+      )}
 
       {showAiFab && (
         <Button

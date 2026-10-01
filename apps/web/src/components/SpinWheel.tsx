@@ -1,26 +1,64 @@
-import { useMemo, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { MenuItem } from '../types'
-import type { AddToCartHandler } from '../lib/cartFeedback'
-import { formatPrice } from '../lib/comboBuilder'
-import { cn } from '@/lib/utils'
+import type { SpinCampaignSettings, SpinDrawResult, SpinPrize } from '@chill-bar/shared'
+import {
+  activeSpinPrizes,
+  isCampaignActiveOn,
+  normalizeIranMobile,
+  tehranDayKey,
+} from '@chill-bar/shared'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { resolveAssetUrl } from '@/lib/branding'
+import {
+  playClaimSuccess,
+  playSpinLose,
+  playSpinStart,
+  playSpinTick,
+  playSpinWin,
+  playUiTap,
+  unlockSpinAudio,
+} from '@/lib/spinSounds'
 
 interface Props {
-  items: MenuItem[]
-  onWin: AddToCartHandler
-  hint: string
+  campaign: SpinCampaignSettings
+  logoUrl?: string | null
 }
 
-const SEGMENT_COUNT = 8
-const WHEEL_SIZE = 300
-const CX = WHEEL_SIZE / 2
-const CY = WHEEL_SIZE / 2
-const R = 132
-const INNER_R = 44
+type Phase = 'idle' | 'spinning' | 'won' | 'claiming' | 'claimed' | 'blocked'
 
-const SEGMENT_COLORS = ['#F26522', '#1B2838'] as const
+const STORAGE_PREFIX = 'chillbar.spin.v1'
+const SPIN_MS = 8200
+
+function deviceKey(): string {
+  const key = 'chillbar.deviceKey'
+  let v = localStorage.getItem(key)
+  if (!v) {
+    v = `dev_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
+    localStorage.setItem(key, v)
+  }
+  return v
+}
+
+function spinStorageKey(day: string) {
+  return `${STORAGE_PREFIX}.${day}`
+}
+
+function readLocalSpins(day: string): number {
+  try {
+    const raw = localStorage.getItem(spinStorageKey(day))
+    if (!raw) return 0
+    return Number((JSON.parse(raw) as { count?: number }).count) || 0
+  } catch {
+    return 0
+  }
+}
+
+function bumpLocalSpins(day: string) {
+  localStorage.setItem(
+    spinStorageKey(day),
+    JSON.stringify({ count: readLocalSpins(day) + 1, at: Date.now(), deviceKey: deviceKey() }),
+  )
+}
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180
@@ -34,224 +72,524 @@ function arcPath(cx: number, cy: number, r: number, start: number, end: number) 
   return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 ${large} 0 ${e.x} ${e.y} Z`
 }
 
-function pickDiverseItems(all: MenuItem[], count = SEGMENT_COUNT): MenuItem[] {
-  const pool = [...all].sort(() => Math.random() - 0.5)
-  const picked: MenuItem[] = []
-  const seen = new Set<string>()
-
-  for (const item of pool) {
-    if (picked.length >= count) break
-    if (!seen.has(item.category)) {
-      picked.push(item)
-      seen.add(item.category)
-    }
-  }
-  for (const item of pool) {
-    if (picked.length >= count) break
-    if (!picked.includes(item)) picked.push(item)
-  }
-  return picked.slice(0, count)
+function formatPhoneAsYouType(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 4) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`
+  return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
 }
 
-export function SpinWheel({ items, onWin, hint }: Props) {
-  const [prizes] = useState(() => pickDiverseItems(items, SEGMENT_COUNT))
-  const [spinning, setSpinning] = useState(false)
-  const [result, setResult] = useState<MenuItem | null>(null)
-  const [rotation, setRotation] = useState(0)
-  const [added, setAdded] = useState(false)
+/** Largest icon diameter that stays inside an annular wedge at `ringR`. */
+function iconSizeForWedge(r: number, segmentAngle: number, ringR: number, hubR: number) {
+  const halfRad = (segmentAngle * Math.PI) / 360
+  // Angular clearance at the icon center (half-chord)
+  const byAngle = 2 * ringR * Math.sin(halfRad) * 0.58
+  // Keep clear of hub and outer rim
+  const byRadial = Math.min(r - ringR, ringR - hubR) * 1.05
+  return Math.max(18, Math.min(byAngle, byRadial, r * 0.24))
+}
 
-  const segmentAngle = 360 / prizes.length
+export function SpinWheel({ campaign, logoUrl }: Props) {
+  const prizes = useMemo(() => activeSpinPrizes(campaign), [campaign])
+  const size = Math.max(300, Math.min(campaign.wheelSize || 360, 420))
+  const cx = size / 2
+  const cy = size / 2
+  const r = size / 2 - 6
+  const hubR = size * 0.145
+  // Sit icons in the middle of the annulus so they clear hub + rim
+  const ringR = (hubR + r) * 0.55
+  const soundOn = campaign.soundEnabled !== false
+  const showLabels = campaign.showSliceLabels === true
+
+  const [rotation, setRotation] = useState(0)
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [winner, setWinner] = useState<SpinPrize | null>(null)
+  const [drawId, setDrawId] = useState<string | null>(null)
+  const [phone, setPhone] = useState('')
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [claimCode, setClaimCode] = useState<string | null>(null)
+  const [claimMessage, setClaimMessage] = useState<string | null>(null)
+  const [statusMsg, setStatusMsg] = useState<string | null>(null)
+  const [canSpin, setCanSpin] = useState(true)
+  const [burst, setBurst] = useState(false)
+  const tickTimer = useRef<number | null>(null)
+
+  const segmentAngle = prizes.length ? 360 / prizes.length : 360
+  const campaignStatus = isCampaignActiveOn(campaign)
+  const day = tehranDayKey()
+  const iconSize = iconSizeForWedge(r, segmentAngle, ringR, hubR)
+
+  useEffect(() => {
+    if (campaignStatus !== 'active') {
+      setCanSpin(false)
+      setStatusMsg(
+        campaignStatus === 'ended'
+          ? campaign.endedMessage
+          : campaignStatus === 'not_started'
+            ? campaign.notStartedMessage
+            : 'گردونه فعلاً غیرفعال است',
+      )
+      setPhase('blocked')
+      return
+    }
+    if (readLocalSpins(day) >= campaign.spinsPerDay) {
+      setCanSpin(false)
+      setStatusMsg(campaign.alreadySpunMessage)
+      setPhase('blocked')
+    }
+  }, [campaign, campaignStatus, day])
+
+  useEffect(
+    () => () => {
+      if (tickTimer.current) window.clearTimeout(tickTimer.current)
+    },
+    [],
+  )
 
   const segments = useMemo(
     () =>
-      prizes.map((item, i) => {
+      prizes.map((prize, i) => {
         const start = i * segmentAngle
         const end = start + segmentAngle
         const mid = start + segmentAngle / 2
+        const iconPos = polar(cx, cy, ringR, mid)
         return {
-          item,
+          prize,
           start,
           end,
           mid,
-          color: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+          iconPos,
+          imageSrc: resolveAssetUrl(prize.imageUrl),
         }
       }),
-    [prizes, segmentAngle],
+    [prizes, segmentAngle, cx, cy, ringR],
   )
 
-  const spin = () => {
-    if (spinning) return
-    setSpinning(true)
-    setResult(null)
-    setAdded(false)
-
-    const winIdx = Math.floor(Math.random() * prizes.length)
-    const winner = prizes[winIdx]
-    const segmentCenter = winIdx * segmentAngle + segmentAngle / 2
-    const jitter = (Math.random() - 0.5) * (segmentAngle * 0.35)
-    const targetMod = (360 - segmentCenter + jitter + 360) % 360
-    const currentMod = rotation % 360
-    let delta = targetMod - currentMod
-    if (delta <= 0) delta += 360
-
-    setRotation((r) => r + 5 * 360 + delta)
-
-    setTimeout(() => {
-      setSpinning(false)
-      setResult(winner)
-    }, 4000)
+  const stopTicks = () => {
+    if (tickTimer.current) {
+      window.clearTimeout(tickTimer.current)
+      tickTimer.current = null
+    }
   }
 
-  const handleAccept = (e: MouseEvent) => {
-    if (!result || added) return
-    onWin(result, e)
-    setAdded(true)
+  const startTicks = () => {
+    stopTicks()
+    if (!soundOn) return
+    let interval = 48
+    const schedule = () => {
+      playSpinTick(Math.min(1.4, 1000 / interval))
+      interval = Math.min(200, interval * 1.05)
+      tickTimer.current = window.setTimeout(schedule, interval)
+    }
+    tickTimer.current = window.setTimeout(schedule, 30)
+  }
+
+  const spin = useCallback(async () => {
+    if (phase === 'spinning' || !canSpin || prizes.length === 0) return
+    unlockSpinAudio()
+    if (soundOn) playUiTap()
+
+    setPhase('spinning')
+    setWinner(null)
+    setDrawId(null)
+    setClaimCode(null)
+    setClaimMessage(null)
+    setPhoneError(null)
+    setStatusMsg(null)
+    setBurst(false)
+
+    let draw: SpinDrawResult
+    try {
+      const res = await fetch('/api/spin/draw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceKey: deviceKey() }),
+      })
+      const data = (await res.json()) as Partial<SpinDrawResult> & { error?: string }
+      if (!res.ok || !data.drawId || !data.prizeId) {
+        setStatusMsg(data.error || 'خطا در چرخش — دوباره تلاش کنید')
+        if (res.status === 429 || res.status === 403) {
+          setCanSpin(false)
+          setPhase('blocked')
+        } else {
+          setPhase('idle')
+        }
+        return
+      }
+      draw = { drawId: data.drawId, prizeId: data.prizeId }
+    } catch {
+      setStatusMsg('ارتباط برقرار نشد — دوباره تلاش کنید')
+      setPhase('idle')
+      return
+    }
+
+    const winIdx = prizes.findIndex((p) => p.id === draw.prizeId)
+    if (winIdx < 0) {
+      setStatusMsg('گردونه به‌روز شده — صفحه را دوباره باز کنید')
+      setPhase('idle')
+      return
+    }
+    const picked = prizes[winIdx]
+    setDrawId(draw.drawId)
+    if (soundOn) playSpinStart()
+    startTicks()
+
+    const segmentCenter = winIdx * segmentAngle + segmentAngle / 2
+    const jitter = (Math.random() - 0.5) * segmentAngle * 0.28
+    const targetMod = (360 - segmentCenter + jitter + 360) % 360
+    const currentMod = ((rotation % 360) + 360) % 360
+    let delta = targetMod - currentMod
+    if (delta <= 0) delta += 360
+    setRotation(rotation + 11 * 360 + delta)
+
+    window.setTimeout(() => {
+      stopTicks()
+      setWinner(picked)
+      setPhase('won')
+      setBurst(true)
+      bumpLocalSpins(day)
+      setCanSpin(false)
+      if (soundOn) {
+        if (picked.type === 'TRY_AGAIN') playSpinLose()
+        else playSpinWin()
+      }
+      if (navigator.vibrate) navigator.vibrate([18, 30, 18, 40, 40])
+    }, SPIN_MS)
+  }, [phase, canSpin, prizes, segmentAngle, rotation, day, soundOn])
+
+  const claim = async () => {
+    if (!winner || !drawId) return
+    unlockSpinAudio()
+    const normalized = normalizeIranMobile(phone)
+    if (!normalized) {
+      setPhoneError('شماره موبایل ایرانی معتبر نیست — مثال: ۰۹۱۲۳۴۵۶۷۸۹')
+      return
+    }
+    setPhoneError(null)
+    setPhase('claiming')
+    try {
+      const res = await fetch('/api/spin/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          drawId,
+          phone: normalized,
+          deviceKey: deviceKey(),
+        }),
+      })
+      const data = (await res.json()) as { error?: string; code?: string | null; message?: string }
+      if (!res.ok) {
+        setPhoneError(data.error || 'خطا در صدور کد')
+        setPhase('won')
+        return
+      }
+      setClaimCode(data.code ?? null)
+      setClaimMessage(data.message ?? null)
+      setPhase('claimed')
+      setStatusMsg(campaign.alreadySpunMessage)
+      if (soundOn) playClaimSuccess()
+    } catch {
+      setPhoneError('ارتباط برقرار نشد — دوباره تلاش کنید')
+      setPhase('won')
+    }
+  }
+
+  if (prizes.length === 0) {
+    return (
+      <section className="campaign-spin campaign-spin--solo campaign-spin--empty">
+        <p>جایزه‌ای برای گردونه تعریف نشده.</p>
+      </section>
+    )
   }
 
   return (
-    <section className="px-4 pb-6 text-center">
-      <div className="mb-6">
-        <span className="mb-2 inline-block rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-          نمی‌دونی چی بگیری؟
-        </span>
-        <h2 className="text-xl font-black tracking-tight">گردونه پیشنهاد</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
-      </div>
+    <section className="campaign-spin campaign-spin--solo">
+      <div className="campaign-spin__glow" aria-hidden />
 
-      <div className="relative mx-auto mb-6 aspect-square w-full max-w-[min(300px,88vw)]">
-        <div
-          className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle,rgba(242,101,34,0.18)_0%,transparent_68%)]"
-          aria-hidden
-        />
+      <header className="campaign-spin__hero">
+        <span className="campaign-spin__badge">{campaign.heroBadge}</span>
+        <h1 className="campaign-spin__title font-display">{campaign.campaignTitle}</h1>
+        <p className="campaign-spin__subtitle">{campaign.campaignSubtitle}</p>
+      </header>
 
-        <div
-          className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1"
-          aria-hidden
-        >
-          <svg viewBox="0 0 32 40" width="28" height="36" className="drop-shadow-[0_4px_10px_rgba(242,101,34,0.45)]">
-            <path
-              d="M16 2 L30 34 Q16 40 2 34 Z"
-              fill="#F26522"
-              stroke="white"
-              strokeWidth="2"
-            />
-          </svg>
-        </div>
-
+      <div className="campaign-spin__arena">
         <motion.div
-          className="absolute inset-0 origin-center"
-          animate={{ rotate: rotation }}
-          transition={{ duration: 4, ease: [0.12, 0.85, 0.22, 1] }}
+          className="campaign-spin__pointer"
+          animate={
+            phase === 'spinning'
+              ? { y: [0, -5, 0], rotate: [0, -7, 5, 0] }
+              : { y: [0, -2, 0] }
+          }
+          transition={
+            phase === 'spinning'
+              ? { duration: 0.26, repeat: Infinity }
+              : { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
+          }
+          aria-hidden
         >
-          <svg
-            viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
-            className="h-full w-full drop-shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
-            aria-hidden
-          >
+          <svg width="40" height="48" viewBox="0 0 40 48">
             <defs>
-              <radialGradient id="spin-wheel-hub" cx="40%" cy="35%">
-                <stop offset="0%" stopColor="#2a2a2a" />
-                <stop offset="100%" stopColor="#0a0a0a" />
-              </radialGradient>
+              <linearGradient id="chillPinFix" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FFD2B8" />
+                <stop offset="50%" stopColor="#F26522" />
+                <stop offset="100%" stopColor="#9C2E06" />
+              </linearGradient>
             </defs>
-
-            <circle
-              cx={CX}
-              cy={CY}
-              r={R + 5}
-              fill="none"
-              stroke="rgba(242, 101, 34, 0.35)"
-              strokeWidth="4"
-            />
-
-            {segments.map(({ item, start, end, mid, color }) => (
-              <g key={item.id}>
-                <path
-                  d={arcPath(CX, CY, R, start, end)}
-                  fill={color}
-                  stroke="rgba(255,255,255,0.14)"
-                  strokeWidth="1.2"
-                />
-                <g transform={`rotate(${mid} ${CX} ${CY})`}>
-                  <text
-                    x={CX}
-                    y={CY - R * 0.58}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="26"
-                  >
-                    {item.emoji}
-                  </text>
-                </g>
-              </g>
-            ))}
-
-            <circle cx={CX} cy={CY} r={INNER_R + 3} fill="#0a0a0a" stroke="rgba(242, 101, 34, 0.5)" strokeWidth="2" />
-            <circle cx={CX} cy={CY} r={INNER_R} fill="url(#spin-wheel-hub)" />
-            <text
-              x={CX}
-              y={CY - 4}
-              textAnchor="middle"
-              fontSize="22"
-              dominantBaseline="middle"
-            >
-              🍊
-            </text>
-            <text
-              x={CX}
-              y={CY + 14}
-              textAnchor="middle"
-              fill="#F26522"
-              fontSize="9"
-              fontWeight="800"
-              letterSpacing="2"
-            >
-              CHILL
-            </text>
+            <path d="M20 48 L2 8 Q20 -2 38 8 Z" fill="url(#chillPinFix)" />
+            <circle cx="20" cy="12" r="5.5" fill="#FFF8F0" />
+            <circle cx="20" cy="12" r="2.4" fill="#F26522" />
           </svg>
         </motion.div>
+
+        <div
+          className={`campaign-spin__rim ${phase === 'spinning' ? 'is-spinning' : ''}`}
+          style={{ width: size + 18, height: size + 18 }}
+        >
+          <motion.div
+            className="campaign-spin__disk"
+            style={{ width: size, height: size }}
+            animate={{ rotate: rotation }}
+            transition={{ duration: SPIN_MS / 1000, ease: [0.12, 0.72, 0.05, 1] }}
+          >
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+              <defs>
+                {segments.map((seg) => (
+                  <clipPath key={`clip-${seg.prize.id}`} id={`spin-clip-${seg.prize.id}`} clipPathUnits="userSpaceOnUse">
+                    <path d={arcPath(cx, cy, r, seg.start, seg.end)} />
+                  </clipPath>
+                ))}
+                {segments.map((seg) => (
+                  <clipPath key={`icon-${seg.prize.id}`} id={`spin-icon-${seg.prize.id}`} clipPathUnits="userSpaceOnUse">
+                    <circle cx={seg.iconPos.x} cy={seg.iconPos.y} r={iconSize / 2 - 0.5} />
+                  </clipPath>
+                ))}
+              </defs>
+
+              <circle cx={cx} cy={cy} r={r} fill="#1A1411" />
+
+              {segments.map((seg) => (
+                <g key={seg.prize.id}>
+                  <path
+                    d={arcPath(cx, cy, r, seg.start, seg.end)}
+                    fill={seg.prize.color}
+                    stroke="rgba(255,248,240,0.35)"
+                    strokeWidth="1.25"
+                  />
+                  {seg.imageSrc && (
+                    <g clipPath={`url(#spin-clip-${seg.prize.id})`}>
+                      <g clipPath={`url(#spin-icon-${seg.prize.id})`}>
+                        <image
+                          href={seg.imageSrc}
+                          x={seg.iconPos.x - iconSize / 2}
+                          y={seg.iconPos.y - iconSize / 2}
+                          width={iconSize}
+                          height={iconSize}
+                          preserveAspectRatio="xMidYMid meet"
+                          transform={`rotate(${seg.mid}, ${seg.iconPos.x}, ${seg.iconPos.y})`}
+                        />
+                      </g>
+                    </g>
+                  )}
+                  {showLabels && (
+                    <text
+                      x={seg.iconPos.x}
+                      y={seg.iconPos.y + (seg.imageSrc ? iconSize * 0.55 : 0)}
+                      fill={seg.prize.textColor}
+                      fontSize={Math.max(9, size * 0.028)}
+                      fontWeight="700"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${seg.mid}, ${seg.iconPos.x}, ${seg.iconPos.y})`}
+                    >
+                      {seg.prize.label.length > 9
+                        ? `${seg.prize.label.slice(0, 8)}…`
+                        : seg.prize.label}
+                    </text>
+                  )}
+                </g>
+              ))}
+
+              <circle cx={cx} cy={cy} r={hubR} fill="#FFFCF9" />
+            </svg>
+          </motion.div>
+
+          <div className="campaign-spin__hub">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Chill Bar" className="campaign-spin__hub-logo" />
+            ) : (
+              <span className="campaign-spin__hub-fallback font-display">چیل</span>
+            )}
+          </div>
+        </div>
+
+        <Button
+          className="campaign-spin__cta"
+          size="lg"
+          disabled={!canSpin || phase === 'spinning' || phase === 'blocked'}
+          onClick={() => void spin()}
+        >
+          <span className="campaign-spin__cta-pulse" aria-hidden />
+          {phase === 'spinning' ? 'داره می‌چرخه…' : campaign.ctaLabel}
+        </Button>
+
+        {statusMsg && (phase === 'blocked' || phase === 'idle') && !claimCode && (
+          <p className="campaign-spin__status">{statusMsg}</p>
+        )}
       </div>
 
-      <Button
-        className="mx-auto h-12 w-full max-w-[280px] rounded-full text-base font-bold shadow-lg shadow-primary/20"
-        onClick={spin}
-        disabled={spinning}
+      <a
+        className="campaign-spin__powered"
+        href="https://upfood.ir"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        {spinning ? 'در حال انتخاب...' : '🎯 پیشنهاد بده!'}
-      </Button>
+        powered by <strong>upfood</strong>
+      </a>
 
       <AnimatePresence>
-        {result && (
+        {(phase === 'won' || phase === 'claiming' || phase === 'claimed') && winner && (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 220 }}
-            className="mt-6"
+            className="campaign-spin__modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <Card className="mx-auto max-w-sm overflow-hidden border-primary/30 text-center shadow-lg shadow-primary/10">
-              <div className="h-1 bg-primary" />
-              <CardContent className="px-5 py-5">
-                <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                  پیشنهاد امروز
-                </span>
-                <div className="mb-2 text-5xl">{result.emoji}</div>
-                <h3 className="text-lg font-black">{result.name.split('(')[0].trim()}</h3>
-                <p className="text-xs text-muted-foreground">{result.categoryName}</p>
-                <p className="mt-2 text-base font-bold text-primary">{formatPrice(result.price)}</p>
-                {result.description && (
-                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{result.description}</p>
+            {burst && campaign.showConfetti && winner.type !== 'TRY_AGAIN' && (
+              <div className="campaign-spin__confetti" aria-hidden>
+                {Array.from({ length: 28 }).map((_, i) => (
+                  <i
+                    key={i}
+                    style={{
+                      ['--i' as string]: i,
+                      ['--x' as string]: `${(i * 37) % 100}%`,
+                      ['--c' as string]: ['#F26522', '#FFD2B8', '#2C2420', '#FF8C4D'][i % 4],
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            <motion.div
+              className="campaign-spin__sheet"
+              initial={{ y: 48, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 24, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 340, damping: 26 }}
+            >
+              <div className="campaign-spin__win-emoji">
+                {resolveAssetUrl(winner.imageUrl) ? (
+                  <img
+                    src={resolveAssetUrl(winner.imageUrl)!}
+                    alt=""
+                    className="campaign-spin__win-thumb"
+                  />
+                ) : (
+                  winner.emoji
                 )}
-                <Button
-                  className={cn('mt-4 w-full rounded-full font-bold', added && 'bg-emerald-500/15 text-emerald-600')}
-                  onClick={handleAccept}
-                  disabled={added}
-                  variant={added ? 'outline' : 'default'}
-                >
-                  {added ? '✓ به سبد اضافه شد' : '🛒 همینو می‌خوام!'}
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="campaign-spin__win-kicker">
+                {winner.type === 'TRY_AGAIN' ? 'این بار نشد' : 'برنده شدی!'}
+              </p>
+              <h2 className="font-display campaign-spin__win-title">{winner.label}</h2>
+              {winner.description && (
+                <p className="campaign-spin__win-desc">{winner.description}</p>
+              )}
+
+              {phase === 'claimed' ? (
+                <div className="campaign-spin__claim-block">
+                  {claimCode ? (
+                    <>
+                      <p className="campaign-spin__code-label">کد صندوق شما</p>
+                      <div className="campaign-spin__code" dir="ltr">
+                        {claimCode}
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          playUiTap()
+                          void navigator.clipboard?.writeText(claimCode)
+                        }}
+                      >
+                        کپی کد
+                      </Button>
+                      <div className="campaign-spin__venue">
+                        <strong>{campaign.venueGuideTitle}</strong>
+                        <p>{campaign.venueGuideBody}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="campaign-spin__hint">{claimMessage}</p>
+                  )}
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      playUiTap()
+                      setPhase('blocked')
+                    }}
+                  >
+                    فهمیدم
+                  </Button>
+                </div>
+              ) : winner.type === 'TRY_AGAIN' ? (
+                <div className="campaign-spin__claim-block">
+                  <p className="campaign-spin__hint">
+                    {winner.description || 'فردا دوباره شانس داری'}
+                  </p>
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      playUiTap()
+                      setPhase('claiming')
+                      try {
+                        await fetch('/api/spin/claim', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            drawId,
+                            phone: '',
+                            deviceKey: deviceKey(),
+                          }),
+                        })
+                      } catch {
+                        /* ignore */
+                      }
+                      setPhase('blocked')
+                      setStatusMsg(campaign.alreadySpunMessage)
+                    }}
+                  >
+                    باشه
+                  </Button>
+                </div>
+              ) : (
+                <div className="campaign-spin__claim-block">
+                  <p className="campaign-spin__phone-title">{campaign.phonePromptTitle}</p>
+                  <p className="campaign-spin__hint">{campaign.phonePromptBody}</p>
+                  <label className="campaign-spin__phone-label">
+                    شماره موبایل ایرانی
+                    <input
+                      className="campaign-spin__phone"
+                      dir="ltr"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder={campaign.phonePlaceholder}
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(formatPhoneAsYouType(e.target.value))
+                        setPhoneError(null)
+                      }}
+                    />
+                  </label>
+                  {phoneError && <p className="campaign-spin__error">{phoneError}</p>}
+                  <Button
+                    className="w-full"
+                    disabled={phase === 'claiming'}
+                    onClick={() => void claim()}
+                  >
+                    {phase === 'claiming' ? 'در حال صدور…' : campaign.claimButtonLabel}
+                  </Button>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

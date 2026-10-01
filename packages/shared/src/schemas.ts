@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { homeAppearanceSchema } from './homeAppearance'
 import { menuAppearanceSchema } from './menuAppearance'
 import { comboRecommendationSettingsSchema } from './comboSettings'
+import { spinCampaignSettingsSchema } from './spinCampaign'
 import { RECEIPT_TEMPLATE_IDS } from './receiptTemplates'
 
 export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK', 'POS'])
@@ -418,6 +419,7 @@ export const settingsInputSchema = z.object({
   waitLounge: waitLoungeSettingsSchema.default({}),
   comboRecommendations: comboRecommendationSettingsSchema.default({}),
   coffeeFortuneSettings: coffeeFortuneSettingsSchema.default({}),
+  spinCampaign: spinCampaignSettingsSchema.default({}),
 })
 
 export const uploadImageSchema = z.object({

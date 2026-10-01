@@ -7,10 +7,11 @@ interface PosCartProps {
   cart: PosCartApi
   onCheckout: () => void
   onDiscount: () => void
+  onSpinCode?: () => void
   disabled?: boolean
 }
 
-export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps) {
+export function PosCart({ cart, onCheckout, onDiscount, onSpinCode, disabled }: PosCartProps) {
   const phoneInvalid = useMemo(() => {
     const digits = cart.customerPhone.replace(/\D/g, '')
     return digits.length > 0 && !/^09\d{9}$/.test(digits)
@@ -120,6 +121,11 @@ export function PosCart({ cart, onCheckout, onDiscount, disabled }: PosCartProps
         </div>
 
         <div className="pos-cart-actions">
+          {onSpinCode && (
+            <button type="button" className="pos-btn-secondary" onClick={onSpinCode}>
+              کد گردونه
+            </button>
+          )}
           <button type="button" className="pos-btn-secondary" onClick={onDiscount} disabled={!cart.lines.length}>
             تخفیف
           </button>

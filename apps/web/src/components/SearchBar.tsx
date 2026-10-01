@@ -17,7 +17,7 @@ export function SearchBar({ value, onChange, placeholder }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="ps-10 pe-10"
+        className="h-12 rounded-full border-border/60 bg-[color-mix(in_srgb,var(--scoop)_90%,transparent)] ps-10 pe-10 shadow-sm"
       />
       {value && (
         <Button

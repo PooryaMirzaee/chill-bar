@@ -35,20 +35,24 @@ export function CategoryShowcase({ categories, activeId, onSelect, header }: Pro
                 key={cat.id}
                 type="button"
                 className={cn(
-                  'relative flex h-28 w-28 shrink-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border-2 text-white shadow-sm transition-transform',
-                  active ? 'border-primary ring-2 ring-primary/30' : 'border-transparent',
+                  'relative flex h-[7.5rem] w-[6.75rem] shrink-0 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[1.4rem] text-[var(--cocoa)] shadow-[0_10px_28px_color-mix(in_srgb,var(--cocoa)_10%,transparent)] transition-transform',
+                  active
+                    ? 'ring-2 ring-[var(--scoop-orange)] ring-offset-2 ring-offset-[var(--stone)]'
+                    : 'ring-1 ring-black/5',
                 )}
-                style={{ background: visual.gradient }}
+                style={{
+                  background: `linear-gradient(160deg, color-mix(in srgb, ${visual.accent || '#f26522'} 28%, white), var(--scoop))`,
+                }}
                 onClick={() => onSelect(cat.id)}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.04 }}
+                transition={{ delay: Math.min(i * 0.03, 0.2), duration: 0.25 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-3xl">{cat.emoji}</span>
-                <span className="text-xs font-bold">{cat.name}</span>
+                <span className="text-3xl drop-shadow-sm">{cat.emoji}</span>
+                <span className="px-1 text-center text-[11px] font-bold leading-tight">{cat.name}</span>
                 {cat.showCustomBadge && (
-                  <Badge className="absolute bottom-2 bg-white/20 text-[9px] text-white hover:bg-white/20">
+                  <Badge className="absolute bottom-2 bg-[var(--cocoa)]/80 text-[9px] text-white hover:bg-[var(--cocoa)]/80">
                     سفارشی
                   </Badge>
                 )}

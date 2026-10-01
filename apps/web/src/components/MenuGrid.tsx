@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Plus, ShoppingBag } from 'lucide-react'
 import type { Category, MenuAppearance } from '@chill-bar/shared'
-import { formatMenuDescription, resolveCategoryVisual } from '@chill-bar/shared'
+import { formatMenuDescription } from '@chill-bar/shared'
 import type { MenuItem } from '../types'
 import { formatPrice } from '../lib/comboBuilder'
 import { MenuItemMedia } from './MenuItemMedia'
@@ -37,23 +37,8 @@ const GRID_COLS: Record<MenuAppearance['gridColumns'], string> = {
   3: 'grid-cols-3',
 }
 
-const LIST_THUMB: Record<MenuAppearance['listThumbnailSize'], string> = {
-  sm: 'h-16 w-16',
-  md: 'h-20 w-20',
-  lg: 'h-24 w-24',
-}
-
-function chipClass(variant: MenuAppearance['chipVariant'], active: boolean): string {
-  if (variant === 'soft') {
-    return cn(
-      'rounded-xl border-0',
-      active ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-foreground hover:bg-primary/15',
-    )
-  }
-  if (variant === 'outline') {
-    return cn('rounded-xl', active ? '' : 'border-muted-foreground/30')
-  }
-  return 'rounded-full'
+function chipClass(_variant: MenuAppearance['chipVariant'], active: boolean): string {
+  return cn('atelier-chip', active && 'is-active')
 }
 
 export function MenuGrid({
@@ -95,7 +80,7 @@ export function MenuGrid({
       return (
         <Button
           size="sm"
-          className="h-8 rounded-full px-3 text-xs"
+          className="atelier-add h-8 w-auto rounded-full px-3 text-xs shadow-none"
           onClick={(ev) => {
             ev.stopPropagation()
             onAdd(item, ev)
@@ -107,16 +92,17 @@ export function MenuGrid({
       )
     }
     return (
-      <Button
-        size="icon"
-        className="h-8 w-8 rounded-full"
+      <button
+        type="button"
+        className="atelier-add"
+        aria-label={`افزودن ${item.name}`}
         onClick={(ev) => {
           ev.stopPropagation()
           onAdd(item, ev)
         }}
       >
         <Plus className="h-4 w-4" />
-      </Button>
+      </button>
     )
   }
 
@@ -158,24 +144,45 @@ export function MenuGrid({
             </CardContent>
           </>
         ) : (
-          <CardContent className="flex items-center gap-3 p-3">
-            <div className={cn('relative shrink-0 overflow-hidden rounded-xl bg-muted/50', LIST_THUMB[a.listThumbnailSize])}>
+          <div className="atelier-menu-row" onClick={() => onSelect(item)} role="button" tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onSelect(item)
+              }
+            }}
+          >
+            <div className="atelier-menu-thumb">
               <MenuItemMedia item={item} size="fill" />
             </div>
-            <div className="min-w-0 flex-1 space-y-1">
-              <h4 className="truncate text-sm font-semibold">{item.name}</h4>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <h4 className="atelier-menu-name line-clamp-2">{item.name}</h4>
               {a.showItemCategoryBadge && (
-                <Badge variant="secondary" className="text-[10px]">
+                <span className="inline-block text-[11px] font-medium text-muted-foreground">
                   {item.categoryName}
-                </Badge>
+                </span>
               )}
-              {a.showPrice && <p className="text-sm font-bold text-primary">{formatPrice(item.price)}</p>}
+              {a.showPrice && <p className="atelier-menu-price">{formatPrice(item.price)}</p>}
             </div>
             {renderAddButton(item)}
-          </CardContent>
+          </div>
         )}
       </>
     )
+
+    if (a.layout !== 'cards') {
+      if (!a.animateCards) return <div key={item.id}>{body}</div>
+      return (
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: Math.min(i * 0.02, 0.2), duration: 0.25 }}
+        >
+          {body}
+        </motion.div>
+      )
+    }
 
     const card = (
       <Card className={cardClass} onClick={() => onSelect(item)}>
@@ -247,20 +254,11 @@ export function MenuGrid({
         return (
           <div key={catId} className="mb-6">
             {showHeader && cat && (
-              <div
-                className={cn(
-                  'mx-4 mb-3 rounded-xl px-4 py-3',
-                  a.categoryHeaderStyle === 'plain' && 'border bg-muted/60 text-foreground',
-                )}
-                style={
-                  a.categoryHeaderStyle === 'gradient'
-                    ? { background: resolveCategoryVisual(cat).gradient }
-                    : undefined
-                }
-              >
-                <h3 className={cn('font-bold', a.categoryHeaderStyle === 'gradient' && 'text-white')}>
-                  {cat.emoji} {cat.name}
-                </h3>
+              <div className="atelier-cat-band">
+                <span className="atelier-cat-band__emoji" aria-hidden>
+                  {cat.emoji}
+                </span>
+                <h3 className="atelier-cat-band__name">{cat.name}</h3>
               </div>
             )}
             <div

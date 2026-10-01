@@ -335,3 +335,36 @@ model AnalyticsEvent {
   @@index([type])
   @@index([createdAt])
 }
+
+model SpinPrizeClaim {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  prizeId     String
+  prizeLabel  String
+  prizeType   String
+  prizeEmoji  String   @default("🎁")
+  prizeSnapshot Json   @default("{}")
+  phone       String
+  deviceKey   String?
+  dayKey      String
+  redeemedAt  DateTime?
+  redeemedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([phone, dayKey])
+  @@index([dayKey])
+  @@index([prizeId])
+  @@index([createdAt])
+}
+
+model SpinDraw {
+  id        String    @id @default(cuid())
+  prizeId   String
+  deviceKey String
+  dayKey    String
+  claimedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([deviceKey, dayKey])
+  @@index([createdAt])
+}

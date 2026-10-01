@@ -17,6 +17,7 @@ import { PosModifierModal } from './PosModifierModal'
 import { PosIceCreamModal } from './PosIceCreamModal'
 import { PosCheckoutModal } from './PosCheckoutModal'
 import { PosDiscountModal } from './PosDiscountModal'
+import { PosSpinRedeemModal } from './PosSpinRedeemModal'
 import { PosIncomingPanel } from './PosIncomingPanel'
 import type { PosMenuItem } from '@chill-bar/shared'
 import { menuItemOpensIceCreamBuilder } from '@chill-bar/shared'
@@ -40,6 +41,7 @@ export function PosRegister() {
   const [iceHubItem, setIceHubItem] = useState<PosMenuItem | null>(null)
   const [showCheckout, setShowCheckout] = useState(false)
   const [showDiscount, setShowDiscount] = useState(false)
+  const [showSpinRedeem, setShowSpinRedeem] = useState(false)
   const [settleOrder, setSettleOrder] = useState<PosOrder | null>(null)
   const [settleCustomerName, setSettleCustomerName] = useState('')
   const [settleCustomerPhone, setSettleCustomerPhone] = useState('')
@@ -203,6 +205,7 @@ export function PosRegister() {
           cart={cart}
           onCheckout={() => setShowCheckout(true)}
           onDiscount={() => setShowDiscount(true)}
+          onSpinCode={() => setShowSpinRedeem(true)}
           disabled={shiftBlocked}
         />
       </div>
@@ -227,6 +230,20 @@ export function PosRegister() {
           onApply={(amount, note) => {
             cart.setDiscountAmount(amount)
             cart.setDiscountNote(note)
+          }}
+        />
+      )}
+
+      {showSpinRedeem && (
+        <PosSpinRedeemModal
+          subtotal={cart.subtotal}
+          onClose={() => setShowSpinRedeem(false)}
+          onApplyDiscount={(amount, note) => {
+            cart.setDiscountAmount(amount)
+            cart.setDiscountNote(note)
+          }}
+          onPrefillCustomer={(phone) => {
+            if (!cart.customerPhone) cart.setCustomerPhone(phone)
           }}
         />
       )}

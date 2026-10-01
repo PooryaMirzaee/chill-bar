@@ -96,7 +96,7 @@ interface BarModelProps {
   displayScale?: number
 }
 
-function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFrame = false, displayScale = 1 }: BarModelProps) {
+export function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFrame = false, displayScale = 1 }: BarModelProps) {
   const groupRef = useRef<Group>(null)
   const coatProfile = getCoatingProfile(build.coating || null)
   const baseProfile = getBaseProfile(build.base || null)
@@ -267,7 +267,7 @@ function BarModel({ build, mode = 'full', size = 'lg', autoRotate = true, fitFra
   )
 }
 
-function SceneLights() {
+export function SceneLights() {
   return (
     <>
       <ambientLight intensity={0.35} color="#fff8f2" />

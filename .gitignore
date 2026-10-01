@@ -35,3 +35,6 @@ packages/api/uploads/*
 # uploaded brand assets
 packages/api/uploads/*
 !packages/api/uploads/.gitkeep
+
+# local render exports (ice cream combo images)
+exports/

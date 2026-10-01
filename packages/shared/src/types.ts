@@ -508,9 +508,18 @@ export interface MoodDefinition {
 
 import type { ComboRecommendationSettings } from './comboSettings'
 import type { CoffeeFortuneSettings } from './coffeeFortune'
+import type { SpinCampaignSettings } from './spinCampaign'
 
 export type { CategoryPairRule, ComboTemplate } from './comboSettings'
 export type { CoffeeFortuneSettings, CoffeeFortuneEntry, CoffeeFortuneSymbol, CoffeeFortuneReading } from './coffeeFortune'
+export type {
+  SpinCampaignSettings,
+  SpinPrize,
+  SpinPrizeType,
+  SpinClaimInput,
+  SpinDrawInput,
+  SpinDrawResult,
+} from './spinCampaign'
 
 export interface StoreSettings {
   storeName: string
@@ -536,6 +545,7 @@ export interface StoreSettings {
   waitLounge: WaitLoungeSettings
   comboRecommendations: ComboRecommendationSettings
   coffeeFortuneSettings: CoffeeFortuneSettings
+  spinCampaign: SpinCampaignSettings
 }
 
 export interface AiSettings {

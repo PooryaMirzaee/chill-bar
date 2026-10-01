@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@chill-bar/shared": "*",
+    "@cxde/wheel-of-fortune": "^0.1.8",
     "@radix-ui/react-dialog": "^1.1.17",
     "@radix-ui/react-label": "^2.1.10",
     "@radix-ui/react-scroll-area": "^1.2.12",

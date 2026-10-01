@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee } from 'lucide-react'
+import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee, Disc3 } from 'lucide-react'
 import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
-import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings } from '@chill-bar/shared'
+import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { AppearanceSettings } from '../components/AppearanceSettings'
 import { AiSettingsPanel } from '../components/AiSettingsPanel'
@@ -17,6 +17,7 @@ import { WaitLoungeSettingsPanel } from '../components/WaitLoungeSettingsPanel'
 import { ComboRecommendationSettingsPanel } from '../components/ComboRecommendationSettingsPanel'
 import { CoffeeFortuneSettingsPanel } from '../components/CoffeeFortuneSettingsPanel'
 import { PosSettingsPanel } from '../components/PosSettingsPanel'
+import { SpinCampaignSettingsPanel } from '../components/SpinCampaignSettingsPanel'
 
 const FEATURE_LABELS: Record<string, string> = {
   spinWheel: 'گردونه شانس',
@@ -28,7 +29,7 @@ const FEATURE_LABELS: Record<string, string> = {
   coffeeFortune: 'فال قهوه (سرگرمی روزانه)',
 }
 
-type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
+type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'spin' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
 
 export function Settings() {
   const queryClient = useQueryClient()
@@ -72,6 +73,7 @@ export function Settings() {
       ...data,
       features: { ...DEFAULT_STORE_SETTINGS.features, ...data.features },
       coffeeFortuneSettings: mergeCoffeeFortuneSettings(data.coffeeFortuneSettings),
+      spinCampaign: mergeSpinCampaignSettings(data.spinCampaign),
     })
   }, [data])
 
@@ -234,6 +236,9 @@ export function Settings() {
         <button type="button" className={tab === 'fortune' ? 'active' : ''} onClick={() => setTab('fortune')}>
           <Coffee size={16} /> فال قهوه
         </button>
+        <button type="button" className={tab === 'spin' ? 'active' : ''} onClick={() => setTab('spin')}>
+          <Disc3 size={16} /> گردونه کمپین
+        </button>
         <button type="button" className={tab === 'pos' ? 'active' : ''} onClick={() => setTab('pos')}>
           <Calculator size={16} /> صندوق
         </button>
@@ -389,6 +394,13 @@ export function Settings() {
         <CoffeeFortuneSettingsPanel
           settings={form.coffeeFortuneSettings}
           onChange={(coffeeFortuneSettings) => setForm({ ...form, coffeeFortuneSettings })}
+        />
+      )}
+
+      {tab === 'spin' && (
+        <SpinCampaignSettingsPanel
+          settings={form.spinCampaign}
+          onChange={(spinCampaign) => setForm({ ...form, spinCampaign })}
         />
       )}
 

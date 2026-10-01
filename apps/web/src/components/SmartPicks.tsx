@@ -5,7 +5,6 @@ import type { ScoredItem } from '../types'
 import { formatPrice } from '../lib/comboBuilder'
 import { MenuItemMedia } from './MenuItemMedia'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '@/components/layout/SectionHeader'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
@@ -42,7 +41,7 @@ function PickCard({
 }) {
   return (
     <Card
-      className="cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
+      className="cursor-pointer overflow-hidden rounded-[1.35rem] border-black/5 bg-[color-mix(in_srgb,var(--scoop)_94%,transparent)] shadow-[0_10px_28px_color-mix(in_srgb,var(--cocoa)_7%,transparent)]"
       onClick={() => onSelect(item)}
     >
       <div className="relative aspect-square overflow-hidden bg-muted/50">
@@ -60,16 +59,17 @@ function PickCard({
         )}
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-primary">{formatPrice(item.price)}</span>
-          <Button
-            size="icon"
-            className="h-7 w-7 rounded-full"
+          <button
+            type="button"
+            className="atelier-add !h-8 !w-8"
+            aria-label={`افزودن ${item.name}`}
             onClick={(e) => {
               e.stopPropagation()
               onAdd(item, e)
             }}
           >
             <Plus className="h-3.5 w-3.5" />
-          </Button>
+          </button>
         </div>
       </CardContent>
     </Card>
