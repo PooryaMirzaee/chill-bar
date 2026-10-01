@@ -5,7 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-export BUILD_SHA="$(git rev-parse --short HEAD)"
 NO_CACHE=()
 
 if [[ "${1:-}" == "--no-cache" ]]; then
@@ -15,6 +14,7 @@ fi
 
 echo "==> Pulling latest code..."
 git pull
+export BUILD_SHA="$(git rev-parse --short HEAD)"
 
 echo "==> Building web + admin + api (commit $BUILD_SHA)..."
 docker compose build "${NO_CACHE[@]}" web admin api

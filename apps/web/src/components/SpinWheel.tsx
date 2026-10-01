@@ -60,6 +60,17 @@ function bumpLocalSpins(day: string) {
   )
 }
 
+/** The CDN replaces API 4xx bodies with HTML, so fall back to a status-based message. */
+async function readApiError(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = (await res.json()) as { error?: string }
+    if (data.error) return data.error
+  } catch {
+    /* non-JSON body */
+  }
+  return fallback
+}
+
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
@@ -205,15 +216,26 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deviceKey: deviceKey() }),
       })
-      const data = (await res.json()) as Partial<SpinDrawResult> & { error?: string }
-      if (!res.ok || !data.drawId || !data.prizeId) {
-        setStatusMsg(data.error || 'خطا در چرخش — دوباره تلاش کنید')
+      if (!res.ok) {
+        const fallback =
+          res.status === 429
+            ? campaign.alreadySpunMessage
+            : res.status === 403
+              ? 'گردونه فعلاً در دسترس نیست'
+              : 'خطا در چرخش — دوباره تلاش کنید'
+        setStatusMsg(await readApiError(res, fallback))
         if (res.status === 429 || res.status === 403) {
           setCanSpin(false)
           setPhase('blocked')
         } else {
           setPhase('idle')
         }
+        return
+      }
+      const data = (await res.json()) as Partial<SpinDrawResult>
+      if (!data.drawId || !data.prizeId) {
+        setStatusMsg('خطا در چرخش — دوباره تلاش کنید')
+        setPhase('idle')
         return
       }
       draw = { drawId: data.drawId, prizeId: data.prizeId }
@@ -255,7 +277,7 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
       }
       if (navigator.vibrate) navigator.vibrate([18, 30, 18, 40, 40])
     }, SPIN_MS)
-  }, [phase, canSpin, prizes, segmentAngle, rotation, day, soundOn])
+  }, [phase, canSpin, prizes, segmentAngle, rotation, day, soundOn, campaign.alreadySpunMessage])
 
   const claim = async () => {
     if (!winner || !drawId) return
@@ -277,12 +299,20 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
           deviceKey: deviceKey(),
         }),
       })
-      const data = (await res.json()) as { error?: string; code?: string | null; message?: string }
       if (!res.ok) {
-        setPhoneError(data.error || 'خطا در صدور کد')
+        const fallback =
+          res.status === 429
+            ? campaign.alreadySpunMessage
+            : res.status === 400
+              ? 'شماره موبایل ایرانی معتبر نیست — مثال: ۰۹۱۲۳۴۵۶۷۸۹'
+              : res.status === 409
+                ? 'جایزه این چرخش قبلاً ثبت شده یا موجودی تمام شده'
+                : 'خطا در صدور کد'
+        setPhoneError(await readApiError(res, fallback))
         setPhase('won')
         return
       }
+      const data = (await res.json()) as { code?: string | null; message?: string }
       setClaimCode(data.code ?? null)
       setClaimMessage(data.message ?? null)
       setPhase('claimed')
