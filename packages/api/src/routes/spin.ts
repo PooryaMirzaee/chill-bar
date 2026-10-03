@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import {
   generateSpinCode,
   isCampaignActiveOn,
+  isSpinCodeExpired,
   mergeSpinCampaignSettings,
   normalizeIranMobile,
   pickWeightedPrize,
@@ -122,7 +123,7 @@ export const spinRoutes: FastifyPluginAsync = async (app) => {
 
     const draw = await prisma.spinDraw.findUnique({ where: { id: drawId } })
     if (!draw || draw.deviceKey !== deviceKey) {
-      return reply.code(404).send({ error: 'چرخش معتبری پیدا نشد — دوباره بچرخونید' })
+      return reply.code(404).send({ error: 'این چرخش پیدا نشد؛ صفحه رو دوباره باز کن' })
     }
     if (draw.claimedAt) return reply.code(409).send({ error: 'جایزه این چرخش قبلاً ثبت شده' })
     if (Date.now() - draw.createdAt.getTime() > DRAW_TTL_MS) {
@@ -136,7 +137,7 @@ export const spinRoutes: FastifyPluginAsync = async (app) => {
     if (!prize) return reply.code(404).send({ error: 'جایزه یافت نشد' })
 
     if (prize.type !== 'TRY_AGAIN' && !phone) {
-      return reply.code(400).send({ error: 'شماره موبایل ایرانی معتبر نیست (مثال: ۰۹۱۲۳۴۵۶۷۸۹)' })
+      return reply.code(400).send({ error: 'شماره موبایل درست نیست؛ مثل ۰۹۱۲۳۴۵۶۷۸۹ واردش کن' })
     }
 
     const identityPhone = phone ?? `dev:${deviceKey.slice(0, 24)}`
@@ -219,7 +220,7 @@ export const spinRoutes: FastifyPluginAsync = async (app) => {
       code: claim.code,
       claimId: claim.id,
       prize,
-      message: 'کد جایزه صادر شد — در صندوق وارد کنید',
+      message: campaign.codeValidityMessage,
     }
   })
 
@@ -286,7 +287,7 @@ export const adminSpinRoutes: FastifyPluginAsync = async (app) => {
     if (!code) return reply.code(400).send({ error: 'کد الزامی است' })
     const claim = await prisma.spinPrizeClaim.findUnique({ where: { code } })
     if (!claim) return reply.code(404).send({ error: 'کد یافت نشد' })
-    return claim
+    return { ...claim, expired: isSpinCodeExpired(claim.dayKey) }
   })
 
   app.get('/api/admin/spin/report', managerAuth, async (req) => {
@@ -485,6 +486,9 @@ export const adminSpinRoutes: FastifyPluginAsync = async (app) => {
     if (claim.redeemedAt) return reply.code(409).send({ error: 'این کد قبلاً استفاده شده', claim })
     if (claim.prizeType === 'TRY_AGAIN') {
       return reply.code(400).send({ error: 'این کد قابل استفاده در صندوق نیست' })
+    }
+    if (isSpinCodeExpired(claim.dayKey)) {
+      return reply.code(410).send({ error: 'این کد منقضی شده؛ فقط در همان روز صدور معتبر بود', claim })
     }
     const user = (req as { user?: { sub?: string } }).user
     const updated = await prisma.spinPrizeClaim.update({

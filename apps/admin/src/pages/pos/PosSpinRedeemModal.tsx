@@ -16,6 +16,7 @@ interface SpinClaim {
   }
   phone: string
   redeemedAt: string | null
+  expired?: boolean
 }
 
 interface Props {
@@ -134,6 +135,11 @@ export function PosSpinRedeemModal({ subtotal, onClose, onApplyDiscount, onPrefi
                   این کد قبلاً استفاده شده
                 </p>
               )}
+              {claim.expired && !claim.redeemedAt && (
+                <p className="pos-field-hint error" style={{ marginTop: 8 }}>
+                  این کد منقضی شده؛ فقط در همان روز صدور معتبر بود
+                </p>
+              )}
               {redeemed && (
                 <p style={{ marginTop: 8, color: '#2e7d32', fontWeight: 700 }}>ثبت شد ✓</p>
               )}
@@ -150,12 +156,12 @@ export function PosSpinRedeemModal({ subtotal, onClose, onApplyDiscount, onPrefi
               >
                 کد دیگر
               </button>
-              {!claim.redeemedAt && !redeemed && (
+              {!claim.redeemedAt && !claim.expired && !redeemed && (
                 <button type="button" className="btn-primary" disabled={loading} onClick={() => void redeem()}>
                   {loading ? 'ثبت…' : 'تأیید و استفاده'}
                 </button>
               )}
-              {(claim.redeemedAt || redeemed) && (
+              {(claim.redeemedAt || claim.expired || redeemed) && (
                 <button type="button" className="btn-primary" onClick={onClose}>
                   بستن
                 </button>

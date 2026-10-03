@@ -262,6 +262,28 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
               onChange={(e) => update({ alreadySpunMessage: e.target.value })}
             />
           </label>
+          <label className="field field-full">
+            <span>پیام اعتبار کد (زیر کد جایزه)</span>
+            <input
+              value={settings.codeValidityMessage}
+              onChange={(e) => update({ codeValidityMessage: e.target.value })}
+            />
+          </label>
+          <label className="field field-full">
+            <span>عنوان آدرس کافه</span>
+            <input
+              value={settings.venueGuideTitle}
+              onChange={(e) => update({ venueGuideTitle: e.target.value })}
+            />
+          </label>
+          <label className="field field-full">
+            <span>راهنمای رسیدن به کافه</span>
+            <textarea
+              rows={2}
+              value={settings.venueGuideBody}
+              onChange={(e) => update({ venueGuideBody: e.target.value })}
+            />
+          </label>
         </div>
         <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
           <button

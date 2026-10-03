@@ -68,23 +68,22 @@ export type SpinPrize = z.infer<typeof spinPrizeSchema>
 export const spinCampaignSettingsSchema = z.object({
   enabled: z.boolean().default(true),
   campaignTitle: z.string().max(80).default('اسکن کن · بچرخون · جایزه بگیر'),
-  campaignSubtitle: z.string().max(160).default('کمپین ویژه چیل بار — شانس خودت رو امتحان کن'),
-  heroBadge: z.string().max(40).default('کمپین مهر'),
+  campaignSubtitle: z.string().max(160).default('تا ۲۹ مهر، هر روز یک شانس رایگان داری'),
+  heroBadge: z.string().max(40).default('کمپین مهر چیل بار'),
   ctaLabel: z.string().max(40).default('بچرخون'),
-  phonePromptTitle: z.string().max(80).default('کدت آماده‌ست'),
-  phonePromptBody: z.string().max(200).default('شماره موبایلت رو بزن تا کد جایزه برات صادر بشه'),
-  phonePlaceholder: z.string().max(40).default('09xxxxxxxxx'),
-  claimButtonLabel: z.string().max(40).default('دریافت کد'),
-  alreadySpunMessage: z.string().max(160).default('امروز یک‌بار چرخوندی — فردا دوباره شانس داری'),
-  endedMessage: z.string().max(160).default('کمپین به پایان رسیده'),
-  notStartedMessage: z.string().max(160).default('کمپین هنوز شروع نشده'),
-  venueGuideTitle: z.string().max(80).default('جایزه‌ت رو از کجا بگیری؟'),
+  phonePromptTitle: z.string().max(80).default('جایزه‌ت رو ثبت کن'),
+  phonePromptBody: z.string().max(200).default('شماره موبایلت رو وارد کن تا کد جایزه‌ت صادر بشه.'),
+  phonePlaceholder: z.string().max(40).default('09123456789'),
+  claimButtonLabel: z.string().max(40).default('دریافت کد جایزه'),
+  alreadySpunMessage: z.string().max(160).default('شانس امروزت رو امتحان کردی؛ فردا دوباره سر بزن!'),
+  endedMessage: z.string().max(160).default('کمپین گردونه تموم شده؛ ممنون که همراه ما بودی.'),
+  notStartedMessage: z.string().max(160).default('گردونه هنوز شروع نشده؛ به‌زودی منتظرت هستیم.'),
+  codeValidityMessage: z.string().max(160).default('تا آخر امروز می‌تونی از این کد استفاده کنی.'),
+  venueGuideTitle: z.string().max(80).default('کافه چیل بار — حیاط پلازا'),
   venueGuideBody: z
     .string()
     .max(400)
-    .default(
-      'بیا تو حیاط — یه کافه نارنجی می‌بینی. همون‌جا چیل باره؛ کد رو به صندوق بده و از جایزه‌ت استفاده کن.',
-    ),
+    .default('بیا حیاط پلازا، کافه نارنجی رو می‌بینی. کد رو به صندوق نشون بده و جایزه‌ت رو بگیر.'),
   soundEnabled: z.boolean().default(true),
   /** ISO date YYYY-MM-DD (Gregorian). Default: start of Mehr 1, 1405 */
   startsAt: z.string().nullable().default('2026-09-23'),
@@ -110,19 +109,19 @@ export function jalaliCampaignEndIso(jy = 1405, jm = 7, jd = 29): string {
 export const DEFAULT_SPIN_CAMPAIGN: SpinCampaignSettings = {
   enabled: true,
   campaignTitle: 'اسکن کن · بچرخون · جایزه بگیر',
-  campaignSubtitle: 'تا ۲۹ مهر هر روز یک شانس داری',
-  heroBadge: 'کمپین مهر',
+  campaignSubtitle: 'تا ۲۹ مهر، هر روز یک شانس رایگان داری',
+  heroBadge: 'کمپین مهر چیل بار',
   ctaLabel: 'بچرخون',
-  phonePromptTitle: 'کدت آماده‌ست',
-  phonePromptBody: 'شماره موبایلت رو بزن تا کد جایزه برات صادر بشه',
+  phonePromptTitle: 'جایزه‌ت رو ثبت کن',
+  phonePromptBody: 'شماره موبایلت رو وارد کن تا کد جایزه‌ت صادر بشه.',
   phonePlaceholder: '09123456789',
-  claimButtonLabel: 'دریافت کد',
-  alreadySpunMessage: 'امروز یک‌بار چرخوندی — فردا دوباره شانس داری',
-  endedMessage: 'کمپین به پایان رسیده',
-  notStartedMessage: 'کمپین هنوز شروع نشده',
-  venueGuideTitle: 'جایزه‌ت رو از کجا بگیری؟',
-  venueGuideBody:
-    'بیا تو حیاط — یه کافه نارنجی می‌بینی. همون‌جا چیل باره؛ کد رو به صندوق بده و از جایزه‌ت استفاده کن.',
+  claimButtonLabel: 'دریافت کد جایزه',
+  alreadySpunMessage: 'شانس امروزت رو امتحان کردی؛ فردا دوباره سر بزن!',
+  endedMessage: 'کمپین گردونه تموم شده؛ ممنون که همراه ما بودی.',
+  notStartedMessage: 'گردونه هنوز شروع نشده؛ به‌زودی منتظرت هستیم.',
+  codeValidityMessage: 'تا آخر امروز می‌تونی از این کد استفاده کنی.',
+  venueGuideTitle: 'کافه چیل بار — حیاط پلازا',
+  venueGuideBody: 'بیا حیاط پلازا، کافه نارنجی رو می‌بینی. کد رو به صندوق نشون بده و جایزه‌ت رو بگیر.',
   soundEnabled: true,
   startsAt: '2026-09-23',
   endsAt: jalaliCampaignEndIso(1405, 7, 29),
@@ -287,9 +286,40 @@ export const DEFAULT_SPIN_CAMPAIGN: SpinCampaignSettings = {
   ],
 }
 
+/** Earlier default copy; saved values still equal to these get the current defaults. */
+const LEGACY_DEFAULT_TEXTS: Partial<Record<keyof SpinCampaignSettings, string[]>> = {
+  campaignSubtitle: ['تا ۲۹ مهر هر روز یک شانس داری', 'کمپین ویژه چیل بار — شانس خودت رو امتحان کن'],
+  heroBadge: ['کمپین مهر'],
+  phonePromptTitle: ['کدت آماده‌ست'],
+  phonePromptBody: ['شماره موبایلت رو بزن تا کد جایزه برات صادر بشه'],
+  claimButtonLabel: ['دریافت کد'],
+  alreadySpunMessage: ['امروز یک‌بار چرخوندی — فردا دوباره شانس داری'],
+  endedMessage: ['کمپین به پایان رسیده'],
+  notStartedMessage: ['کمپین هنوز شروع نشده'],
+  venueGuideTitle: ['جایزه‌ت رو از کجا بگیری؟'],
+  venueGuideBody: [
+    'بیا تو حیاط — یه کافه نارنجی می‌بینی. همون‌جا چیل باره؛ کد رو به صندوق بده و از جایزه‌ت استفاده کن.',
+  ],
+}
+
+function upgradeLegacyTexts(raw: Partial<SpinCampaignSettings>): Partial<SpinCampaignSettings> {
+  const out: Record<string, unknown> = { ...raw }
+  for (const [key, legacy] of Object.entries(LEGACY_DEFAULT_TEXTS)) {
+    const value = out[key]
+    if (typeof value === 'string' && legacy?.includes(value.trim())) delete out[key]
+  }
+  return out as Partial<SpinCampaignSettings>
+}
+
+/** Prize codes are valid only on the Tehran calendar day they were issued. */
+export function isSpinCodeExpired(dayKey: string, now = new Date()): boolean {
+  return dayKey !== tehranDayKey(now)
+}
+
 export function mergeSpinCampaignSettings(
-  raw: Partial<SpinCampaignSettings> | null | undefined,
+  rawInput: Partial<SpinCampaignSettings> | null | undefined,
 ): SpinCampaignSettings {
+  const raw = rawInput ? upgradeLegacyTexts(rawInput) : rawInput
   const base = DEFAULT_SPIN_CAMPAIGN
   const defaultById = new Map(base.prizes.map((p) => [p.id, p]))
   const prizes = raw?.prizes?.length

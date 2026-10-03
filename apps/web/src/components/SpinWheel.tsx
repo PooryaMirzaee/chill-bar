@@ -138,7 +138,7 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
           ? campaign.endedMessage
           : campaignStatus === 'not_started'
             ? campaign.notStartedMessage
-            : 'گردونه فعلاً غیرفعال است',
+            : 'گردونه فعلاً فعال نیست',
       )
       setPhase('blocked')
       return
@@ -221,8 +221,8 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
           res.status === 429
             ? campaign.alreadySpunMessage
             : res.status === 403
-              ? 'گردونه فعلاً در دسترس نیست'
-              : 'خطا در چرخش — دوباره تلاش کنید'
+              ? 'گردونه فعلاً فعال نیست'
+              : 'چرخش انجام نشد؛ دوباره امتحان کن'
         setStatusMsg(await readApiError(res, fallback))
         if (res.status === 429 || res.status === 403) {
           setCanSpin(false)
@@ -234,20 +234,20 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
       }
       const data = (await res.json()) as Partial<SpinDrawResult>
       if (!data.drawId || !data.prizeId) {
-        setStatusMsg('خطا در چرخش — دوباره تلاش کنید')
+        setStatusMsg('چرخش انجام نشد؛ دوباره امتحان کن')
         setPhase('idle')
         return
       }
       draw = { drawId: data.drawId, prizeId: data.prizeId }
     } catch {
-      setStatusMsg('ارتباط برقرار نشد — دوباره تلاش کنید')
+      setStatusMsg('ارتباط برقرار نشد؛ دوباره امتحان کن')
       setPhase('idle')
       return
     }
 
     const winIdx = prizes.findIndex((p) => p.id === draw.prizeId)
     if (winIdx < 0) {
-      setStatusMsg('گردونه به‌روز شده — صفحه را دوباره باز کنید')
+      setStatusMsg('گردونه به‌روز شده؛ صفحه رو یک بار دیگه باز کن')
       setPhase('idle')
       return
     }
@@ -284,7 +284,7 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
     unlockSpinAudio()
     const normalized = normalizeIranMobile(phone)
     if (!normalized) {
-      setPhoneError('شماره موبایل ایرانی معتبر نیست — مثال: ۰۹۱۲۳۴۵۶۷۸۹')
+      setPhoneError('شماره موبایل درست نیست؛ مثل ۰۹۱۲۳۴۵۶۷۸۹ واردش کن')
       return
     }
     setPhoneError(null)
@@ -304,10 +304,10 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
           res.status === 429
             ? campaign.alreadySpunMessage
             : res.status === 400
-              ? 'شماره موبایل ایرانی معتبر نیست — مثال: ۰۹۱۲۳۴۵۶۷۸۹'
+              ? 'شماره موبایل درست نیست؛ مثل ۰۹۱۲۳۴۵۶۷۸۹ واردش کن'
               : res.status === 409
-                ? 'جایزه این چرخش قبلاً ثبت شده یا موجودی تمام شده'
-                : 'خطا در صدور کد'
+                ? 'این جایزه قبلاً ثبت شده یا موجودیش تموم شده'
+                : 'صدور کد انجام نشد؛ دوباره امتحان کن'
         setPhoneError(await readApiError(res, fallback))
         setPhase('won')
         return
@@ -319,7 +319,7 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
       setStatusMsg(campaign.alreadySpunMessage)
       if (soundOn) playClaimSuccess()
     } catch {
-      setPhoneError('ارتباط برقرار نشد — دوباره تلاش کنید')
+      setPhoneError('ارتباط برقرار نشد؛ دوباره امتحان کن')
       setPhase('won')
     }
   }
@@ -528,10 +528,13 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
                 <div className="campaign-spin__claim-block">
                   {claimCode ? (
                     <>
-                      <p className="campaign-spin__code-label">کد صندوق شما</p>
+                      <p className="campaign-spin__code-label">کد جایزه‌ت</p>
                       <div className="campaign-spin__code" dir="ltr">
                         {claimCode}
                       </div>
+                      {campaign.codeValidityMessage && (
+                        <p className="campaign-spin__validity">{campaign.codeValidityMessage}</p>
+                      )}
                       <Button
                         variant="outline"
                         className="w-full"
@@ -595,7 +598,7 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
                   <p className="campaign-spin__phone-title">{campaign.phonePromptTitle}</p>
                   <p className="campaign-spin__hint">{campaign.phonePromptBody}</p>
                   <label className="campaign-spin__phone-label">
-                    شماره موبایل ایرانی
+                    شماره موبایل
                     <input
                       className="campaign-spin__phone"
                       dir="ltr"
