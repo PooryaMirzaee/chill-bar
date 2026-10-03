@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Minus, Plus, Trash2, ShoppingBag, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useCart } from '../store/cart'
 import { useCustomer } from '../lib/customerAuth'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatPrice, isOptionPriced } from '../lib/comboBuilder'
 import { apiClient } from '../lib/api'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_FLOW, computeRedeem, formatChillPoints } from '@chill-bar/shared'
 import type { Order, OrderStatus } from '@chill-bar/shared'
@@ -179,9 +179,14 @@ export function Cart({
                       <span className="text-2xl">{item.emoji}</span>
                       <div className="min-w-0 flex-1">
                         <h4 className="truncate text-sm font-medium">{item.name}</h4>
-                        <span className="text-sm font-semibold text-primary">
-                          {formatPrice(item.unitPrice ?? item.price)}
-                        </span>
+                        {(item.unitPrice ?? item.price) <= 0 &&
+                        isOptionPriced({ price: item.price, modifiers: modifierGroups }) ? (
+                          <span className="text-xs text-muted-foreground">گزینه‌ی دلخواهت رو انتخاب کن</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-primary">
+                            {formatPrice(item.unitPrice ?? item.price)}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1 rounded-lg border bg-background">
                         <Button
@@ -215,6 +220,7 @@ export function Cart({
                     {modifierGroups.length > 0 && (
                       <CartLineModifiers
                         groups={modifierGroups}
+                        zeroBase={item.price <= 0}
                         selectedModifiers={item.selectedModifiers ?? []}
                         onChange={(selectedModifiers) =>
                           updateLineModifiers(item.cartLineId, selectedModifiers)

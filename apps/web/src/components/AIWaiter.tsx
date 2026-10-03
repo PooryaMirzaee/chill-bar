@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import type { MenuItem, ContextData } from '../types'
 import type { Mood } from '../types'
 import type { AiChatMessage } from '@chill-bar/shared'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice } from '../lib/comboBuilder'
 import { apiClient } from '../lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -220,7 +220,9 @@ export function AIWaiter({
                           >
                             <span>{item.emoji}</span>
                             <span className="min-w-0 flex-1 font-medium">{item.name}</span>
-                            <span className="shrink-0 text-primary">{formatPrice(item.price)}</span>
+                            {formatMenuPrice(item) && (
+                              <span className="shrink-0 text-primary">{formatMenuPrice(item)}</span>
+                            )}
                           </button>
                         ))}
                       </div>

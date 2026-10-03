@@ -34,3 +34,27 @@ export function buildSmartCombo(
 export function formatPrice(price: number, suffix = ' تومان'): string {
   return price.toLocaleString('fa-IR') + suffix
 }
+
+/** Base price 0 with paid options: the real price only exists after choosing options. */
+export function isOptionPriced(item: Pick<MenuItem, 'price' | 'modifiers'>): boolean {
+  return (
+    item.price <= 0 &&
+    (item.modifiers ?? []).some((group) => group.options.some((option) => option.price > 0))
+  )
+}
+
+/** Cheapest valid configuration: required groups at their cheapest option, else the cheapest paid option. */
+export function startingPrice(item: Pick<MenuItem, 'price' | 'modifiers'>): number {
+  const groups = item.modifiers ?? []
+  const required = groups
+    .filter((g) => g.required && g.options.length > 0)
+    .reduce((sum, g) => sum + Math.min(...g.options.map((o) => o.price)), 0)
+  if (required > 0) return item.price + required
+  const paid = groups.flatMap((g) => g.options.map((o) => o.price)).filter((p) => p > 0)
+  return item.price + (paid.length > 0 ? Math.min(...paid) : 0)
+}
+
+/** Price label for menu listings; null when the price is only known inside the item. */
+export function formatMenuPrice(item: Pick<MenuItem, 'price' | 'modifiers'>): string | null {
+  return isOptionPriced(item) ? null : formatPrice(item.price)
+}

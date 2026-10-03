@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import type { PanInfo } from 'framer-motion'
 import type { MenuItem } from '../types'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice } from '../lib/comboBuilder'
 import {
   loadTasteProfile,
   recordLike,
@@ -142,7 +142,7 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
                 <div className="swipe-emoji">{current.emoji}</div>
                 <h3>{current.name}</h3>
                 <p className="swipe-category">{current.categoryName}</p>
-                <p className="swipe-price">{formatPrice(current.price)}</p>
+                {formatMenuPrice(current) && <p className="swipe-price">{formatMenuPrice(current)}</p>}
                 <button
                   className="swipe-detail-btn"
                   onClick={(e) => { e.stopPropagation(); onSelect?.(current) }}
@@ -211,7 +211,7 @@ export function SwipeDeck({ items, onAddToCart, onSelect }: Props) {
                     <strong>{item.name.split('(')[0].trim()}</strong>
                     <span className="taste-pick-reason">{item.reason}</span>
                   </div>
-                  <span className="taste-pick-price">{formatPrice(item.price)}</span>
+                  {formatMenuPrice(item) && <span className="taste-pick-price">{formatMenuPrice(item)}</span>}
                 </button>
                 {onAddToCart && (
                   <button

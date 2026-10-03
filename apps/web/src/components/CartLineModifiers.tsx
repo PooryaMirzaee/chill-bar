@@ -11,9 +11,10 @@ interface Props {
   groups: MenuModifierGroup[]
   selectedModifiers: SelectedModifier[]
   onChange: (selectedModifiers: SelectedModifier[]) => void
+  zeroBase?: boolean
 }
 
-export function CartLineModifiers({ groups, selectedModifiers, onChange }: Props) {
+export function CartLineModifiers({ groups, selectedModifiers, onChange, zeroBase }: Props) {
   const selection = useMemo(
     () => selectionFromSelectedModifiers(selectedModifiers),
     [selectedModifiers],
@@ -22,6 +23,7 @@ export function CartLineModifiers({ groups, selectedModifiers, onChange }: Props
   return (
     <ModifierPicker
       compact
+      zeroBase={zeroBase}
       groups={groups}
       selection={selection}
       onChange={(next) => onChange(buildSelectedModifiers(groups, next))}

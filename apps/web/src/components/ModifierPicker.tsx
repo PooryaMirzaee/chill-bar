@@ -10,9 +10,11 @@ interface Props {
   onChange: (selection: ModifierSelectionState) => void
   error?: string
   compact?: boolean
+  /** Item has no base price, so single-choice option prices are the item price itself. */
+  zeroBase?: boolean
 }
 
-export function ModifierPicker({ groups, selection, onChange, error, compact }: Props) {
+export function ModifierPicker({ groups, selection, onChange, error, compact, zeroBase }: Props) {
   if (groups.length === 0) return null
 
   return (
@@ -50,7 +52,9 @@ export function ModifierPicker({ groups, selection, onChange, error, compact }: 
                 >
                   {option.emoji ? `${option.emoji} ` : ''}
                   {option.name}
-                  {option.price > 0 ? ` (+${formatPrice(option.price)})` : ''}
+                  {option.price > 0
+                    ? ` (${zeroBase && group.type === 'single' ? '' : '+'}${formatPrice(option.price)})`
+                    : ''}
                 </button>
               )
             })}

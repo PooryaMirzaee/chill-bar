@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import type { HomeAppearance } from '@chill-bar/shared'
 import type { ScoredItem } from '../types'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice } from '../lib/comboBuilder'
 import { MenuItemMedia } from './MenuItemMedia'
 import { cn } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
@@ -58,7 +58,7 @@ function PickCard({
           <p className="line-clamp-2 text-[11px] text-muted-foreground">{item.reason}</p>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-primary">{formatPrice(item.price)}</span>
+          <span className="text-sm font-bold text-primary">{formatMenuPrice(item)}</span>
           <button
             type="button"
             className="atelier-add !h-8 !w-8"

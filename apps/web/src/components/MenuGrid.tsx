@@ -3,7 +3,7 @@ import { Plus, ShoppingBag } from 'lucide-react'
 import type { Category, MenuAppearance } from '@chill-bar/shared'
 import { formatMenuDescription } from '@chill-bar/shared'
 import type { MenuItem } from '../types'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice } from '../lib/comboBuilder'
 import { MenuItemMedia } from './MenuItemMedia'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -131,8 +131,8 @@ export function MenuGrid({
               )}
               <h4 className="line-clamp-2 text-sm font-semibold leading-snug">{item.name}</h4>
               <div className="flex items-center justify-between gap-2">
-                {a.showPrice ? (
-                  <span className="text-sm font-bold text-primary">{formatPrice(item.price)}</span>
+                {a.showPrice && formatMenuPrice(item) ? (
+                  <span className="text-sm font-bold text-primary">{formatMenuPrice(item)}</span>
                 ) : (
                   <span />
                 )}
@@ -162,7 +162,9 @@ export function MenuGrid({
                   {item.categoryName}
                 </span>
               )}
-              {a.showPrice && <p className="atelier-menu-price">{formatPrice(item.price)}</p>}
+              {a.showPrice && formatMenuPrice(item) && (
+                <p className="atelier-menu-price">{formatMenuPrice(item)}</p>
+              )}
             </div>
             {renderAddButton(item)}
           </div>

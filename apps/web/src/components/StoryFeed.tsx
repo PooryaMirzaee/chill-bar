@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { HomeAppearance } from '@chill-bar/shared'
 import type { MenuItem } from '../types'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice } from '../lib/comboBuilder'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -95,7 +95,7 @@ export function StoryFeed({
                 <h3 className="font-bold">{current.name}</h3>
                 <p className="text-sm text-muted-foreground">{current.categoryName}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-primary">{formatPrice(current.price)}</span>
+                  <span className="text-lg font-bold text-primary">{formatMenuPrice(current)}</span>
                   <Button onClick={(e) => onAdd(current, e)}>سفارش بده</Button>
                 </div>
                 {showProgress && (

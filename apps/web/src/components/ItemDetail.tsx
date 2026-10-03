@@ -9,7 +9,7 @@ import {
 } from '@chill-bar/shared'
 import type { PairingResult } from '@chill-bar/shared'
 import type { MenuItem } from '../types'
-import { formatPrice } from '../lib/comboBuilder'
+import { formatMenuPrice, formatPrice, isOptionPriced, startingPrice } from '../lib/comboBuilder'
 import { resolveAssetUrl } from '../lib/branding'
 import { ModifierPicker } from './ModifierPicker'
 import { Button } from '@/components/ui/button'
@@ -48,6 +48,7 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
     [item, groups, selection],
   )
   const unitPrice = item ? computeUnitPrice(item.price, selectedModifiers) : 0
+  const optionPriced = item ? isOptionPriced(item) : false
   const imageSrc = resolveAssetUrl(item?.imageUrl)
 
   const handleAdd = (target: MenuItem, origin?: Parameters<AddToCartHandler>[1]) => {
@@ -111,16 +112,27 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
                 )}
               </SheetHeader>
 
-              <div className="text-2xl font-bold text-primary">
-                {formatPrice(unitPrice)}
-                {unitPrice !== item.price && (
-                  <span className="mr-2 text-sm font-normal text-muted-foreground line-through">
-                    {formatPrice(item.price)}
-                  </span>
-                )}
-              </div>
+              {optionPriced && unitPrice <= 0 ? (
+                <div className="space-y-1">
+                  <div className="text-2xl font-bold text-primary">
+                    <span className="ml-1 text-base font-medium text-muted-foreground">از</span>
+                    {formatPrice(startingPrice(item))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">گزینه‌ی دلخواهت رو انتخاب کن تا قیمت نهایی رو ببینی</p>
+                </div>
+              ) : (
+                <div className="text-2xl font-bold text-primary">
+                  {formatPrice(unitPrice)}
+                  {item.price > 0 && unitPrice !== item.price && (
+                    <span className="mr-2 text-sm font-normal text-muted-foreground line-through">
+                      {formatPrice(item.price)}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <ModifierPicker
+                zeroBase={item.price <= 0}
                 groups={groups}
                 selection={selection}
                 onChange={(next) => {
@@ -141,7 +153,9 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
                   >
                     <span className="text-2xl">{pairing.item.emoji}</span>
                     <span className="flex-1 text-sm font-medium">{pairing.item.name}</span>
-                    <span className="text-sm font-semibold text-primary">{formatPrice(pairing.item.price)}</span>
+                    {formatMenuPrice(pairing.item) && (
+                      <span className="text-sm font-semibold text-primary">{formatMenuPrice(pairing.item)}</span>
+                    )}
                   </button>
                 </div>
               )}
