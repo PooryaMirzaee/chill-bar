@@ -90,6 +90,47 @@ function formatPhoneAsYouType(raw: string): string {
   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
 }
 
+/** Wrap prize labels for narrow wheel slices (prefer · / space breaks). */
+function wrapSliceLabel(label: string, maxCharsPerLine: number, maxLines: number): string[] {
+  const clean = label.trim()
+  if (!clean) return ['']
+  if (clean.length <= maxCharsPerLine) return [clean]
+
+  const parts = clean.split(/\s*[·\-–—]\s*|\s+/).filter(Boolean)
+  const lines: string[] = []
+  let current = ''
+
+  const push = (chunk: string) => {
+    if (lines.length >= maxLines) return
+    if (!current) {
+      current = chunk
+      return
+    }
+    if (`${current} ${chunk}`.length <= maxCharsPerLine) {
+      current = `${current} ${chunk}`
+    } else {
+      lines.push(current)
+      current = chunk
+    }
+  }
+
+  if (parts.length > 1) {
+    for (const part of parts) push(part)
+    if (current && lines.length < maxLines) lines.push(current)
+  } else {
+    for (let i = 0; i < clean.length && lines.length < maxLines; i += maxCharsPerLine) {
+      lines.push(clean.slice(i, i + maxCharsPerLine))
+    }
+  }
+
+  if (!lines.length) lines.push(clean.slice(0, maxCharsPerLine))
+  if (clean.length > maxCharsPerLine * maxLines || (parts.length > 1 && current && lines[lines.length - 1] !== current && lines.length >= maxLines)) {
+    const last = lines[lines.length - 1] ?? ''
+    if (last.length >= 2) lines[lines.length - 1] = `${last.slice(0, Math.max(1, last.length - 1))}…`
+  }
+  return lines.slice(0, maxLines)
+}
+
 /** Largest icon diameter that stays inside an annular wedge at `ringR`. */
 function iconSizeForWedge(r: number, segmentAngle: number, ringR: number, hubR: number) {
   const halfRad = (segmentAngle * Math.PI) / 360
@@ -420,22 +461,36 @@ export function SpinWheel({ campaign, logoUrl }: Props) {
                       </g>
                     </g>
                   )}
-                  {showLabels && (
-                    <text
-                      x={seg.iconPos.x}
-                      y={seg.iconPos.y + (seg.imageSrc ? iconSize * 0.55 : 0)}
-                      fill={seg.prize.textColor}
-                      fontSize={Math.max(9, size * 0.028)}
-                      fontWeight="700"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      transform={`rotate(${seg.mid}, ${seg.iconPos.x}, ${seg.iconPos.y})`}
-                    >
-                      {seg.prize.label.length > 9
-                        ? `${seg.prize.label.slice(0, 8)}…`
-                        : seg.prize.label}
-                    </text>
-                  )}
+                  {showLabels &&
+                    (() => {
+                      const perLine = prizes.length >= 12 ? 7 : prizes.length >= 9 ? 9 : 11
+                      const maxLines = prizes.length >= 12 ? 3 : 2
+                      const lines = wrapSliceLabel(seg.prize.label, perLine, maxLines)
+                      const fontSize = Math.max(8, size * (prizes.length >= 12 ? 0.022 : 0.028))
+                      const lineH = fontSize * 1.15
+                      const baseY =
+                        seg.iconPos.y +
+                        (seg.imageSrc ? iconSize * 0.55 : 0) -
+                        ((lines.length - 1) * lineH) / 2
+                      return (
+                        <text
+                          x={seg.iconPos.x}
+                          y={baseY}
+                          fill={seg.prize.textColor}
+                          fontSize={fontSize}
+                          fontWeight="700"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          transform={`rotate(${seg.mid}, ${seg.iconPos.x}, ${seg.iconPos.y})`}
+                        >
+                          {lines.map((line, i) => (
+                            <tspan key={i} x={seg.iconPos.x} dy={i === 0 ? 0 : lineH}>
+                              {line}
+                            </tspan>
+                          ))}
+                        </text>
+                      )
+                    })()}
                 </g>
               ))}
 

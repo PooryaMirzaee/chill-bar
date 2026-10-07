@@ -98,40 +98,26 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
   }
 
   return (
-    <div className="settings-grid">
-      <section className="card field-full">
+    <div className="spin-settings">
+      <section className="card">
         <h3>لینک اختصاصی و QR گردونه</h3>
         <p className="page-sub" style={{ marginBottom: 16 }}>
           اسکن این QR مستقیم صفحه گردونه را باز می‌کند — مناسب پوستر، استیکر میز و استوری.
         </p>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 20,
-            alignItems: 'center',
-          }}
-        >
+        <div className="spin-qr-row">
           <img
+            className="spin-qr-img"
             src={SPIN_QR_SRC}
             alt="QR گردونه چیل بار"
             width={180}
             height={180}
-            style={{
-              width: 180,
-              height: 180,
-              borderRadius: 12,
-              background: '#fff',
-              border: '1px solid var(--border, #e5e5e5)',
-              padding: 8,
-            }}
           />
-          <div style={{ display: 'grid', gap: 10, minWidth: 220, flex: 1 }}>
+          <div className="spin-qr-meta">
             <label className="field">
               <span>لینک مستقیم</span>
               <input value={SPIN_PUBLIC_URL} readOnly dir="ltr" onFocus={(e) => e.target.select()} />
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="spin-actions">
               <button
                 type="button"
                 className="btn-secondary"
@@ -285,7 +271,7 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
             />
           </label>
         </div>
-        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+        <div className="spin-actions" style={{ marginTop: 12 }}>
           <button
             type="button"
             className="btn-secondary"
@@ -296,29 +282,28 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
         </div>
       </section>
 
-      <section className="card field-full">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <section className="card">
+        <div className="spin-prize-head">
           <h3 style={{ margin: 0 }}>جایزه‌ها ({settings.prizes.length})</h3>
-          <button type="button" className="btn-primary" onClick={() => update({ prizes: [...settings.prizes, newPrize()] })}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => update({ prizes: [...settings.prizes, newPrize()] })}
+          >
             + جایزه
           </button>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="spin-prize-list">
           {settings.prizes.map((prize, idx) => (
             <div
               key={prize.id}
-              style={{
-                border: '1px solid var(--border, #ddd)',
-                borderRadius: 12,
-                padding: 14,
-                background: prize.isActive ? 'transparent' : 'rgba(0,0,0,0.03)',
-              }}
+              className={`spin-prize-card${prize.isActive ? '' : ' is-inactive'}`}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div className="spin-prize-head">
                 <strong>
                   #{idx + 1} {prize.emoji} {prize.label}
                 </strong>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div className="spin-prize-head-actions">
                   <label className="checkbox-field" style={{ margin: 0 }}>
                     <input
                       type="checkbox"
@@ -343,7 +328,7 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
                 </label>
                 <label className="field field-full">
                   <span>عکس قطاع گردونه</span>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="spin-upload-row">
                     {prize.imageUrl ? (
                       <img
                         src={prize.imageUrl}
@@ -445,13 +430,21 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
                 </label>
                 <label className="field">
                   <span>رنگ قطاع</span>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <div className="spin-color-row">
                     {COLORS.map((c) => (
                       <button
                         key={c}
                         type="button"
                         title={c}
-                        onClick={() => updatePrize(prize.id, { color: c, textColor: c === '#E6E0DA' || c === '#C8D6C4' || c === '#E8A87C' || c === '#FF8C4D' ? '#2C2420' : '#FFFFFF' })}
+                        onClick={() =>
+                          updatePrize(prize.id, {
+                            color: c,
+                            textColor:
+                              c === '#E6E0DA' || c === '#C8D6C4' || c === '#E8A87C' || c === '#FF8C4D'
+                                ? '#2C2420'
+                                : '#FFFFFF',
+                          })
+                        }
                         style={{
                           width: 28,
                           height: 28,
@@ -464,7 +457,9 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
                   </div>
                 </label>
 
-                {(prize.type === 'FREE_ITEM' || prize.type === 'DISCOUNT_ITEM' || prize.type === 'BUY_GET_KID_FREE') && (
+                {(prize.type === 'FREE_ITEM' ||
+                  prize.type === 'DISCOUNT_ITEM' ||
+                  prize.type === 'BUY_GET_KID_FREE') && (
                   <label className="field field-full">
                     <span>محصول مرتبط (اختیاری)</span>
                     <select
@@ -542,7 +537,7 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
         </div>
       </section>
 
-      <section className="card field-full">
+      <section className="card">
         <h3>آخرین کدهای صادرشده</h3>
         <p className="page-sub" style={{ marginBottom: 12 }}>
           گزارش کامل شرکت‌کنندگان و کدها در منوی{' '}
@@ -551,7 +546,7 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
         {claims.length === 0 ? (
           <p className="page-sub">هنوز کدی صادر نشده.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="spin-table-wrap">
             <table className="data-table" style={{ width: '100%', fontSize: 13 }}>
               <thead>
                 <tr>
@@ -565,7 +560,9 @@ export function SpinCampaignSettingsPanel({ settings, onChange }: Props) {
               <tbody>
                 {claims.map((c) => (
                   <tr key={c.id}>
-                    <td dir="ltr"><code>{c.code}</code></td>
+                    <td dir="ltr">
+                      <code>{c.code}</code>
+                    </td>
                     <td>{c.prizeLabel}</td>
                     <td dir="ltr">{c.phone}</td>
                     <td>{c.redeemedAt ? 'استفاده‌شده' : c.prizeType === 'TRY_AGAIN' ? '—' : 'فعال'}</td>

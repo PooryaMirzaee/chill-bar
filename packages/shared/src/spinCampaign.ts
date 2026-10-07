@@ -93,8 +93,10 @@ export const spinCampaignSettingsSchema = z.object({
   requirePhoneToClaim: z.boolean().default(true),
   showConfetti: z.boolean().default(true),
   /** When false, wheel slices show image only (no labels) */
-  showSliceLabels: z.boolean().default(false),
+  showSliceLabels: z.boolean().default(true),
   wheelSize: z.number().int().min(260).max(520).default(340),
+  /** Bump to replace stored prize lists with the current default set */
+  prizeSetVersion: z.number().int().min(1).max(999).default(2),
   prizes: z.array(spinPrizeSchema).max(16).default([]),
 })
 
@@ -105,6 +107,35 @@ export function jalaliCampaignEndIso(jy = 1405, jm = 7, jd = 29): string {
   const { gy, gm, gd } = toGregorian(jy, jm, jd)
   return `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`
 }
+
+const PRIZE_COLORS = ['#F26522', '#2C2420', '#1B2838', '#C8D6C4', '#FF8C4D', '#E8A87C', '#D94E10', '#E6E0DA'] as const
+
+function prizeColor(i: number): { color: string; textColor: string } {
+  const color = PRIZE_COLORS[i % PRIZE_COLORS.length]!
+  const light = color === '#E6E0DA' || color === '#C8D6C4' || color === '#E8A87C' || color === '#FF8C4D'
+  return { color, textColor: light ? '#2C2420' : '#FFFFFF' }
+}
+
+function makePrize(
+  partial: Omit<SpinPrize, 'menuItemId' | 'categoryId' | 'externalPrizeName' | 'stock' | 'isActive' | 'imageUrl' | 'color' | 'textColor'> &
+    Partial<Pick<SpinPrize, 'menuItemId' | 'categoryId' | 'externalPrizeName' | 'stock' | 'isActive' | 'imageUrl' | 'color' | 'textColor'>>,
+  index: number,
+): SpinPrize {
+  const tint = prizeColor(index)
+  return {
+    menuItemId: null,
+    categoryId: null,
+    externalPrizeName: '',
+    stock: null,
+    isActive: true,
+    imageUrl: null,
+    ...tint,
+    ...partial,
+  }
+}
+
+/** Current default prize set — bump prizeSetVersion when replacing the list in production. */
+export const CURRENT_SPIN_PRIZE_SET_VERSION = 2
 
 export const DEFAULT_SPIN_CAMPAIGN: SpinCampaignSettings = {
   enabled: true,
@@ -128,161 +159,192 @@ export const DEFAULT_SPIN_CAMPAIGN: SpinCampaignSettings = {
   spinsPerDay: 1,
   requirePhoneToClaim: true,
   showConfetti: true,
-  showSliceLabels: false,
+  showSliceLabels: true,
   wheelSize: 340,
+  prizeSetVersion: CURRENT_SPIN_PRIZE_SET_VERSION,
   prizes: [
-    {
-      id: 'free-shake',
-      label: 'شیک رایگان',
-      description: 'یک شیک به انتخاب شما رایگان',
-      emoji: '🧋',
-      imageUrl: '/spin/spin-free-shake.png',
-      color: '#F26522',
-      textColor: '#FFFFFF',
-      weight: 18,
-      type: 'FREE_ITEM',
-      menuItemId: null,
-      categoryId: null,
-      discountType: null,
-      discountValue: 0,
-      externalPrizeName: '',
-      codePrefix: 'FREE',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'kid-free',
-      label: 'بچه رایگان',
-      description: 'خوراکی خودت رو بخر — مال بچه‌ت رایگان',
-      emoji: '👶',
-      imageUrl: '/spin/spin-kid-free.png',
-      color: '#2C2420',
-      textColor: '#FFF8F0',
-      weight: 14,
-      type: 'BUY_GET_KID_FREE',
-      menuItemId: null,
-      categoryId: null,
-      discountType: null,
-      discountValue: 0,
-      externalPrizeName: '',
-      codePrefix: 'KID',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'cat-20',
-      label: '۲۰٪ دسته',
-      description: '۲۰٪ تخفیف روی یک دسته‌بندی',
-      emoji: '🏷️',
-      imageUrl: '/spin/spin-cat-20.png',
-      color: '#C8D6C4',
-      textColor: '#2C2420',
-      weight: 16,
-      type: 'DISCOUNT_CATEGORY',
-      menuItemId: null,
-      categoryId: null,
-      discountType: 'percent',
-      discountValue: 20,
-      externalPrizeName: '',
-      codePrefix: 'CAT',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'item-30',
-      label: '۳۰٪ آیتم',
-      description: '۳۰٪ تخفیف روی یک محصول خاص',
-      emoji: '🍦',
-      imageUrl: '/spin/spin-item-30.png',
-      color: '#FF8C4D',
-      textColor: '#2C2420',
-      weight: 16,
-      type: 'DISCOUNT_ITEM',
-      menuItemId: null,
-      categoryId: null,
-      discountType: 'percent',
-      discountValue: 30,
-      externalPrizeName: '',
-      codePrefix: 'ITEM',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'iphone',
-      label: 'آیفون ۱۸',
-      description: 'جایزه ویژه خارج از کافه',
-      emoji: '📱',
-      imageUrl: '/spin/spin-iphone.png',
-      color: '#1B2838',
-      textColor: '#FFFFFF',
-      weight: 1,
-      type: 'EXTERNAL',
-      menuItemId: null,
-      categoryId: null,
-      discountType: null,
-      discountValue: 0,
-      externalPrizeName: 'آیفون ۱۸',
-      codePrefix: 'JACKPOT',
-      stock: 1,
-      isActive: true,
-    },
-    {
-      id: 'try',
-      label: 'دوباره!',
-      description: 'این بار نشد — فردا شانس جدید',
-      emoji: '🔄',
-      imageUrl: '/spin/spin-try.png',
-      color: '#E6E0DA',
-      textColor: '#5C4F47',
-      weight: 20,
-      type: 'TRY_AGAIN',
-      menuItemId: null,
-      categoryId: null,
-      discountType: null,
-      discountValue: 0,
-      externalPrizeName: '',
-      codePrefix: 'RETRY',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'fixed-50k',
-      label: '۵۰ هزار',
-      description: '۵۰٬۰۰۰ تومان تخفیف روی سفارش',
-      emoji: '💸',
-      imageUrl: '/spin/spin-fixed-50k.png',
-      color: '#D94E10',
-      textColor: '#FFFFFF',
-      weight: 10,
-      type: 'DISCOUNT_ITEM',
-      menuItemId: null,
-      categoryId: null,
-      discountType: 'fixed',
-      discountValue: 50_000,
-      externalPrizeName: '',
-      codePrefix: 'OFF',
-      stock: null,
-      isActive: true,
-    },
-    {
-      id: 'waffle-free',
-      label: 'وافل رایگان',
-      description: 'یک وافل رایگان',
-      emoji: '🧇',
-      imageUrl: '/spin/spin-waffle-free.png',
-      color: '#E8A87C',
-      textColor: '#2C2420',
-      weight: 12,
-      type: 'FREE_ITEM',
-      menuItemId: null,
-      categoryId: null,
-      discountType: null,
-      discountValue: 0,
-      externalPrizeName: '',
-      codePrefix: 'WAFF',
-      stock: null,
-      isActive: true,
-    },
+    makePrize(
+      {
+        id: 'waffle-30',
+        label: '۳۰٪ تخفیف وافل',
+        description: '۳۰ درصد تخفیف وافل',
+        emoji: '🧇',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 30,
+        codePrefix: 'WAFF',
+      },
+      0,
+    ),
+    makePrize(
+      {
+        id: 'snack-breakfast-10',
+        label: '۱۰٪ میان‌وعده و صبحانه',
+        description: '۱۰ درصد تخفیف میان وعده و صبحانه',
+        emoji: '🥐',
+        weight: 10,
+        type: 'DISCOUNT_CATEGORY',
+        discountType: 'percent',
+        discountValue: 10,
+        codePrefix: 'SNACK',
+      },
+      1,
+    ),
+    makePrize(
+      {
+        id: 'icecream-20',
+        label: '۲۰٪ تخفیف بستنی',
+        description: '۲۰ درصد تخفیف بستنی',
+        emoji: '🍦',
+        weight: 10,
+        type: 'DISCOUNT_CATEGORY',
+        discountType: 'percent',
+        discountValue: 20,
+        codePrefix: 'ICE',
+      },
+      2,
+    ),
+    makePrize(
+      {
+        id: 'mini-pack-20',
+        label: '۲۰٪ پک بستنی مینی',
+        description: '۲۰ درصد تخفیف پک بستنی مینی',
+        emoji: '🍨',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 20,
+        codePrefix: 'MINI',
+      },
+      3,
+    ),
+    makePrize(
+      {
+        id: 'tea-30',
+        label: '۳۰٪ چای و دمنوش',
+        description: '۳۰ درصد تخفیف چای و دمنوش ها',
+        emoji: '🍵',
+        weight: 10,
+        type: 'DISCOUNT_CATEGORY',
+        discountType: 'percent',
+        discountValue: 30,
+        codePrefix: 'TEA',
+      },
+      4,
+    ),
+    makePrize(
+      {
+        id: 'shake-10',
+        label: '۱۰٪ تخفیف شیک',
+        description: '۱۰ درصد تخفیف شیک',
+        emoji: '🧋',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 10,
+        codePrefix: 'SHAK',
+      },
+      5,
+    ),
+    makePrize(
+      {
+        id: 'chocoberry-10',
+        label: '۱۰٪ تخفیف شکوبری',
+        description: '۱۰ درصد تخفیف شکوبری',
+        emoji: '🍫',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 10,
+        codePrefix: 'CHOC',
+      },
+      6,
+    ),
+    makePrize(
+      {
+        id: 'tubular-bogo',
+        label: '۲ تیوبلار بخر ۱ رایگان',
+        description: '۲ تا بستنی تیوبلار بخر یکی رایگان',
+        emoji: '🧊',
+        weight: 8,
+        type: 'FREE_ITEM',
+        discountType: null,
+        discountValue: 0,
+        codePrefix: 'TUBE',
+      },
+      7,
+    ),
+    makePrize(
+      {
+        id: 'red-mojito-20',
+        label: '۲۰٪ رد موهیتو',
+        description: '۲۰ درصد تخفیف رد موهیتو',
+        emoji: '🍹',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 20,
+        codePrefix: 'MOJI',
+      },
+      8,
+    ),
+    makePrize(
+      {
+        id: 'strawberry-banana-10',
+        label: '۱۰٪ توت‌فرنگی موز',
+        description: '۱۰ درصد تخفیف توت فرنگی موز',
+        emoji: '🍓',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 10,
+        codePrefix: 'BAN',
+      },
+      9,
+    ),
+    makePrize(
+      {
+        id: 'coke-espresso-20',
+        label: '۲۰٪ کوک اسپرسو',
+        description: '۲۰ درصد تخفیف کوک اسپرسو',
+        emoji: '☕',
+        weight: 10,
+        type: 'DISCOUNT_ITEM',
+        discountType: 'percent',
+        discountValue: 20,
+        codePrefix: 'COKE',
+      },
+      10,
+    ),
+    makePrize(
+      {
+        id: 'macaroni-soda',
+        label: 'سالاد ماکارونی · نوشابه رایگان',
+        description: 'سالاد ماکارونی بخر - نوشابه رایگان',
+        emoji: '🍝',
+        weight: 8,
+        type: 'FREE_ITEM',
+        discountType: null,
+        discountValue: 0,
+        codePrefix: 'MAC',
+      },
+      11,
+    ),
+    makePrize(
+      {
+        id: 'salad-chilltea',
+        label: 'سالاد بخر · چیل‌چای رایگان',
+        description: 'یه سالاد بخر - چیل چای رایگان',
+        emoji: '🥗',
+        weight: 8,
+        type: 'FREE_ITEM',
+        discountType: null,
+        discountValue: 0,
+        codePrefix: 'SAL',
+      },
+      12,
+    ),
   ],
 }
 
@@ -321,9 +383,13 @@ export function mergeSpinCampaignSettings(
 ): SpinCampaignSettings {
   const raw = rawInput ? upgradeLegacyTexts(rawInput) : rawInput
   const base = DEFAULT_SPIN_CAMPAIGN
+  const storedVersion = raw?.prizeSetVersion ?? 1
+  const shouldReplacePrizes =
+    !raw?.prizes?.length || storedVersion < CURRENT_SPIN_PRIZE_SET_VERSION
   const defaultById = new Map(base.prizes.map((p) => [p.id, p]))
-  const prizes = raw?.prizes?.length
-    ? raw.prizes.map((p) => {
+  const prizes = shouldReplacePrizes
+    ? base.prizes
+    : (raw?.prizes ?? []).map((p) => {
         const fallback = defaultById.get(p.id)
         return {
           ...base.prizes[0]!,
@@ -335,11 +401,13 @@ export function mergeSpinCampaignSettings(
           imageUrl: p.imageUrl ?? fallback?.imageUrl ?? null,
         }
       })
-    : base.prizes
   return {
     ...base,
     ...raw,
-    showSliceLabels: raw?.showSliceLabels ?? base.showSliceLabels,
+    showSliceLabels: shouldReplacePrizes
+      ? base.showSliceLabels
+      : (raw?.showSliceLabels ?? base.showSliceLabels),
+    prizeSetVersion: Math.max(storedVersion, CURRENT_SPIN_PRIZE_SET_VERSION),
     prizes,
   }
 }

@@ -262,7 +262,9 @@ textarea {
 }
 .admin-main {
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100vh;
+  min-width: 0;
 }
 
 /* ── Page ── */
@@ -270,6 +272,8 @@ textarea {
   padding: 28px 32px;
   max-width: 1280px;
   margin: 0 auto;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .page-head {
   display: flex;
@@ -1068,9 +1072,101 @@ textarea {
 /* ── Settings ── */
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 16px;
   align-items: start;
+  min-width: 0;
+}
+
+/* Spin campaign settings */
+.spin-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  width: 100%;
+}
+.spin-settings > .card {
+  min-width: 0;
+  overflow: hidden;
+}
+.spin-qr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+}
+.spin-qr-img {
+  width: min(180px, 42vw);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--border, #e5e5e5);
+  padding: 8px;
+  flex-shrink: 0;
+}
+.spin-qr-meta {
+  display: grid;
+  gap: 10px;
+  min-width: min(100%, 220px);
+  flex: 1 1 220px;
+}
+.spin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.spin-prize-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.spin-prize-card {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 0;
+}
+.spin-prize-card.is-inactive {
+  background: rgba(0, 0, 0, 0.03);
+}
+.spin-prize-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.spin-prize-head strong {
+  flex: 1 1 160px;
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.spin-prize-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.spin-upload-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.spin-color-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.spin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 .feature-list {
   display: flex;
@@ -1339,6 +1435,36 @@ textarea {
   }
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .spin-prize-card .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 14px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .spin-qr-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .spin-qr-img {
+    width: min(160px, 56vw);
+    margin-inline: auto;
+  }
+  .spin-prize-head-actions {
+    width: 100%;
+  }
+  .spin-prize-head-actions .btn-secondary {
+    flex: 1 1 auto;
+    text-align: center;
   }
 }
 
