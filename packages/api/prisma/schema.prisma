@@ -33,6 +33,46 @@ enum PaymentMethod {
   CARD
   MIXED
   UNPAID
+  WALLET
+  CREDIT
+}
+
+enum OrderFulfillment {
+  COUNTER
+  MALL_DELIVERY
+}
+
+enum MallDeliveryStatus {
+  NONE
+  QUEUED
+  OUT
+  HANDED
+}
+
+enum MallMembershipStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum MallWalletEntryType {
+  TOPUP
+  ORDER_PAY
+  ADJUST
+  REFUND
+  BONUS
+}
+
+enum MallCreditEntryType {
+  CHARGE
+  SETTLE
+  ADJUST
+}
+
+enum MallInvoiceStatus {
+  OPEN
+  PAID
+  VOID
 }
 
 enum PaymentStatus {
@@ -263,10 +303,19 @@ model Order {
   createdBy       User?          @relation("OrderCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   shiftId         String?
   shift           CashShift?     @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  membershipId    String?
+  membership      MallMembership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  fulfillment     OrderFulfillment @default(COUNTER)
+  deliveryUnitId  String?
+  deliveryUnit    MallUnit?      @relation(fields: [deliveryUnitId], references: [id], onDelete: SetNull)
+  deliveryLabel   String?
+  deliveryStatus  MallDeliveryStatus @default(NONE)
   items           OrderItem[]
   payments        OrderPayment[]
   adjustments     OrderAdjustment[]
   waitGame        WaitGameSession?
+  walletEntries   MallWalletLedger[]
+  creditEntries   MallCreditLedger[]
   paidAt          DateTime?
   completedAt     DateTime?
   createdAt       DateTime       @default(now())
@@ -278,6 +327,8 @@ model Order {
   @@index([paymentStatus])
   @@index([shiftId])
   @@index([receiptNumber])
+  @@index([membershipId])
+  @@index([fulfillment, deliveryStatus])
 }
 
 model OrderPayment {
@@ -367,4 +418,124 @@ model SpinDraw {
 
   @@index([deviceKey, dayKey])
   @@index([createdAt])
+}
+
+model MallComplex {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  name      String
+  isActive  Boolean    @default(true)
+  units     MallUnit[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MallUnit {
+  id            String          @id @default(cuid())
+  complex       MallComplex     @relation(fields: [complexId], references: [id], onDelete: Cascade)
+  complexId     String
+  unitCode      String
+  name          String
+  floor         String?
+  category      String?
+  usage         String?
+  managerName   String?
+  managerPhone  String?
+  unitPhone     String?
+  ownerName     String?
+  ownerPhone    String?
+  tenantName    String?
+  contactName   String?
+  contactPhone  String?
+  isActive      Boolean         @default(true)
+  meta          Json            @default("{}")
+  membership    MallMembership?
+  deliveryOrders Order[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([complexId, unitCode])
+  @@index([complexId])
+  @@index([floor])
+  @@index([isActive])
+}
+
+model MallMembership {
+  id              String               @id @default(cuid())
+  code            String               @unique
+  unit            MallUnit             @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unitId          String               @unique
+  status          MallMembershipStatus @default(ACTIVE)
+  discountPercent Int                  @default(10)
+  walletBalance   Int                  @default(0)
+  creditLimit     Int                  @default(0)
+  creditUsed      Int                  @default(0)
+  contactName     String?
+  contactPhone    String?
+  customerId      String?
+  notes           String?
+  walletLedger    MallWalletLedger[]
+  creditLedger    MallCreditLedger[]
+  invoices        MallInvoice[]
+  orders          Order[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model MallWalletLedger {
+  id             String             @id @default(cuid())
+  membership     MallMembership     @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  membershipId   String
+  type           MallWalletEntryType
+  amount         Int
+  balanceAfter   Int
+  orderId        String?
+  order          Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  note           String?
+  createdByUserId String?
+  createdAt      DateTime           @default(now())
+
+  @@index([membershipId, createdAt])
+  @@index([orderId])
+}
+
+model MallCreditLedger {
+  id             String              @id @default(cuid())
+  membership     MallMembership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  membershipId   String
+  type           MallCreditEntryType
+  amount         Int
+  creditUsedAfter Int
+  orderId        String?
+  order          Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  invoiceId      String?
+  invoice        MallInvoice?        @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  note           String?
+  createdByUserId String?
+  createdAt      DateTime            @default(now())
+
+  @@index([membershipId, createdAt])
+  @@index([orderId])
+  @@index([invoiceId])
+}
+
+model MallInvoice {
+  id             String            @id @default(cuid())
+  membership     MallMembership    @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  membershipId   String
+  periodKey      String
+  status         MallInvoiceStatus @default(OPEN)
+  totalAmount    Int               @default(0)
+  paidAmount     Int               @default(0)
+  note           String?
+  entries        MallCreditLedger[]
+  paidAt         DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([membershipId, periodKey])
+  @@index([periodKey, status])
 }

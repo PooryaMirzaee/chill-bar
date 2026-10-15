@@ -33,6 +33,7 @@ const orderInclude = {
   payments: true,
   adjustments: { include: { createdBy: { select: { name: true } } } },
   createdBy: { select: { name: true } },
+  membership: { select: { code: true } },
 } as const
 
 async function getOpenShift(required: boolean) {

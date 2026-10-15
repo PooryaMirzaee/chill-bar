@@ -3,11 +3,16 @@ import { homeAppearanceSchema } from './homeAppearance'
 import { menuAppearanceSchema } from './menuAppearance'
 import { comboRecommendationSettingsSchema } from './comboSettings'
 import { spinCampaignSettingsSchema } from './spinCampaign'
+import {
+  mallClubSettingsSchema,
+  mallPayWithSchema,
+  orderFulfillmentSchema,
+} from './mallClub'
 import { RECEIPT_TEMPLATE_IDS } from './receiptTemplates'
 
 export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK', 'POS'])
 
-export const paymentMethodSchema = z.enum(['CASH', 'CARD', 'MIXED', 'UNPAID'])
+export const paymentMethodSchema = z.enum(['CASH', 'CARD', 'MIXED', 'UNPAID', 'WALLET', 'CREDIT'])
 
 export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'])
 
@@ -37,6 +42,14 @@ export const createOrderSchema = z.object({
   note: z.string().max(500).optional().nullable(),
   items: z.array(orderItemPayloadSchema).min(1, 'سبد خرید خالی است'),
   loyaltyRewardId: z.string().min(1).max(60).nullable().optional().default(null),
+  membershipCode: z.string().min(4).max(40).nullable().optional().default(null),
+  fulfillment: orderFulfillmentSchema.optional().default('COUNTER'),
+  payWith: mallPayWithSchema.optional().default('COUNTER'),
+  walletAmount: z.number().int().min(0).max(50_000_000).optional().nullable().default(null),
+})
+
+export const mallRedeemSchema = z.object({
+  code: z.string().min(4).max(40),
 })
 
 export const waitGameIdSchema = z.enum([
@@ -420,6 +433,7 @@ export const settingsInputSchema = z.object({
   comboRecommendations: comboRecommendationSettingsSchema.default({}),
   coffeeFortuneSettings: coffeeFortuneSettingsSchema.default({}),
   spinCampaign: spinCampaignSettingsSchema.default({}),
+  mallClub: mallClubSettingsSchema.default({}),
 })
 
 export const uploadImageSchema = z.object({

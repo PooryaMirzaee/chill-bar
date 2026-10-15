@@ -16,7 +16,16 @@ type OrderWithRelations = PrismaOrder & {
   shift?: Pick<CashShift, 'id' | 'openedAt'> | null
 }
 
-export function serializeOrder(order: OrderWithRelations): Order {
+type OrderWithMall = OrderWithRelations & {
+  membershipId?: string | null
+  membership?: { code: string } | null
+  fulfillment?: Order['fulfillment']
+  deliveryUnitId?: string | null
+  deliveryLabel?: string | null
+  deliveryStatus?: Order['deliveryStatus']
+}
+
+export function serializeOrder(order: OrderWithMall): Order {
   return {
     id: order.id,
     code: order.code,
@@ -38,6 +47,12 @@ export function serializeOrder(order: OrderWithRelations): Order {
     createdByUserId: order.createdByUserId,
     createdByName: order.createdBy?.name ?? null,
     shiftId: order.shiftId,
+    membershipId: order.membershipId ?? null,
+    membershipCode: order.membership?.code ?? null,
+    fulfillment: order.fulfillment ?? 'COUNTER',
+    deliveryUnitId: order.deliveryUnitId ?? null,
+    deliveryLabel: order.deliveryLabel ?? null,
+    deliveryStatus: order.deliveryStatus ?? 'NONE',
     paidAt: order.paidAt?.toISOString() ?? null,
     completedAt: order.completedAt?.toISOString() ?? null,
     createdAt: order.createdAt.toISOString(),

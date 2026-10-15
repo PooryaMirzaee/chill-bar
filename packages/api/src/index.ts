@@ -28,6 +28,8 @@ import { adminCustomerRoutes } from './routes/admin.customers.js'
 import { adminExpenseRoutes } from './routes/admin.expenses.js'
 import { waitLoungeRoutes } from './routes/waitLounge.js'
 import { spinRoutes, adminSpinRoutes } from './routes/spin.js'
+import { mallRoutes } from './routes/mall.js'
+import { adminMallRoutes } from './routes/admin.mall.js'
 import { wsRoutes } from './routes/ws.js'
 import { prisma } from './prisma.js'
 import fastifyStatic from '@fastify/static'
@@ -83,6 +85,7 @@ async function main() {
   await app.register(aiRoutes)
   await app.register(waitLoungeRoutes)
   await app.register(spinRoutes)
+  await app.register(mallRoutes)
   await app.register(adminSettingsRoutes)
 
   // Admin (protected inside each module)
@@ -101,6 +104,7 @@ async function main() {
   await app.register(adminCustomerRoutes)
   await app.register(adminExpenseRoutes)
   await app.register(adminSpinRoutes)
+  await app.register(adminMallRoutes)
 
   // Realtime
   await app.register(wsRoutes)

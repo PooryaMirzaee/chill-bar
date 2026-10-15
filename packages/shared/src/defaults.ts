@@ -5,6 +5,7 @@ import { DEFAULT_STORE_COPY, DEFAULT_LOCATION, DEFAULT_MOODS } from './storeCopy
 import { DEFAULT_HOME_APPEARANCE } from './homeAppearance'
 import { DEFAULT_MENU_APPEARANCE } from './menuAppearance'
 import { DEFAULT_SPIN_CAMPAIGN } from './spinCampaign'
+import { DEFAULT_MALL_CLUB } from './mallClub'
 
 export const DEFAULT_WAIT_LOUNGE: WaitLoungeSettings = {
   enabledGames: {
@@ -66,6 +67,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     waitLounge: true,
     smartCombo: true,
     coffeeFortune: true,
+    mallClub: true,
   },
   kioskIdleSeconds: 60,
   appearance: DEFAULT_APPEARANCE,
@@ -87,4 +89,5 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   comboRecommendations: DEFAULT_COMBO_RECOMMENDATIONS,
   coffeeFortuneSettings: DEFAULT_COFFEE_FORTUNE_SETTINGS,
   spinCampaign: DEFAULT_SPIN_CAMPAIGN,
+  mallClub: DEFAULT_MALL_CLUB,
 }

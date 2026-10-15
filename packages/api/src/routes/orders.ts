@@ -9,9 +9,14 @@ import { getCustomerIdFromAuth } from './customers.js'
 import { loadSettings } from '../lib/storeSettings.js'
 import { normalizeIranPhone } from '../lib/customerLink.js'
 import { applyScratchRewardRules } from '../lib/scratchReward.js'
+import { applyLoyaltyRedeem } from '../lib/loyalty.js'
 import {
-  applyLoyaltyRedeem,
-} from '../lib/loyalty.js'
+  applyCreditCharge,
+  applyWalletPayment,
+  findMembershipByCode,
+  membershipDiscountAmount,
+} from '../lib/mallClub.js'
+import { buildDeliveryLabel, mergeMallClubSettings } from '@chill-bar/shared'
 
 export async function orderRoutes(app: FastifyInstance) {
   app.post('/api/orders', async (request, reply) => {
@@ -26,6 +31,8 @@ export async function orderRoutes(app: FastifyInstance) {
     }
     const input = parsed.data
     const customerId = await getCustomerIdFromAuth(request)
+    const mallSettings = mergeMallClubSettings(store.mallClub)
+    const mallEnabled = store.features.mallClub !== false && mallSettings.enabled
 
     let customerName = input.customerName ?? null
     let customerPhone: string | null = null
@@ -51,25 +58,120 @@ export async function orderRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: loyalty.error })
     }
 
-    const orderItems = loyalty.items
-    const total = loyalty.total
-    const tier = findRewardTier(store.waitLounge, input.loyaltyRewardId)
+    let membership = input.membershipCode && mallEnabled
+      ? await findMembershipByCode(input.membershipCode)
+      : null
+    if (input.membershipCode && mallEnabled && !membership) {
+      return reply.code(400).send({ error: 'کد اشتراک واحد معتبر نیست' })
+    }
+    if (membership && membership.status !== 'ACTIVE') {
+      return reply.code(403).send({ error: 'اشتراک این واحد فعال نیست' })
+    }
+    if (membership && !membership.unit.isActive) {
+      return reply.code(403).send({ error: 'این واحد غیرفعال است' })
+    }
 
-    let order: (PrismaOrder & { items: OrderItem[] }) | undefined
+    const orderItems = loyalty.items
+    const itemsSubtotal = Math.max(0, loyalty.total)
+    const memberDiscount = membership
+      ? membershipDiscountAmount(itemsSubtotal, membership.discountPercent)
+      : 0
+    const total = Math.max(0, itemsSubtotal - memberDiscount)
+    const discountAmount = memberDiscount
+    const discountNote =
+      memberDiscount > 0 && membership
+        ? `تخفیف اشتراک واحد ${membership.discountPercent}٪`
+        : null
+
+    let fulfillment = input.fulfillment ?? 'COUNTER'
+    if (fulfillment === 'MALL_DELIVERY') {
+      if (!membership) {
+        return reply.code(400).send({ error: 'برای پیک تا واحد باید کد اشتراک داشته باشید' })
+      }
+      if (total < mallSettings.minOrderForDelivery) {
+        return reply.code(400).send({
+          error: `حداقل مبلغ برای پیک ${mallSettings.minOrderForDelivery.toLocaleString('fa-IR')} تومان است`,
+        })
+      }
+    }
+
+    const payWith = input.payWith ?? 'COUNTER'
+    if ((payWith === 'WALLET' || payWith === 'CREDIT' || payWith === 'SPLIT') && !membership) {
+      return reply.code(400).send({ error: 'برای پرداخت با کیف/اعتبار کد اشتراک لازم است' })
+    }
+
+    let walletPay = 0
+    let creditPay = 0
+    if (membership && payWith === 'WALLET') {
+      walletPay = total
+      if (membership.walletBalance < walletPay) {
+        return reply.code(400).send({ error: 'موجودی کیف‌پول کافی نیست — شارژ کنید یا روش دیگر انتخاب کنید' })
+      }
+    } else if (membership && payWith === 'CREDIT') {
+      creditPay = total
+      if (membership.creditLimit - membership.creditUsed < creditPay) {
+        return reply.code(400).send({ error: 'سقف اعتبار واحد کافی نیست' })
+      }
+    } else if (membership && payWith === 'SPLIT') {
+      const requestedWallet = Math.min(
+        membership.walletBalance,
+        input.walletAmount ?? membership.walletBalance,
+        total,
+      )
+      walletPay = Math.max(0, requestedWallet)
+      creditPay = total - walletPay
+      if (creditPay > 0 && membership.creditLimit - membership.creditUsed < creditPay) {
+        return reply.code(400).send({
+          error: 'باقی‌مانده روی اعتبار جا نمی‌شود — کیف را بیشتر شارژ کنید یا پرداخت در کافه را انتخاب کنید',
+        })
+      }
+    }
+
+    const tier = findRewardTier(store.waitLounge, input.loyaltyRewardId)
+    const deliveryLabel =
+      fulfillment === 'MALL_DELIVERY' && membership ? buildDeliveryLabel(membership.unit) : null
+
+    let order: (PrismaOrder & { items: OrderItem[]; membership?: { code: string } | null }) | undefined
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
         order = await prisma.$transaction(async (tx) => {
           const code = await nextOrderCode(tx)
+          const paidNow = walletPay + creditPay
+          const paymentStatus = paidNow >= total && total > 0 ? 'PAID' : paidNow > 0 ? 'UNPAID' : 'UNPAID'
+          // If fully covered by wallet/credit, mark PAID; partial wallet+credit covering all also PAID
+          const fullyPaid = paidNow >= total
+          let paymentMethod: 'UNPAID' | 'WALLET' | 'CREDIT' | 'MIXED' = 'UNPAID'
+          if (fullyPaid) {
+            if (walletPay > 0 && creditPay > 0) paymentMethod = 'MIXED'
+            else if (walletPay > 0) paymentMethod = 'WALLET'
+            else if (creditPay > 0) paymentMethod = 'CREDIT'
+          }
+
           const created = await tx.order.create({
             data: {
               code,
               channel: input.channel,
-              customerName,
-              customerPhone: normalizeIranPhone(customerPhone) ?? customerPhone,
+              customerName: customerName ?? membership?.contactName ?? null,
+              customerPhone:
+                normalizeIranPhone(customerPhone) ??
+                customerPhone ??
+                membership?.contactPhone ??
+                null,
               note: input.note ?? null,
               customerId: customerId ?? null,
-              subtotal: total,
+              subtotal: itemsSubtotal,
+              discountAmount,
+              discountNote,
               total,
+              membershipId: membership?.id ?? null,
+              fulfillment,
+              deliveryUnitId: fulfillment === 'MALL_DELIVERY' ? membership?.unitId ?? null : null,
+              deliveryLabel,
+              deliveryStatus: fulfillment === 'MALL_DELIVERY' ? 'QUEUED' : 'NONE',
+              paymentStatus: fullyPaid ? 'PAID' : paymentStatus,
+              paymentMethod: fullyPaid ? paymentMethod : 'UNPAID',
+              paidAmount: fullyPaid ? total : 0,
+              paidAt: fullyPaid ? new Date() : null,
               items: {
                 create: orderItems.map((item) => ({
                   menuItemId: item.menuItemId ?? null,
@@ -82,8 +184,21 @@ export async function orderRoutes(app: FastifyInstance) {
                 })),
               },
             },
-            include: { items: true },
+            include: { items: true, membership: { select: { code: true } } },
           })
+
+          if (membership && walletPay > 0) {
+            await applyWalletPayment(tx, membership.id, walletPay, created.id)
+            await tx.orderPayment.create({
+              data: { orderId: created.id, method: 'WALLET', amount: walletPay },
+            })
+          }
+          if (membership && creditPay > 0) {
+            await applyCreditCharge(tx, membership.id, creditPay, created.id)
+            await tx.orderPayment.create({
+              data: { orderId: created.id, method: 'CREDIT', amount: creditPay },
+            })
+          }
 
           if (store.features.waitLounge !== false) {
             await tx.waitGameSession.create({
@@ -111,6 +226,10 @@ export async function orderRoutes(app: FastifyInstance) {
         })
         break
       } catch (err: unknown) {
+        const e = err as { statusCode?: number; message?: string }
+        if (e.statusCode === 400) {
+          return reply.code(400).send({ error: e.message })
+        }
         if (attempt === 4) throw err
       }
     }
@@ -127,7 +246,16 @@ export async function orderRoutes(app: FastifyInstance) {
     })
 
     await prisma.analyticsEvent.create({
-      data: { type: 'order_created', payload: { orderId: order.id, total, channel: input.channel } },
+      data: {
+        type: 'order_created',
+        payload: {
+          orderId: order.id,
+          total,
+          channel: input.channel,
+          membershipId: membership?.id ?? null,
+          fulfillment,
+        },
+      },
     })
 
     return reply.code(201).send(serialized)
@@ -137,7 +265,7 @@ export async function orderRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const order = await prisma.order.findFirst({
       where: { OR: [{ id }, { code: id }] },
-      include: { items: true, waitGame: true },
+      include: { items: true, waitGame: true, membership: { select: { code: true } } },
     })
     if (!order) return reply.code(404).send({ error: 'سفارش پیدا نشد' })
     const serialized = serializeOrder(order)
@@ -161,6 +289,9 @@ export async function orderRoutes(app: FastifyInstance) {
         code: true,
         status: true,
         updatedAt: true,
+        deliveryStatus: true,
+        deliveryLabel: true,
+        fulfillment: true,
         waitGame: { select: { pointsEarned: true } },
       },
     })
@@ -171,6 +302,9 @@ export async function orderRoutes(app: FastifyInstance) {
       status: order.status,
       updatedAt: order.updatedAt.toISOString(),
       pointsEarned: order.waitGame?.pointsEarned ?? 0,
+      fulfillment: order.fulfillment,
+      deliveryStatus: order.deliveryStatus,
+      deliveryLabel: order.deliveryLabel,
     }
   })
 }

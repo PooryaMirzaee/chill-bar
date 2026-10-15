@@ -107,7 +107,7 @@ export type OrderStatus =
 
 export type OrderChannel = 'MOBILE' | 'KIOSK' | 'POS'
 
-export type PaymentMethod = 'CASH' | 'CARD' | 'MIXED' | 'UNPAID'
+export type PaymentMethod = 'CASH' | 'CARD' | 'MIXED' | 'UNPAID' | 'WALLET' | 'CREDIT'
 
 export type PaymentStatus = 'UNPAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
 
@@ -163,6 +163,12 @@ export interface Order {
   createdByUserId?: string | null
   createdByName?: string | null
   shiftId?: string | null
+  membershipId?: string | null
+  membershipCode?: string | null
+  fulfillment?: OrderFulfillment
+  deliveryUnitId?: string | null
+  deliveryLabel?: string | null
+  deliveryStatus?: MallDeliveryStatus
   paidAt?: string | null
   completedAt?: string | null
   items: OrderItem[]
@@ -509,6 +515,7 @@ export interface MoodDefinition {
 import type { ComboRecommendationSettings } from './comboSettings'
 import type { CoffeeFortuneSettings } from './coffeeFortune'
 import type { SpinCampaignSettings } from './spinCampaign'
+import type { MallClubSettings, MallDeliveryStatus, OrderFulfillment } from './mallClub'
 
 export type { CategoryPairRule, ComboTemplate } from './comboSettings'
 export type { CoffeeFortuneSettings, CoffeeFortuneEntry, CoffeeFortuneSymbol, CoffeeFortuneReading } from './coffeeFortune'
@@ -520,6 +527,7 @@ export type {
   SpinDrawInput,
   SpinDrawResult,
 } from './spinCampaign'
+export type { MallClubSettings, MallMembershipPublic, MallPayWith, OrderFulfillment, MallDeliveryStatus } from './mallClub'
 
 export interface StoreSettings {
   storeName: string
@@ -546,6 +554,7 @@ export interface StoreSettings {
   comboRecommendations: ComboRecommendationSettings
   coffeeFortuneSettings: CoffeeFortuneSettings
   spinCampaign: SpinCampaignSettings
+  mallClub: MallClubSettings
 }
 
 export interface AiSettings {

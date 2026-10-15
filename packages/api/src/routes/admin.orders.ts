@@ -33,7 +33,7 @@ export async function adminOrderRoutes(app: FastifyInstance) {
       }
       const orders = await prisma.order.findMany({
         where,
-        include: { items: true },
+        include: { items: true, membership: { select: { code: true } } },
         orderBy: { createdAt: 'desc' },
         take: query.limit ? Number(query.limit) : 200,
       })
@@ -46,7 +46,10 @@ export async function adminOrderRoutes(app: FastifyInstance) {
     { onRequest: [app.authenticate] },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const order = await prisma.order.findUnique({ where: { id }, include: { items: true } })
+      const order = await prisma.order.findUnique({
+        where: { id },
+        include: { items: true, membership: { select: { code: true } } },
+      })
       if (!order) return reply.code(404).send({ error: 'سفارش پیدا نشد' })
       return serializeOrder(order)
     },
@@ -62,7 +65,10 @@ export async function adminOrderRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'داده نامعتبر است' })
       }
 
-      const existing = await prisma.order.findUnique({ where: { id }, include: { items: true } })
+      const existing = await prisma.order.findUnique({
+        where: { id },
+        include: { items: true, membership: { select: { code: true } } },
+      })
       if (!existing) return reply.code(404).send({ error: 'سفارش پیدا نشد' })
       if (existing.status === 'CANCELLED') {
         return reply.code(400).send({ error: 'سفارش لغو‌شده قابل ویرایش نیست' })
@@ -160,7 +166,7 @@ export async function adminOrderRoutes(app: FastifyInstance) {
           return tx.order.update({
             where: { id },
             data,
-            include: { items: true },
+            include: { items: true, membership: { select: { code: true } } },
           })
         })
 
@@ -217,7 +223,7 @@ export async function adminOrderRoutes(app: FastifyInstance) {
         return tx.order.update({
           where: { id },
           data,
-          include: { items: true },
+          include: { items: true, membership: { select: { code: true } } },
         })
       })
 

@@ -1,5 +1,10 @@
 import type { StoreSettings } from '@chill-bar/shared'
-import { DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
+import {
+  DEFAULT_STORE_SETTINGS,
+  mergeCoffeeFortuneSettings,
+  mergeMallClubSettings,
+  mergeSpinCampaignSettings,
+} from '@chill-bar/shared'
 
 export function mergeSettings(raw: Partial<StoreSettings> | null | undefined): StoreSettings {
   return {
@@ -44,6 +49,7 @@ export function mergeSettings(raw: Partial<StoreSettings> | null | undefined): S
     },
     coffeeFortuneSettings: mergeCoffeeFortuneSettings(raw?.coffeeFortuneSettings),
     spinCampaign: mergeSpinCampaignSettings(raw?.spinCampaign),
+    mallClub: mergeMallClubSettings(raw?.mallClub),
   }
 }
 

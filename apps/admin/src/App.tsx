@@ -17,6 +17,7 @@ import { Customers } from './pages/Customers'
 import { Expenses } from './pages/Expenses'
 import { FinancialReports } from './pages/FinancialReports'
 import { SpinCampaignReport } from './pages/SpinCampaignReport'
+import { MallClub } from './pages/MallClub'
 
 /** Keeps order alert sound alive on every protected route (including POS). */
 function OrderAlertsHost() {
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="expenses" element={<Expenses />} />
         <Route path="customers" element={<Customers />} />
         <Route path="spin-campaign" element={<SpinCampaignReport />} />
+        <Route path="mall-club" element={<MallClub />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<Users />} />
       </Route>

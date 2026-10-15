@@ -40,6 +40,16 @@ export function PosIncomingPanel({ onSettle }: PosIncomingPanelProps) {
             >
               <strong>{order.code}</strong>
               <span className="pos-incoming-channel">{ORDER_CHANNEL_LABEL[order.channel]}</span>
+              {order.fulfillment === 'MALL_DELIVERY' && (
+                <span className="pos-incoming-channel" style={{ color: 'var(--orange)', fontWeight: 600 }}>
+                  پیک واحد{order.deliveryLabel ? ` · ${order.deliveryLabel}` : ''}
+                </span>
+              )}
+              {order.membershipCode && (
+                <span className="pos-incoming-name" dir="ltr">
+                  {order.membershipCode}
+                </span>
+              )}
               {order.customerName && <span className="pos-incoming-name">{order.customerName}</span>}
               {order.customerPhone && (
                 <span className="pos-incoming-phone" dir="ltr">

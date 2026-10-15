@@ -13,6 +13,7 @@ import {
   UserCircle,
   Wallet,
   Disc3,
+  Building2,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 
@@ -25,6 +26,7 @@ const NAV = [
   { to: '/ice-cream', label: 'گزینه‌های بستنی', icon: IceCreamCone },
   { to: '/reports', label: 'گزارش مالی', icon: BarChart3, roles: ['SUPER_ADMIN', 'MANAGER'] },
   { to: '/spin-campaign', label: 'رصد گردونه', icon: Disc3, roles: ['SUPER_ADMIN', 'MANAGER'] },
+  { to: '/mall-club', label: 'سیتی‌سنتر', icon: Building2 },
   { to: '/expenses', label: 'هزینه‌ها', icon: Wallet, roles: ['SUPER_ADMIN', 'MANAGER', 'STAFF'] },
   { to: '/customers', label: 'مشتریان', icon: UserCircle },
   { to: '/settings', label: 'تنظیمات', icon: SettingsIcon },

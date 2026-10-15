@@ -54,6 +54,8 @@ import { useAiConfig } from './hooks/useAiConfig'
 import { getBrandFallback, getBrandLogoUrl, resolveAssetUrl } from './lib/branding'
 import { menuItemForCart, resolveLiveMenuItem } from './lib/menuItem'
 import { syncSpinPath, tabFromLocation } from './lib/spinRoute'
+import { CityCenterClub } from './components/CityCenterClub'
+import { isCityCenterPath, loadMallMembership, membershipCodeFromPath } from './lib/mallMembership'
 
 type Tab = 'home' | 'icecream' | 'menu' | 'discover' | 'play'
 
@@ -137,6 +139,10 @@ function AppContent() {
   const [showInstall, setShowInstall] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [cityCenterOpen, setCityCenterOpen] = useState(
+    () => isCityCenterPath() || Boolean(membershipCodeFromPath()),
+  )
+  const [mallMember, setMallMember] = useState(() => loadMallMembership())
 
   useEffect(() => {
     if (tabBootstrapped.current) return
@@ -428,6 +434,25 @@ function AppContent() {
     }
   }
 
+  if (cityCenterOpen && features.mallClub !== false) {
+    return (
+      <div className="atelier-shell min-h-dvh bg-background">
+        <CityCenterClub
+          onContinue={() => {
+            setMallMember(loadMallMembership())
+            setCityCenterOpen(false)
+            if (isCityCenterPath()) window.history.replaceState(null, '', '/')
+            setActiveTab('menu')
+          }}
+          onClose={() => {
+            setCityCenterOpen(false)
+            if (isCityCenterPath()) window.history.replaceState(null, '', '/')
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className={cn('atelier-shell relative min-h-dvh overflow-x-clip bg-background pb-[calc(5.75rem+var(--safe-bottom))]', isKiosk && 'select-none')}>
       {isKiosk && idle && (
@@ -477,6 +502,20 @@ function AppContent() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            {features.mallClub !== false && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-orange-600"
+                onClick={() => {
+                  window.history.replaceState(null, '', '/city-center')
+                  setCityCenterOpen(true)
+                }}
+                title="اشتراک سیتی‌سنتر"
+              >
+                {mallMember ? mallMember.unit.unitCode : 'واحد'}
+              </Button>
+            )}
             <WeatherWidget weather={weather} hour={hour} />
             <Button
               variant="ghost"

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee, Disc3 } from 'lucide-react'
 import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
-import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
+import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings, mergeMallClubSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { AppearanceSettings } from '../components/AppearanceSettings'
 import { AiSettingsPanel } from '../components/AiSettingsPanel'
@@ -27,6 +27,7 @@ const FEATURE_LABELS: Record<string, string> = {
   waitLounge: 'سالن انتظار (بازی زمان آماده‌سازی)',
   smartCombo: 'کمبو هوشمند',
   coffeeFortune: 'فال قهوه (سرگرمی روزانه)',
+  mallClub: 'اشتراک سیتی‌سنتر',
 }
 
 type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'spin' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
@@ -74,6 +75,7 @@ export function Settings() {
       features: { ...DEFAULT_STORE_SETTINGS.features, ...data.features },
       coffeeFortuneSettings: mergeCoffeeFortuneSettings(data.coffeeFortuneSettings),
       spinCampaign: mergeSpinCampaignSettings(data.spinCampaign),
+      mallClub: mergeMallClubSettings(data.mallClub),
     })
   }, [data])
 

@@ -159,6 +159,11 @@ export function Orders() {
                       <span className="order-channel">{ORDER_CHANNEL_LABEL[order.channel]}</span>
                     </div>
                     <div className="order-card-meta">
+                      {order.fulfillment === 'MALL_DELIVERY' && (
+                        <span className="payment-badge" style={{ color: 'var(--orange)' }}>
+                          پیک · {order.deliveryLabel || 'واحد'}
+                        </span>
+                      )}
                       {order.customerName && <span>{order.customerName}</span>}
                       <span>{timeAgo(order.createdAt)}</span>
                       {order.paymentStatus && order.paymentStatus !== 'UNPAID' && (

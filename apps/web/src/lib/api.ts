@@ -84,6 +84,10 @@ export interface CreateOrderBody {
   note?: string | null
   items: OrderItemInput[]
   loyaltyRewardId?: string | null
+  membershipCode?: string | null
+  fulfillment?: 'COUNTER' | 'MALL_DELIVERY'
+  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT'
+  walletAmount?: number | null
 }
 
 export interface WaitLoungePublicConfig {

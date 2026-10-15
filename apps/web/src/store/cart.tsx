@@ -27,6 +27,10 @@ interface CheckoutInfo {
   customerName?: string
   note?: string
   loyaltyRewardId?: string | null
+  membershipCode?: string | null
+  fulfillment?: 'COUNTER' | 'MALL_DELIVERY'
+  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT'
+  walletAmount?: number | null
 }
 
 interface CartContextType {
@@ -250,6 +254,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         note: info.note || null,
         items: payload,
         loyaltyRewardId: info.loyaltyRewardId ?? loyaltyRewardId ?? null,
+        membershipCode: info.membershipCode ?? null,
+        fulfillment: info.fulfillment ?? 'COUNTER',
+        payWith: info.payWith ?? 'COUNTER',
+        walletAmount: info.walletAmount ?? null,
       })
       setLastOrder(order)
       setItems([])

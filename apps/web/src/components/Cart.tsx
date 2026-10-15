@@ -1,4 +1,4 @@
-import { Gift, Sparkles } from 'lucide-react'
+import { Gift, Sparkles, Building2, Bike } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Minus, Plus, Trash2, ShoppingBag, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useCart } from '../store/cart'
@@ -6,7 +6,9 @@ import { useCustomer } from '../lib/customerAuth'
 import { formatPrice, isOptionPriced } from '../lib/comboBuilder'
 import { apiClient } from '../lib/api'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_FLOW, computeRedeem, formatChillPoints } from '@chill-bar/shared'
-import type { Order, OrderStatus } from '@chill-bar/shared'
+import type { MallPayWith, Order, OrderFulfillment, OrderStatus } from '@chill-bar/shared'
+import { loadMallMembership, redeemMallCode } from '../lib/mallMembership'
+import { MallMemberBadge } from './CityCenterClub'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -75,10 +77,19 @@ export function Cart({
   const [showSaveHint, setShowSaveHint] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [mallMember, setMallMember] = useState(() => loadMallMembership())
+  const [fulfillment, setFulfillment] = useState<OrderFulfillment>('COUNTER')
+  const [payWith, setPayWith] = useState<MallPayWith>('COUNTER')
 
   useEffect(() => {
     if (!isOpen) return
     setName(customer?.name ?? '')
+    const m = loadMallMembership()
+    setMallMember(m)
+    if (m) {
+      setFulfillment('MALL_DELIVERY')
+      setPayWith(m.walletBalance > 0 ? 'WALLET' : m.creditAvailable > 0 ? 'CREDIT' : 'COUNTER')
+    }
   }, [isOpen, customer?.name])
 
   const checkoutSubtotal = total + (pendingReward?.rewardPrice ?? 0)
@@ -91,7 +102,10 @@ export function Cart({
   }, [loyaltyRewardId, waitLounge, checkoutSubtotal, balance])
 
   const redeemDiscount = redeemPreview?.discount ?? 0
-  const checkoutTotal = Math.max(0, checkoutSubtotal - redeemDiscount)
+  const memberDiscount = mallMember
+    ? Math.round((Math.max(0, checkoutSubtotal - redeemDiscount) * mallMember.discountPercent) / 100)
+    : 0
+  const checkoutTotal = Math.max(0, checkoutSubtotal - redeemDiscount - memberDiscount)
 
   const handleSubmit = async () => {
     if (!storeOpen) {
@@ -101,7 +115,22 @@ export function Cart({
     setSubmitting(true)
     setError('')
     try {
-      const order = await submitOrder({ customerName: name, note, loyaltyRewardId })
+      const order = await submitOrder({
+        customerName: name,
+        note,
+        loyaltyRewardId,
+        membershipCode: mallMember?.code ?? null,
+        fulfillment: mallMember ? fulfillment : 'COUNTER',
+        payWith: mallMember ? payWith : 'COUNTER',
+      })
+      if (mallMember) {
+        try {
+          const fresh = await redeemMallCode(mallMember.code)
+          setMallMember(fresh)
+        } catch {
+          /* ignore refresh errors */
+        }
+      }
       if (loungeFeatureOn) {
         setActiveOrder(orderToActive(order))
       }
@@ -129,7 +158,12 @@ export function Cart({
   const titles: Record<Stage, string> = {
     cart: 'سبد خرید',
     checkout: 'تکمیل سفارش',
-    done: 'ثبت شد — مراجعه به صندوق',
+    done:
+      lastOrder?.fulfillment === 'MALL_DELIVERY'
+        ? 'ثبت شد — پیک تا واحد می‌آید'
+        : lastOrder?.paymentStatus === 'PAID'
+          ? 'ثبت و پرداخت شد'
+          : 'ثبت شد — مراجعه به صندوق',
   }
 
   return (
@@ -366,6 +400,72 @@ export function Cart({
 
             <Separator />
 
+            {mallMember && (
+              <div className="space-y-3 rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
+                <MallMemberBadge membership={mallMember} />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-lg border px-2 py-2 text-xs',
+                      fulfillment === 'MALL_DELIVERY' ? 'border-orange-500 bg-orange-500/10' : '',
+                    )}
+                    onClick={() => setFulfillment('MALL_DELIVERY')}
+                  >
+                    <Bike className="mx-auto mb-1 h-4 w-4" />
+                    پیک تا واحد
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-lg border px-2 py-2 text-xs',
+                      fulfillment === 'COUNTER' ? 'border-orange-500 bg-orange-500/10' : '',
+                    )}
+                    onClick={() => setFulfillment('COUNTER')}
+                  >
+                    <Building2 className="mx-auto mb-1 h-4 w-4" />
+                    تحویل در کافه
+                  </button>
+                </div>
+                {fulfillment === 'MALL_DELIVERY' && (
+                  <p className="text-xs text-muted-foreground">{mallMember.unit.deliveryLabel}</p>
+                )}
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">روش پرداخت</p>
+                  {(
+                    [
+                      ['WALLET', `کیف‌پول (${formatPrice(mallMember.walletBalance)})`],
+                      ['CREDIT', `اعتبار واحد (${formatPrice(mallMember.creditAvailable)})`],
+                      ['COUNTER', 'پرداخت در کافه'],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={cn(
+                        'flex w-full rounded-lg border px-3 py-2 text-xs',
+                        payWith === value ? 'border-primary bg-primary/10' : '',
+                      )}
+                      onClick={() => setPayWith(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {memberDiscount > 0 && (
+                  <p className="text-xs text-orange-600">
+                    تخفیف اشتراک {mallMember.discountPercent}٪: {formatPrice(memberDiscount)}-
+                  </p>
+                )}
+                {mallMember.walletBalance <= 0 && payWith !== 'WALLET' && (
+                  <p className="text-xs text-muted-foreground">
+                    {settings.mallClub?.walletEmptyUpsell ||
+                      'کیف‌پولت خالیه — از صندوق بخواه شارژ کنن'}
+                  </p>
+                )}
+              </div>
+            )}
+
             {loungeFeatureOn &&
               waitLounge.pointsRedemptionEnabled &&
               hasAccount &&
@@ -523,6 +623,14 @@ function OrderConfirmation({
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
       <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-6 text-center">
+        {order.fulfillment === 'MALL_DELIVERY' && order.deliveryLabel && (
+          <div className="w-full rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm">
+            پیک به <strong>{order.deliveryLabel}</strong>
+          </div>
+        )}
+        {order.paymentStatus === 'PAID' && (
+          <p className="text-xs text-primary">پرداخت با کیف‌پول / اعتبار واحد ثبت شد</p>
+        )}
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
           <CheckCircle2 className="h-8 w-8 text-primary" />
         </div>
