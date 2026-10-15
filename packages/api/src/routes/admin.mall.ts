@@ -158,8 +158,9 @@ export async function adminMallRoutes(app: FastifyInstance) {
         category: u.category,
         managerName: u.managerName,
         managerPhone: u.managerPhone,
-        contactName: u.contactName,
-        contactPhone: u.contactPhone,
+        contactName: u.contactName ?? u.membership?.contactName ?? u.managerName,
+        contactPhone:
+          u.contactPhone ?? u.membership?.contactPhone ?? u.managerPhone ?? null,
         isActive: u.isActive,
         deliveryLabel: buildDeliveryLabel(u),
         membership: u.membership
@@ -171,6 +172,7 @@ export async function adminMallRoutes(app: FastifyInstance) {
               walletBalance: u.membership.walletBalance,
               creditLimit: u.membership.creditLimit,
               creditUsed: u.membership.creditUsed,
+              contactPhone: u.membership.contactPhone,
             }
           : null,
       })),

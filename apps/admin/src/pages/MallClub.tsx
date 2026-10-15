@@ -10,9 +10,12 @@ import {
   FileText,
   BarChart3,
   Upload,
+  Ticket,
 } from 'lucide-react'
 import { api, getToken } from '../lib/api'
 import { formatNumber, formatPrice } from '../lib/format'
+import { MallUnitTicketModal } from '../components/MallUnitTicketModal'
+import type { MallTicketInput } from '../lib/mallTicket'
 
 type Tab = 'units' | 'memberships' | 'deliveries' | 'invoices' | 'report'
 
@@ -22,6 +25,8 @@ interface UnitRow {
   name: string
   floor: string | null
   category: string | null
+  contactName?: string | null
+  contactPhone?: string | null
   isActive: boolean
   deliveryLabel: string
   membership: {
@@ -32,6 +37,7 @@ interface UnitRow {
     walletBalance: number
     creditLimit: number
     creditUsed: number
+    contactPhone?: string | null
   } | null
 }
 
@@ -44,8 +50,18 @@ interface MembershipRow {
   creditLimit: number
   creditUsed: number
   creditAvailable: number
-  unit: { id: string; unitCode: string; name: string; floor: string | null; deliveryLabel: string }
+  contactName?: string | null
+  unit: {
+    id: string
+    unitCode: string
+    name: string
+    floor: string | null
+    deliveryLabel: string
+    contactPhone?: string | null
+  }
 }
+
+type TicketTarget = MallTicketInput & { contactPhone?: string | null }
 
 interface DeliveryRow {
   id: string
@@ -77,6 +93,9 @@ export function MallClub() {
   const [creditLimit, setCreditLimit] = useState('')
   const [discount, setDiscount] = useState('')
   const [msg, setMsg] = useState('')
+  const [ticketTarget, setTicketTarget] = useState<TicketTarget | null>(null)
+
+  const openTicket = (t: TicketTarget) => setTicketTarget(t)
 
   const summary = useQuery({
     queryKey: ['mall-summary'],
@@ -247,10 +266,13 @@ export function MallClub() {
 
   return (
     <div className="page">
+      {ticketTarget && (
+        <MallUnitTicketModal open onClose={() => setTicketTarget(null)} ticket={ticketTarget} />
+      )}
       <div className="page-head">
         <div>
           <h1>اشتراک سیتی‌سنتر</h1>
-          <p className="page-sub">واحدها، کد اشتراک، کیف‌پول، اعتبار و پیک تا واحد</p>
+          <p className="page-sub">واحدها، کد اشتراک، پاس واتساپ، کیف‌پول، اعتبار و پیک تا واحد</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
@@ -354,6 +376,7 @@ export function MallClub() {
                 <th>کد اشتراک</th>
                 <th>کیف</th>
                 <th>اعتبار</th>
+                <th>پاس</th>
                 <th></th>
               </tr>
             </thead>
@@ -376,6 +399,29 @@ export function MallClub() {
                     {u.membership && (
                       <button
                         type="button"
+                        className="btn-primary"
+                        title="پاس واتساپ"
+                        onClick={() =>
+                          openTicket({
+                            unitCode: u.unitCode,
+                            unitName: u.name,
+                            floor: u.floor,
+                            membershipCode: u.membership!.code,
+                            discountPercent: u.membership!.discountPercent,
+                            deepLink: deepLink(u.membership!.code),
+                            contactName: u.contactName,
+                            contactPhone: u.contactPhone ?? u.membership!.contactPhone,
+                          })
+                        }
+                      >
+                        <Ticket size={14} /> پاس
+                      </button>
+                    )}
+                  </td>
+                  <td>
+                    {u.membership && (
+                      <button
+                        type="button"
                         className="btn-secondary"
                         onClick={() => {
                           setTab('memberships')
@@ -388,12 +434,14 @@ export function MallClub() {
                             creditLimit: u.membership!.creditLimit,
                             creditUsed: u.membership!.creditUsed,
                             creditAvailable: u.membership!.creditLimit - u.membership!.creditUsed,
+                            contactName: u.contactName,
                             unit: {
                               id: u.id,
                               unitCode: u.unitCode,
                               name: u.name,
                               floor: u.floor,
                               deliveryLabel: u.deliveryLabel,
+                              contactPhone: u.contactPhone,
                             },
                           })
                           setCreditLimit(String(u.membership!.creditLimit))
@@ -494,6 +542,24 @@ export function MallClub() {
                     }
                   >
                     ذخیره
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() =>
+                      openTicket({
+                        unitCode: selectedMembership.unit.unitCode,
+                        unitName: selectedMembership.unit.name,
+                        floor: selectedMembership.unit.floor,
+                        membershipCode: selectedMembership.code,
+                        discountPercent: selectedMembership.discountPercent,
+                        deepLink: deepLink(selectedMembership.code),
+                        contactName: selectedMembership.contactName,
+                        contactPhone: selectedMembership.unit.contactPhone,
+                      })
+                    }
+                  >
+                    <Ticket size={14} /> پاس واتساپ
                   </button>
                   <button type="button" className="btn-secondary" onClick={() => regenCode.mutate()}>
                     <RefreshCw size={14} /> کد جدید
