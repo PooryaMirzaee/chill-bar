@@ -35,6 +35,19 @@ enum PaymentMethod {
   UNPAID
   WALLET
   CREDIT
+  ONLINE
+}
+
+enum OnlinePaymentPurpose {
+  ORDER
+  WALLET_TOPUP
+}
+
+enum OnlinePaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
 }
 
 enum OrderFulfillment {
@@ -224,11 +237,12 @@ model Customer {
   notes         String?
   isRegistered  Boolean              @default(false)
   preferences   Json                 @default("{}")
-  chillPoints   Int                  @default(0)
-  orders        Order[]
-  loyaltyLedger LoyaltyTransaction[]
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+  chillPoints     Int                  @default(0)
+  orders          Order[]
+  loyaltyLedger   LoyaltyTransaction[]
+  onlinePayments  OnlinePayment[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([isRegistered])
 }
@@ -316,6 +330,7 @@ model Order {
   waitGame        WaitGameSession?
   walletEntries   MallWalletLedger[]
   creditEntries   MallCreditLedger[]
+  onlinePayments  OnlinePayment[]
   paidAt          DateTime?
   completedAt     DateTime?
   createdAt       DateTime       @default(now())
@@ -329,6 +344,34 @@ model Order {
   @@index([receiptNumber])
   @@index([membershipId])
   @@index([fulfillment, deliveryStatus])
+}
+
+model OnlinePayment {
+  id           String               @id @default(cuid())
+  authority    String?              @unique
+  amount       Int
+  currency     String               @default("IRT")
+  purpose      OnlinePaymentPurpose
+  status       OnlinePaymentStatus  @default(PENDING)
+  description  String
+  orderId      String?
+  order        Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  membershipId String?
+  membership   MallMembership?      @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  customerId   String?
+  customer     Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  refId        String?
+  cardPan      String?
+  fee          Int?
+  metadata     Json?
+  verifiedAt   DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@index([membershipId])
+  @@index([customerId])
 }
 
 model OrderPayment {
@@ -478,6 +521,7 @@ model MallMembership {
   creditLedger    MallCreditLedger[]
   invoices        MallInvoice[]
   orders          Order[]
+  onlinePayments  OnlinePayment[]
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
 

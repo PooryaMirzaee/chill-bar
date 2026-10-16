@@ -29,7 +29,7 @@ interface CheckoutInfo {
   loyaltyRewardId?: string | null
   membershipCode?: string | null
   fulfillment?: 'COUNTER' | 'MALL_DELIVERY'
-  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT'
+  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT' | 'ONLINE'
   walletAmount?: number | null
 }
 
@@ -47,7 +47,7 @@ interface CartContextType {
   total: number
   count: number
   addCombo: (items: MenuItem[]) => void
-  submitOrder: (info: CheckoutInfo) => Promise<Order>
+  submitOrder: (info: CheckoutInfo) => Promise<import('../lib/api').CreateOrderResponse>
   lastOrder: Order | null
   clearLastOrder: () => void
   loyaltyRewardId: string | null
@@ -200,7 +200,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const submitOrder = useCallback(
-    async (info: CheckoutInfo): Promise<Order> => {
+    async (info: CheckoutInfo): Promise<import('../lib/api').CreateOrderResponse> => {
       if (items.length === 0 && pendingReward) {
         throw new Error('جایزه باید همراه با حداقل یک محصول دیگر ثبت شود')
       }

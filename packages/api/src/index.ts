@@ -13,6 +13,8 @@ import { customerRoutes } from './routes/customers.js'
 import { aiRoutes } from './routes/ai.js'
 import { adminAiRoutes } from './routes/admin.ai.js'
 import { adminSmsRoutes } from './routes/admin.sms.js'
+import { adminPaymentRoutes } from './routes/admin.payments.js'
+import { paymentRoutes } from './routes/payments.js'
 import { adminAlertRoutes } from './routes/admin.alerts.js'
 import { adminIceCreamRoutes } from './routes/admin.iceCream.js'
 import { adminOrderRoutes } from './routes/admin.orders.js'
@@ -86,12 +88,14 @@ async function main() {
   await app.register(waitLoungeRoutes)
   await app.register(spinRoutes)
   await app.register(mallRoutes)
+  await app.register(paymentRoutes)
   await app.register(adminSettingsRoutes)
 
   // Admin (protected inside each module)
   await app.register(adminUploadRoutes)
   await app.register(adminAiRoutes)
   await app.register(adminSmsRoutes)
+  await app.register(adminPaymentRoutes)
   await app.register(adminAlertRoutes)
   await app.register(adminIceCreamRoutes)
   await app.register(adminOrderRoutes)

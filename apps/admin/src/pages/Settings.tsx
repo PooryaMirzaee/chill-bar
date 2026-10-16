@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee, Disc3 } from 'lucide-react'
-import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings } from '@chill-bar/shared'
-import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, mergeCoffeeFortuneSettings, mergeMallClubSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
+import { Save, Palette, Store, Bot, MessageSquare, Type, Smile, Volume2, LayoutGrid, Home, Sparkles, Calculator, Coffee, Disc3, CreditCard } from 'lucide-react'
+import type { StoreSettings, AiSettings, SmsSettings, AdminAlertSettings, PosSettings, PaymentSettings } from '@chill-bar/shared'
+import { DEFAULT_AI_SETTINGS, DEFAULT_SMS_SETTINGS, DEFAULT_ADMIN_ALERT_SETTINGS, DEFAULT_POS_SETTINGS, DEFAULT_STORE_SETTINGS, DEFAULT_PAYMENT_SETTINGS, mergeCoffeeFortuneSettings, mergeMallClubSettings, mergeSpinCampaignSettings } from '@chill-bar/shared'
 import { api } from '../lib/api'
 import { AppearanceSettings } from '../components/AppearanceSettings'
 import { AiSettingsPanel } from '../components/AiSettingsPanel'
 import { SmsSettingsPanel } from '../components/SmsSettingsPanel'
+import { PaymentSettingsPanel } from '../components/PaymentSettingsPanel'
 import { CopySettingsPanel } from '../components/CopySettingsPanel'
 import { MoodsSettingsPanel } from '../components/MoodsSettingsPanel'
 import { ScratchRewardSettingsPanel } from '../components/ScratchRewardSettingsPanel'
@@ -30,7 +31,7 @@ const FEATURE_LABELS: Record<string, string> = {
   mallClub: 'اشتراک سیتی‌سنتر',
 }
 
-type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'spin' | 'features' | 'pos' | 'ai' | 'sms' | 'alerts'
+type Tab = 'store' | 'appearance' | 'home' | 'menu' | 'copy' | 'moods' | 'combo' | 'fortune' | 'spin' | 'features' | 'pos' | 'ai' | 'sms' | 'payments' | 'alerts'
 
 export function Settings() {
   const queryClient = useQueryClient()
@@ -47,6 +48,10 @@ export function Settings() {
     queryKey: ['sms-settings'],
     queryFn: () => api<SmsSettings>('/api/admin/sms'),
   })
+  const { data: paymentData } = useQuery({
+    queryKey: ['payment-settings'],
+    queryFn: () => api<PaymentSettings>('/api/admin/payments'),
+  })
   const { data: alertData } = useQuery({
     queryKey: ['admin-alerts'],
     queryFn: () => api<AdminAlertSettings>('/api/admin/alerts'),
@@ -58,11 +63,13 @@ export function Settings() {
   const [form, setForm] = useState<StoreSettings | null>(null)
   const [aiForm, setAiForm] = useState<AiSettings>(DEFAULT_AI_SETTINGS)
   const [smsForm, setSmsForm] = useState<SmsSettings>(DEFAULT_SMS_SETTINGS)
+  const [paymentForm, setPaymentForm] = useState<PaymentSettings>(DEFAULT_PAYMENT_SETTINGS)
   const [alertForm, setAlertForm] = useState<AdminAlertSettings>(DEFAULT_ADMIN_ALERT_SETTINGS)
   const [posForm, setPosForm] = useState<PosSettings>(DEFAULT_POS_SETTINGS)
   const [saved, setSaved] = useState(false)
   const [aiSaved, setAiSaved] = useState(false)
   const [smsSaved, setSmsSaved] = useState(false)
+  const [paymentSaved, setPaymentSaved] = useState(false)
   const [alertSaved, setAlertSaved] = useState(false)
   const [posSaved, setPosSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -86,6 +93,10 @@ export function Settings() {
   useEffect(() => {
     if (smsData) setSmsForm(smsData)
   }, [smsData])
+
+  useEffect(() => {
+    if (paymentData) setPaymentForm({ ...DEFAULT_PAYMENT_SETTINGS, ...paymentData })
+  }, [paymentData])
 
   useEffect(() => {
     if (alertData) setAlertForm(alertData)
@@ -131,6 +142,18 @@ export function Settings() {
     onError: (err: Error) => setSaveError(err.message),
   })
 
+  const paymentMutation = useMutation({
+    mutationFn: (payload: PaymentSettings) =>
+      api('/api/admin/payments', { method: 'PUT', body: JSON.stringify(payload) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-settings'] })
+      setPaymentSaved(true)
+      setSaveError(null)
+      setTimeout(() => setPaymentSaved(false), 2000)
+    },
+    onError: (err: Error) => setSaveError(err.message),
+  })
+
   const alertMutation = useMutation({
     mutationFn: (payload: AdminAlertSettings) =>
       api('/api/admin/alerts', { method: 'PUT', body: JSON.stringify(payload) }),
@@ -167,6 +190,7 @@ export function Settings() {
     setSaveError(null)
     if (tab === 'ai') aiMutation.mutate(aiForm)
     else if (tab === 'sms') smsMutation.mutate(smsForm)
+    else if (tab === 'payments') paymentMutation.mutate(paymentForm)
     else if (tab === 'alerts') alertMutation.mutate(alertForm)
     else if (tab === 'pos') posMutation.mutate(posForm)
     else mutation.mutate(form)
@@ -177,21 +201,25 @@ export function Settings() {
       ? aiMutation.isPending
       : tab === 'sms'
         ? smsMutation.isPending
-        : tab === 'alerts'
-          ? alertMutation.isPending
-          : tab === 'pos'
-            ? posMutation.isPending
-            : mutation.isPending
+        : tab === 'payments'
+          ? paymentMutation.isPending
+          : tab === 'alerts'
+            ? alertMutation.isPending
+            : tab === 'pos'
+              ? posMutation.isPending
+              : mutation.isPending
   const savedLabel =
     tab === 'ai'
       ? aiSaved
       : tab === 'sms'
         ? smsSaved
-        : tab === 'alerts'
-          ? alertSaved
-          : tab === 'pos'
-            ? posSaved
-            : saved
+        : tab === 'payments'
+          ? paymentSaved
+          : tab === 'alerts'
+            ? alertSaved
+            : tab === 'pos'
+              ? posSaved
+              : saved
 
   return (
     <div className="page">
@@ -249,6 +277,9 @@ export function Settings() {
         </button>
         <button type="button" className={tab === 'sms' ? 'active' : ''} onClick={() => setTab('sms')}>
           <MessageSquare size={16} /> پیامک
+        </button>
+        <button type="button" className={tab === 'payments' ? 'active' : ''} onClick={() => setTab('payments')}>
+          <CreditCard size={16} /> درگاه پرداخت
         </button>
         <button type="button" className={tab === 'alerts' ? 'active' : ''} onClick={() => setTab('alerts')}>
           <Volume2 size={16} /> اعلان صوتی
@@ -432,6 +463,10 @@ export function Settings() {
       {tab === 'ai' && <AiSettingsPanel settings={aiForm} onChange={setAiForm} />}
 
       {tab === 'sms' && <SmsSettingsPanel settings={smsForm} onChange={setSmsForm} />}
+
+      {tab === 'payments' && (
+        <PaymentSettingsPanel settings={paymentForm} onChange={setPaymentForm} />
+      )}
 
       {tab === 'alerts' && <AlertSettingsPanel settings={alertForm} onChange={setAlertForm} />}
 

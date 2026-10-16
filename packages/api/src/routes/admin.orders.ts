@@ -3,10 +3,13 @@ import { Prisma } from '@prisma/client'
 import { updateOrderSchema, updateOrderStatusSchema } from '@chill-bar/shared'
 import type { OrderStatus } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
+import { ORDER_STATUS_LABEL } from '@chill-bar/shared'
 import { broadcast } from '../ws.js'
 import { serializeOrder } from '../lib/serializers.js'
 import { ensureCustomerForOrder, normalizeIranPhone } from '../lib/customerLink.js'
 import { calcOrderTotal, calcSubtotal } from '../lib/pos/checkout.js'
+import { loadSmsSettings, isSmsReady } from '../lib/sms/settings.js'
+import { sendOrderStatusSms } from '../lib/sms/smsIr.js'
 
 export async function adminOrderRoutes(app: FastifyInstance) {
   app.get(
@@ -244,6 +247,27 @@ export async function adminOrderRoutes(app: FastifyInstance) {
 
       if (markPaidOnDelivery) {
         broadcast('admin', 'order:paid', serialized)
+      }
+
+      // SMS.ir order status notify (Verify template)
+      if (order.customerPhone && parsed.data.status !== exists.status) {
+        try {
+          const sms = await loadSmsSettings()
+          if (isSmsReady(sms) && sms.orderNotifyEnabled && sms.orderTemplateId > 0) {
+            const phone = order.customerPhone.replace(/\D/g, '')
+            const mobile = phone.startsWith('98') ? `0${phone.slice(2)}` : phone
+            if (/^09\d{9}$/.test(mobile)) {
+              await sendOrderStatusSms(
+                sms,
+                mobile,
+                order.code,
+                ORDER_STATUS_LABEL[order.status] ?? order.status,
+              )
+            }
+          }
+        } catch (err) {
+          request.log.warn({ err }, 'order status SMS failed')
+        }
       }
 
       return serialized

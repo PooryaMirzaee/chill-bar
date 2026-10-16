@@ -17,6 +17,8 @@ import {
   membershipDiscountAmount,
 } from '../lib/mallClub.js'
 import { buildDeliveryLabel, mergeMallClubSettings } from '@chill-bar/shared'
+import { startOrderPayment } from '../lib/payments/service.js'
+import { isPaymentReady, loadPaymentSettings } from '../lib/payments/settings.js'
 
 export async function orderRoutes(app: FastifyInstance) {
   app.post('/api/orders', async (request, reply) => {
@@ -98,6 +100,17 @@ export async function orderRoutes(app: FastifyInstance) {
     const payWith = input.payWith ?? 'COUNTER'
     if ((payWith === 'WALLET' || payWith === 'CREDIT' || payWith === 'SPLIT') && !membership) {
       return reply.code(400).send({ error: 'برای پرداخت با کیف/اعتبار کد اشتراک لازم است' })
+    }
+    if (payWith === 'ONLINE') {
+      const paySettings = await loadPaymentSettings()
+      if (!isPaymentReady(paySettings) || !paySettings.enableOrderPay) {
+        return reply.code(400).send({ error: 'پرداخت آنلاین در حال حاضر فعال نیست' })
+      }
+      if (total < paySettings.minAmount) {
+        return reply.code(400).send({
+          error: `حداقل مبلغ پرداخت آنلاین ${paySettings.minAmount.toLocaleString('fa-IR')} تومان است`,
+        })
+      }
     }
 
     let walletPay = 0
@@ -254,9 +267,22 @@ export async function orderRoutes(app: FastifyInstance) {
           channel: input.channel,
           membershipId: membership?.id ?? null,
           fulfillment,
+          payWith,
         },
       },
     })
+
+    if (payWith === 'ONLINE' && order.paymentStatus !== 'PAID') {
+      try {
+        const payment = await startOrderPayment(order.id, customerId)
+        return reply.code(201).send({ ...serialized, paymentUrl: payment.paymentUrl, authority: payment.authority })
+      } catch (err) {
+        return reply.code(201).send({
+          ...serialized,
+          paymentError: err instanceof Error ? err.message : 'شروع درگاه ناموفق بود',
+        })
+      }
+    }
 
     return reply.code(201).send(serialized)
   })

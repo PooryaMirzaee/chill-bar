@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const mallPayWithSchema = z.enum(['WALLET', 'CREDIT', 'COUNTER', 'SPLIT'])
+export const mallPayWithSchema = z.enum(['WALLET', 'CREDIT', 'COUNTER', 'SPLIT', 'ONLINE'])
 export type MallPayWith = z.infer<typeof mallPayWithSchema>
 
 export const orderFulfillmentSchema = z.enum(['COUNTER', 'MALL_DELIVERY'])

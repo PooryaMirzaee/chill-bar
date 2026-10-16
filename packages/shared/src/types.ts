@@ -107,7 +107,7 @@ export type OrderStatus =
 
 export type OrderChannel = 'MOBILE' | 'KIOSK' | 'POS'
 
-export type PaymentMethod = 'CASH' | 'CARD' | 'MIXED' | 'UNPAID' | 'WALLET' | 'CREDIT'
+export type PaymentMethod = 'CASH' | 'CARD' | 'MIXED' | 'UNPAID' | 'WALLET' | 'CREDIT' | 'ONLINE'
 
 export type PaymentStatus = 'UNPAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
 
@@ -593,6 +593,8 @@ export interface AiPublicConfig {
 export interface SmsSettings {
   enabled: boolean
   apiKey: string
+  /** Line number for bulk / like-to-like (from SMS.ir lines API) */
+  lineNumber: string
   templateId: number
   codeParameterName: string
   otpLength: number
@@ -600,6 +602,37 @@ export interface SmsSettings {
   resendCooldownSeconds: number
   maxVerifyAttempts: number
   storeNameInSms: boolean
+  /** Notify customer on order status via Verify template */
+  orderNotifyEnabled: boolean
+  orderTemplateId: number
+  orderCodeParameterName: string
+  orderStatusParameterName: string
+}
+
+export type ZarinpalCurrency = 'IRT' | 'IRR'
+
+export interface PaymentSettings {
+  enabled: boolean
+  merchantId: string
+  sandbox: boolean
+  currency: ZarinpalCurrency
+  /** Public web origin for callback redirects, e.g. https://chill-bar.ir */
+  publicWebUrl: string
+  /** Public API origin for Zarinpal callback, e.g. https://chill-bar.ir (proxied /api) */
+  callbackBaseUrl: string
+  enableOrderPay: boolean
+  enableWalletTopup: boolean
+  minAmount: number
+  descriptionPrefix: string
+}
+
+export interface PaymentPublicConfig {
+  enabled: boolean
+  enableOrderPay: boolean
+  enableWalletTopup: boolean
+  minAmount: number
+  currency: ZarinpalCurrency
+  sandbox: boolean
 }
 
 export type AdminAlertSoundId = 'chime' | 'bell' | 'kitchen' | 'urgent' | 'soft' | 'power'

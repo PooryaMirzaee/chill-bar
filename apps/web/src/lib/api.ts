@@ -6,6 +6,7 @@ import type {
   OtpPurpose,
   OtpSendResponse,
   SmsPublicConfig,
+  PaymentPublicConfig,
 } from '@chill-bar/shared'
 
 const TOKEN_KEY = 'chill-customer-token'
@@ -86,8 +87,14 @@ export interface CreateOrderBody {
   loyaltyRewardId?: string | null
   membershipCode?: string | null
   fulfillment?: 'COUNTER' | 'MALL_DELIVERY'
-  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT'
+  payWith?: 'WALLET' | 'CREDIT' | 'COUNTER' | 'SPLIT' | 'ONLINE'
   walletAmount?: number | null
+}
+
+export type CreateOrderResponse = Order & {
+  paymentUrl?: string
+  authority?: string
+  paymentError?: string
 }
 
 export interface WaitLoungePublicConfig {
@@ -117,7 +124,18 @@ export const apiClient = {
   getIceCreamOptions: () => publicRequest<import('@chill-bar/shared').IceCreamOptions>('/api/ice-cream/options'),
   getSettings: () => publicRequest<import('@chill-bar/shared').StoreSettings>('/api/settings'),
   createOrder: (body: CreateOrderBody) =>
-    customerRequest<Order>('/api/orders', { method: 'POST', body: JSON.stringify(body) }),
+    customerRequest<CreateOrderResponse>('/api/orders', { method: 'POST', body: JSON.stringify(body) }),
+  getPaymentConfig: () => publicRequest<PaymentPublicConfig>('/api/payments/config'),
+  startWalletTopup: (body: { membershipCode: string; amount: number; bonusPercent?: number }) =>
+    customerRequest<{ paymentUrl: string; authority: string; amount: number }>(
+      '/api/payments/zarinpal/wallet',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+  startOrderPayment: (orderId: string) =>
+    customerRequest<{ paymentUrl: string; authority: string; amount: number }>(
+      '/api/payments/zarinpal/order',
+      { method: 'POST', body: JSON.stringify({ orderId }) },
+    ),
   getOrderStatus: (idOrCode: string) =>
     publicRequest<{
       id: string

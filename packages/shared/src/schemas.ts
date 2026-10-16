@@ -12,7 +12,15 @@ import { RECEIPT_TEMPLATE_IDS } from './receiptTemplates'
 
 export const orderChannelSchema = z.enum(['MOBILE', 'KIOSK', 'POS'])
 
-export const paymentMethodSchema = z.enum(['CASH', 'CARD', 'MIXED', 'UNPAID', 'WALLET', 'CREDIT'])
+export const paymentMethodSchema = z.enum([
+  'CASH',
+  'CARD',
+  'MIXED',
+  'UNPAID',
+  'WALLET',
+  'CREDIT',
+  'ONLINE',
+])
 
 export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'])
 
@@ -562,6 +570,7 @@ export type AiChatRequestInput = z.infer<typeof aiChatRequestSchema>
 export const smsSettingsSchema = z.object({
   enabled: z.boolean().default(false),
   apiKey: z.string().max(512).default(''),
+  lineNumber: z.string().max(32).default(''),
   templateId: z.number().int().nonnegative().default(0),
   codeParameterName: z.string().min(1).max(40).default('Code'),
   otpLength: z.number().int().min(4).max(8).default(5),
@@ -569,9 +578,28 @@ export const smsSettingsSchema = z.object({
   resendCooldownSeconds: z.number().int().min(30).max(300).default(60),
   maxVerifyAttempts: z.number().int().min(3).max(10).default(5),
   storeNameInSms: z.boolean().default(true),
+  orderNotifyEnabled: z.boolean().default(false),
+  orderTemplateId: z.number().int().nonnegative().default(0),
+  orderCodeParameterName: z.string().min(1).max(40).default('OrderCode'),
+  orderStatusParameterName: z.string().min(1).max(40).default('Status'),
 })
 
 export type SmsSettingsInput = z.infer<typeof smsSettingsSchema>
+
+export const paymentSettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  merchantId: z.string().max(64).default(''),
+  sandbox: z.boolean().default(true),
+  currency: z.enum(['IRT', 'IRR']).default('IRT'),
+  publicWebUrl: z.string().max(300).default('https://chill-bar.ir'),
+  callbackBaseUrl: z.string().max(300).default('https://chill-bar.ir'),
+  enableOrderPay: z.boolean().default(true),
+  enableWalletTopup: z.boolean().default(true),
+  minAmount: z.number().int().min(100).max(100_000_000).default(1000),
+  descriptionPrefix: z.string().max(80).default('چیل‌بار'),
+})
+
+export type PaymentSettingsInput = z.infer<typeof paymentSettingsSchema>
 
 export const adminAlertSoundIdSchema = z.enum(['chime', 'bell', 'kitchen', 'urgent', 'soft', 'power'])
 

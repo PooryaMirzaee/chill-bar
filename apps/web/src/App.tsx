@@ -56,6 +56,7 @@ import { menuItemForCart, resolveLiveMenuItem } from './lib/menuItem'
 import { syncSpinPath, tabFromLocation } from './lib/spinRoute'
 import { CityCenterClub } from './components/CityCenterClub'
 import { isCityCenterPath, loadMallMembership, membershipCodeFromPath } from './lib/mallMembership'
+import { isPaymentResultPath, PaymentResult } from './components/PaymentResult'
 
 type Tab = 'home' | 'icecream' | 'menu' | 'discover' | 'play'
 
@@ -143,6 +144,7 @@ function AppContent() {
     () => isCityCenterPath() || Boolean(membershipCodeFromPath()),
   )
   const [mallMember, setMallMember] = useState(() => loadMallMembership())
+  const [payResultOpen, setPayResultOpen] = useState(() => isPaymentResultPath())
 
   useEffect(() => {
     if (tabBootstrapped.current) return
@@ -432,6 +434,14 @@ function AppContent() {
       await deferredPrompt.prompt()
       setShowInstall(false)
     }
+  }
+
+  if (payResultOpen) {
+    return (
+      <div className="atelier-shell min-h-dvh bg-background">
+        <PaymentResult onDone={() => setPayResultOpen(false)} />
+      </div>
+    )
   }
 
   if (cityCenterOpen && features.mallClub !== false) {

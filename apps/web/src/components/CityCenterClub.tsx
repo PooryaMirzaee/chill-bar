@@ -10,6 +10,7 @@ import {
   saveMallMembership,
 } from '@/lib/mallMembership'
 import { formatPrice } from '@/lib/comboBuilder'
+import { apiClient } from '@/lib/api'
 
 interface Props {
   onContinue: () => void
@@ -21,6 +22,8 @@ export function CityCenterClub({ onContinue, onClose }: Props) {
   const [membership, setMembership] = useState<MallMembershipPublic | null>(loadMallMembership)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [topupBusy, setTopupBusy] = useState(false)
+  const [walletTopupOn, setWalletTopupOn] = useState(false)
   const [hero, setHero] = useState({
     title: 'اشتراک واحدهای سیتی‌سنتر',
     subtitle: 'با کد واحدت سفارش بده — پیک چیل‌بار تا خود واحد می‌آورد',
@@ -35,6 +38,10 @@ export function CityCenterClub({ onContinue, onClose }: Props) {
           subtitle: d.heroSubtitle || hero.subtitle,
         })
       })
+      .catch(() => undefined)
+    void apiClient
+      .getPaymentConfig()
+      .then((c) => setWalletTopupOn(Boolean(c.enableWalletTopup)))
       .catch(() => undefined)
   }, [])
 
@@ -68,6 +75,23 @@ export function CityCenterClub({ onContinue, onClose }: Props) {
   const clear = () => {
     saveMallMembership(null)
     setMembership(null)
+  }
+
+  const topupOnline = async (amount: number, bonusPercent: number) => {
+    if (!membership) return
+    setTopupBusy(true)
+    setError('')
+    try {
+      const res = await apiClient.startWalletTopup({
+        membershipCode: membership.code,
+        amount,
+        bonusPercent,
+      })
+      window.location.href = res.paymentUrl
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'شروع شارژ ناموفق بود')
+      setTopupBusy(false)
+    }
   }
 
   return (
@@ -141,6 +165,18 @@ export function CityCenterClub({ onContinue, onClose }: Props) {
           <p className="text-xs text-muted-foreground">
             اعتبار آزاد: {formatPrice(membership.creditAvailable)}
           </p>
+          {walletTopupOn && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={topupBusy}
+              onClick={() => void topupOnline(1_000_000, 10)}
+            >
+              {topupBusy ? 'در حال انتقال به درگاه…' : 'شارژ آنلاین ۱ میلیون (+۱۰٪ هدیه)'}
+            </Button>
+          )}
+          {error && membership && <p className="text-sm text-destructive">{error}</p>}
           <Button className="w-full" onClick={onContinue}>
             برو به منو و سفارش بده
           </Button>

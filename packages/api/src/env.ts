@@ -21,6 +21,7 @@ export const env = {
   avalaiApiKey: process.env.AVALAI_API_KEY ?? '',
   smsIrApiKey: process.env.SMS_IR_API_KEY ?? '',
   smsDevBypass: process.env.SMS_DEV_BYPASS === '1',
+  zarinpalMerchantId: process.env.ZARINPAL_MERCHANT_ID ?? '',
 }
 
 export const isProd = env.nodeEnv === 'production'

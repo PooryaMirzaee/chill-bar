@@ -1,5 +1,6 @@
 import { Gift, Sparkles, Building2, Bike } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Minus, Plus, Trash2, ShoppingBag, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useCart } from '../store/cart'
 import { useCustomer } from '../lib/customerAuth'
@@ -80,6 +81,12 @@ export function Cart({
   const [mallMember, setMallMember] = useState(() => loadMallMembership())
   const [fulfillment, setFulfillment] = useState<OrderFulfillment>('COUNTER')
   const [payWith, setPayWith] = useState<MallPayWith>('COUNTER')
+  const { data: payConfig } = useQuery({
+    queryKey: ['payment-config'],
+    queryFn: () => apiClient.getPaymentConfig(),
+    staleTime: 60_000,
+  })
+  const onlinePayOn = Boolean(payConfig?.enableOrderPay)
 
   useEffect(() => {
     if (!isOpen) return
@@ -88,9 +95,11 @@ export function Cart({
     setMallMember(m)
     if (m) {
       setFulfillment('MALL_DELIVERY')
-      setPayWith(m.walletBalance > 0 ? 'WALLET' : m.creditAvailable > 0 ? 'CREDIT' : 'COUNTER')
+      setPayWith(m.walletBalance > 0 ? 'WALLET' : m.creditAvailable > 0 ? 'CREDIT' : onlinePayOn ? 'ONLINE' : 'COUNTER')
+    } else {
+      setPayWith(onlinePayOn ? 'ONLINE' : 'COUNTER')
     }
-  }, [isOpen, customer?.name])
+  }, [isOpen, customer?.name, onlinePayOn])
 
   const checkoutSubtotal = total + (pendingReward?.rewardPrice ?? 0)
 
@@ -115,14 +124,22 @@ export function Cart({
     setSubmitting(true)
     setError('')
     try {
+      const chosenPay = mallMember ? payWith : onlinePayOn && payWith === 'ONLINE' ? 'ONLINE' : 'COUNTER'
       const order = await submitOrder({
         customerName: name,
         note,
         loyaltyRewardId,
         membershipCode: mallMember?.code ?? null,
         fulfillment: mallMember ? fulfillment : 'COUNTER',
-        payWith: mallMember ? payWith : 'COUNTER',
+        payWith: chosenPay,
       })
+      if (order.paymentUrl) {
+        window.location.href = order.paymentUrl
+        return
+      }
+      if (order.paymentError) {
+        setError(order.paymentError)
+      }
       if (mallMember) {
         try {
           const fresh = await redeemMallCode(mallMember.code)
@@ -400,6 +417,30 @@ export function Cart({
 
             <Separator />
 
+            {!mallMember && onlinePayOn && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">روش پرداخت</p>
+                {(
+                  [
+                    ['ONLINE', 'پرداخت آنلاین'],
+                    ['COUNTER', 'پرداخت در کافه'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={cn(
+                      'flex w-full rounded-lg border px-3 py-2 text-xs',
+                      payWith === value ? 'border-primary bg-primary/10' : '',
+                    )}
+                    onClick={() => setPayWith(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {mallMember && (
               <div className="space-y-3 rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
                 <MallMemberBadge membership={mallMember} />
@@ -436,6 +477,7 @@ export function Cart({
                     [
                       ['WALLET', `کیف‌پول (${formatPrice(mallMember.walletBalance)})`],
                       ['CREDIT', `اعتبار واحد (${formatPrice(mallMember.creditAvailable)})`],
+                      ...(onlinePayOn ? ([['ONLINE', 'پرداخت آنلاین']] as const) : []),
                       ['COUNTER', 'پرداخت در کافه'],
                     ] as const
                   ).map(([value, label]) => (

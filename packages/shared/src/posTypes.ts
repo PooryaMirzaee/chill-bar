@@ -152,6 +152,7 @@ export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   UNPAID: 'پرداخت نشده',
   WALLET: 'کیف‌پول واحد',
   CREDIT: 'اعتبار واحد',
+  ONLINE: 'درگاه آنلاین',
 }
 
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
