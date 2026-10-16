@@ -142,6 +142,20 @@ function wrapText(
 }
 
 export async function renderMallTicketPng(input: MallTicketInput): Promise<Blob> {
+  // Prefer custom Fabric.js template designed in Pass Designer
+  try {
+    const { api } = await import('./api')
+    const { renderPassFromTemplate } = await import('./passTemplate')
+    const res = await api<{ template: { version: 1; width: number; height: number; fabricJson: Record<string, unknown> } | null }>(
+      '/api/admin/mall/pass-template',
+    )
+    if (res.template?.fabricJson) {
+      return await renderPassFromTemplate(res.template, input)
+    }
+  } catch {
+    /* fall through to built-in design */
+  }
+
   try {
     await Promise.all([
       document.fonts.load(`400 140px ${FONT_DISPLAY}`),

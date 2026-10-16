@@ -1,7 +1,7 @@
 import type { MallMembership, MallUnit, Prisma } from '@prisma/client'
 import {
   buildDeliveryLabel,
-  generateMembershipCode,
+  membershipCodeFromUnitCode,
   normalizeMallCodeInput,
   type MallMembershipPublic,
 } from '@chill-bar/shared'
@@ -38,13 +38,73 @@ export async function findMembershipByCode(codeRaw: string): Promise<MembershipW
   })
 }
 
-export async function ensureUniqueMembershipCode(unitCode: string): Promise<string> {
-  for (let i = 0; i < 12; i++) {
-    const code = generateMembershipCode(unitCode)
-    const exists = await prisma.mallMembership.findUnique({ where: { code }, select: { id: true } })
-    if (!exists) return code
+export async function ensureUniqueMembershipCode(
+  unitCode: string,
+  exceptMembershipId?: string,
+): Promise<string> {
+  const base = membershipCodeFromUnitCode(unitCode)
+  if (!base) throw Object.assign(new Error('کد واحد نامعتبر است'), { statusCode: 400 })
+  const exists = await prisma.mallMembership.findFirst({
+    where: {
+      code: base,
+      ...(exceptMembershipId ? { NOT: { id: exceptMembershipId } } : {}),
+    },
+    select: { id: true },
+  })
+  if (!exists) return base
+  // Rare collision across complexes — keep deterministic unit-based code with short suffix
+  for (let i = 2; i < 20; i++) {
+    const code = `${base}${i}`
+    const hit = await prisma.mallMembership.findFirst({
+      where: {
+        code,
+        ...(exceptMembershipId ? { NOT: { id: exceptMembershipId } } : {}),
+      },
+      select: { id: true },
+    })
+    if (!hit) return code
   }
-  return generateMembershipCode(`${unitCode}${Date.now().toString(36)}`)
+  return `${base}${Date.now().toString(36).slice(-3).toUpperCase()}`
+}
+
+/** Align all membership codes to unitCode (no dashes) and clear initial credit limits. */
+export async function resyncMembershipCodesAndCredit(opts?: {
+  resetCreditLimit?: boolean
+}): Promise<{ updated: number; skipped: number; conflicts: string[] }> {
+  const resetCredit = opts?.resetCreditLimit !== false
+  const rows = await prisma.mallMembership.findMany({
+    include: { unit: { select: { unitCode: true } } },
+  })
+  let updated = 0
+  let skipped = 0
+  const conflicts: string[] = []
+
+  for (const m of rows) {
+    const desired = membershipCodeFromUnitCode(m.unit.unitCode)
+    if (!desired) {
+      skipped++
+      continue
+    }
+    const clash = await prisma.mallMembership.findFirst({
+      where: { code: desired, NOT: { id: m.id } },
+      select: { id: true, unit: { select: { unitCode: true } } },
+    })
+    if (clash) {
+      conflicts.push(`${m.unit.unitCode} → ${desired} (تداخل با ${clash.unit.unitCode})`)
+      skipped++
+      continue
+    }
+    const data: { code?: string; creditLimit?: number } = {}
+    if (m.code !== desired) data.code = desired
+    if (resetCredit && m.creditLimit !== 0) data.creditLimit = 0
+    if (Object.keys(data).length === 0) {
+      skipped++
+      continue
+    }
+    await prisma.mallMembership.update({ where: { id: m.id }, data })
+    updated++
+  }
+  return { updated, skipped, conflicts }
 }
 
 export function membershipDiscountAmount(subtotal: number, percent: number): number {

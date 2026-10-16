@@ -11,6 +11,7 @@
   "dependencies": {
     "@chill-bar/shared": "*",
     "@tanstack/react-query": "^5.62.7",
+    "fabric": "^7.4.0",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

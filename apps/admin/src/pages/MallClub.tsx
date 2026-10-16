@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Building2,
@@ -11,6 +12,7 @@ import {
   BarChart3,
   Upload,
   Ticket,
+  Palette,
 } from 'lucide-react'
 import { api, getToken } from '../lib/api'
 import { formatNumber, formatPrice } from '../lib/format'
@@ -189,6 +191,26 @@ export function MallClub() {
     onError: (e: Error) => setMsg(e.message),
   })
 
+  const resyncMutation = useMutation({
+    mutationFn: () =>
+      api<{ updated: number; skipped: number; conflicts: string[] }>(
+        '/api/admin/mall/memberships/resync-codes',
+        { method: 'POST', body: '{}' },
+      ),
+    onSuccess: (d) => {
+      const conflictNote = d.conflicts.length
+        ? ` · تداخل: ${d.conflicts.slice(0, 3).join('، ')}`
+        : ''
+      setMsg(
+        `کدها همگام شد: ${d.updated} واحد (کد واحد بدون - ، اعتبار اولیه صفر)${conflictNote}`,
+      )
+      qc.invalidateQueries({ queryKey: ['mall-summary'] })
+      qc.invalidateQueries({ queryKey: ['mall-units'] })
+      qc.invalidateQueries({ queryKey: ['mall-memberships'] })
+    },
+    onError: (e: Error) => setMsg(e.message),
+  })
+
   const topupMutation = useMutation({
     mutationFn: () =>
       api(`/api/admin/mall/memberships/${selectedMembership!.id}/topup`, {
@@ -275,6 +297,17 @@ export function MallClub() {
           <p className="page-sub">واحدها، کد اشتراک، پاس واتساپ، کیف‌پول، اعتبار و پیک تا واحد</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link to="/mall-club/pass-designer" className="btn-secondary">
+            <Palette size={16} /> طراحی پاس
+          </Link>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => resyncMutation.mutate()}
+            disabled={resyncMutation.isPending}
+          >
+            <RefreshCw size={16} /> همگام‌سازی کدها
+          </button>
           <button
             type="button"
             className="btn-secondary"

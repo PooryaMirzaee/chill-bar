@@ -23,7 +23,7 @@ export const mallClubSettingsSchema = z.object({
   complexName: z.string().max(80).default('اصفهان سیتی‌سنتر'),
   complexSlug: z.string().max(60).default('city-center-isfahan'),
   defaultDiscountPercent: z.number().int().min(0).max(50).default(10),
-  defaultCreditLimit: z.number().int().min(0).max(50_000_000).default(500_000),
+  defaultCreditLimit: z.number().int().min(0).max(50_000_000).default(0),
   minOrderForDelivery: z.number().int().min(0).max(10_000_000).default(0),
   heroTitle: z.string().max(80).default('اشتراک واحدهای سیتی‌سنتر'),
   heroSubtitle: z
@@ -92,17 +92,16 @@ export function buildDeliveryLabel(unit: {
   return [floorPart, unit.unitCode, unit.name].filter(Boolean).join(' · ')
 }
 
-/** Human-friendly membership code: CC-A1-05-7K3M */
+/** Membership code = unit code without hyphens (e.g. B2-214 → B2214) */
+export function membershipCodeFromUnitCode(unitCode: string): string {
+  return unitCode.replace(/-/g, '').toUpperCase().trim()
+}
+
+/** @deprecated use membershipCodeFromUnitCode — kept for call-site compatibility */
 export function generateMembershipCode(unitCode: string): string {
-  const clean = unitCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8) || 'UNIT'
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let suffix = ''
-  for (let i = 0; i < 4; i++) {
-    suffix += alphabet[Math.floor(Math.random() * alphabet.length)]
-  }
-  return `CC-${clean}-${suffix}`
+  return membershipCodeFromUnitCode(unitCode)
 }
 
 export function normalizeMallCodeInput(raw: string): string {
-  return raw.trim().toUpperCase().replace(/\s+/g, '')
+  return raw.trim().toUpperCase().replace(/\s+/g, '').replace(/-/g, '')
 }

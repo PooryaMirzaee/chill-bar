@@ -9,9 +9,14 @@ import {
   normalizeMallCodeInput,
 } from '@chill-bar/shared'
 import { prisma } from '../prisma.js'
-import { ensureUniqueMembershipCode, topUpWallet } from '../lib/mallClub.js'
+import {
+  ensureUniqueMembershipCode,
+  resyncMembershipCodesAndCredit,
+  topUpWallet,
+} from '../lib/mallClub.js'
 import { loadSettings } from '../lib/storeSettings.js'
 import { serializeOrder } from '../lib/serializers.js'
+import { loadMallPassTemplate, saveMallPassTemplate } from '../lib/mallPassTemplate.js'
 
 const unitPatchSchema = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -235,6 +240,39 @@ export async function adminMallRoutes(app: FastifyInstance) {
     return serializeMembership(m)
   })
 
+  app.post('/api/admin/mall/memberships/resync-codes', manager, async () => {
+    const result = await resyncMembershipCodesAndCredit({ resetCreditLimit: true })
+    return { ok: true, ...result }
+  })
+
+  app.get('/api/admin/mall/pass-template', manager, async () => {
+    const template = await loadMallPassTemplate()
+    return { template }
+  })
+
+  app.put('/api/admin/mall/pass-template', manager, async (request, reply) => {
+    const body = request.body as {
+      width?: number
+      height?: number
+      fabricJson?: Record<string, unknown>
+    }
+    if (!body?.fabricJson || typeof body.fabricJson !== 'object') {
+      return reply.code(400).send({ error: 'قالب canvas لازم است' })
+    }
+    const saved = await saveMallPassTemplate({
+      version: 1,
+      width: body.width ?? 1080,
+      height: body.height ?? 1620,
+      fabricJson: body.fabricJson,
+    })
+    return { ok: true, template: saved }
+  })
+
+  app.delete('/api/admin/mall/pass-template', manager, async () => {
+    await prisma.setting.deleteMany({ where: { key: 'mall_pass_template' } })
+    return { ok: true }
+  })
+
   app.post('/api/admin/mall/memberships/:id/regenerate-code', manager, async (request, reply) => {
     const { id } = request.params as { id: string }
     const current = await prisma.mallMembership.findUnique({
@@ -242,7 +280,7 @@ export async function adminMallRoutes(app: FastifyInstance) {
       include: { unit: true },
     })
     if (!current) return reply.code(404).send({ error: 'عضویت پیدا نشد' })
-    const code = await ensureUniqueMembershipCode(current.unit.unitCode)
+    const code = await ensureUniqueMembershipCode(current.unit.unitCode, current.id)
     const m = await prisma.mallMembership.update({
       where: { id },
       data: { code },
