@@ -12,22 +12,20 @@ export function WeatherWidget({ weather, hour }: Props) {
 
   return (
     <motion.div
-      className="text-start"
-      initial={{ opacity: 0, y: -8 }}
+      className="atelier-weather"
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="flex items-baseline gap-1.5">
-        <span className="text-lg font-bold tabular-nums">{timeStr}</span>
-        <span className="text-[10px] font-medium text-primary">{getTimeLabel(hour)}</span>
+        <span className="atelier-weather__time">{timeStr}</span>
+        <span className="atelier-weather__slot">{getTimeLabel(hour)}</span>
       </div>
       {weather && (
-        <div className="mt-0.5 text-start">
-          <span className="text-[10px] font-medium text-muted-foreground">{weather.location}</span>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>{weather.icon}</span>
-            <span className="font-semibold text-foreground">{weather.temperature}°</span>
-            <span className="hidden sm:inline">{weather.description}</span>
-          </div>
+        <div className="flex items-center gap-1 text-[0.7rem] text-muted-foreground">
+          <span aria-hidden>{weather.icon}</span>
+          <span className="font-semibold text-foreground">{weather.temperature}°</span>
+          <span className="hidden max-w-[7rem] truncate sm:inline">{weather.description}</span>
         </div>
       )}
     </motion.div>

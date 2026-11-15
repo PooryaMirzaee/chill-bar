@@ -50,7 +50,7 @@ export function StoryFeed({
     <section>
       <SectionHeader eyebrow={eyebrow} title={title} description={description} />
 
-      <div className="mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="mb-3 flex gap-2.5 overflow-x-auto px-4 pb-1">
         {featured.map((item, i) => (
           <button
             key={item.id}
@@ -58,8 +58,8 @@ export function StoryFeed({
             className={cn(
               'flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 text-2xl transition-all',
               i === activeIndex
-                ? 'border-primary bg-primary/10 scale-105'
-                : 'border-muted bg-muted/50 opacity-70',
+                ? 'scale-105 border-[var(--scoop-orange)] bg-[color-mix(in_srgb,var(--scoop-orange)_12%,white)] shadow-md'
+                : 'border-[color-mix(in_srgb,var(--ink)_10%,transparent)] bg-[color-mix(in_srgb,var(--scoop)_90%,transparent)] opacity-75',
             )}
             onClick={() => setActiveIndex(i)}
           >
@@ -77,26 +77,28 @@ export function StoryFeed({
             exit={{ opacity: 0, scale: 1.02 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="overflow-hidden">
+            <Card className="atelier-card-elevated overflow-hidden border-0 shadow-none">
               <div
                 className={cn(
-                  'flex h-32 items-center justify-center text-6xl',
+                  'flex h-36 items-center justify-center text-6xl',
                   heroStyle === 'gradient'
-                    ? 'bg-gradient-to-br from-primary/20 to-primary/5'
+                    ? 'bg-gradient-to-br from-[color-mix(in_srgb,var(--scoop-orange)_22%,white)] to-[var(--marble)]'
                     : 'bg-muted/40',
                 )}
               >
                 {current.emoji}
               </div>
               <CardContent className="space-y-3 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="text-[0.75rem] font-semibold text-[var(--scoop-orange-deep)]">
                   {badge}
                 </span>
-                <h3 className="font-bold">{current.name}</h3>
+                <h3 className="font-display text-[1.45rem] leading-none">{current.name}</h3>
                 <p className="text-sm text-muted-foreground">{current.categoryName}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-primary">{formatMenuPrice(current)}</span>
-                  <Button onClick={(e) => onAdd(current, e)}>سفارش بده</Button>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="atelier-menu-price !text-[1.25rem]">{formatMenuPrice(current)}</span>
+                  <Button className="rounded-full px-5" onClick={(e) => onAdd(current, e)}>
+                    سفارش بده
+                  </Button>
                 </div>
                 {showProgress && (
                   <div className="flex gap-1 pt-1">

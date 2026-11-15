@@ -220,12 +220,16 @@ function AppContent() {
   useEffect(() => {
     const { lat, lon, label } = settings.location
     const thresholds = { hot: settings.weatherHotThreshold, cold: settings.weatherColdThreshold }
-    fetchWeather(lat, lon, label, thresholds).then(setWeather)
+    const loadWeather = () => {
+      fetchWeather(lat, lon, label, thresholds)
+        .then(setWeather)
+        .catch(() => {
+          /* keep previous weather on transient Open-Meteo failures */
+        })
+    }
+    loadWeather()
     const timer = setInterval(() => setHour(new Date().getHours()), 60000)
-    const weatherTimer = setInterval(
-      () => fetchWeather(lat, lon, label, thresholds).then(setWeather),
-      30 * 60000,
-    )
+    const weatherTimer = setInterval(loadWeather, 30 * 60000)
     return () => {
       clearInterval(timer)
       clearInterval(weatherTimer)
@@ -566,12 +570,12 @@ function AppContent() {
           {activeTab === 'home' && (
             <motion.div
               key="home"
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="py-4"
-              style={{ display: 'flex', flexDirection: 'column', gap: `${homeAppearance.sectionGap}rem` }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="py-5"
+              style={{ display: 'flex', flexDirection: 'column', gap: `${Math.max(homeAppearance.sectionGap, 1.35)}rem` }}
             >
               {homeSections}
             </motion.div>
@@ -614,11 +618,11 @@ function AppContent() {
           {activeTab === 'discover' && (
             <motion.div
               key="discover"
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-6 py-4"
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-7 py-5"
             >
               {features.coffeeFortune !== false && !hidePreOrderGames && (
                 <CoffeeFortune
@@ -652,11 +656,11 @@ function AppContent() {
           {activeTab === 'menu' && (
             <motion.div
               key="menu"
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4 py-4"
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-5 py-5"
             >
               <div className="px-4">
                 {menuAppearance.showSearchBar && (

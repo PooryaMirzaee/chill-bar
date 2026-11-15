@@ -41,24 +41,24 @@ function PickCard({
 }) {
   return (
     <Card
-      className="cursor-pointer overflow-hidden rounded-[1.35rem] border-black/5 bg-[color-mix(in_srgb,var(--scoop)_94%,transparent)] shadow-[0_10px_28px_color-mix(in_srgb,var(--cocoa)_7%,transparent)]"
+      className="atelier-card-elevated cursor-pointer overflow-hidden border-0 shadow-none"
       onClick={() => onSelect(item)}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted/50">
+      <div className="relative aspect-square overflow-hidden bg-muted/40">
         {appearance.smartPicksShowRank && (
-          <span className="absolute start-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+          <span className="absolute start-2.5 top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ink)] text-[10px] font-bold text-[var(--scoop)] shadow-md">
             {index + 1}
           </span>
         )}
         <MenuItemMedia item={item} size="sm" />
       </div>
-      <CardContent className="space-y-2 p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{item.name}</h3>
+      <CardContent className="space-y-2 p-3.5">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug tracking-tight">{item.name}</h3>
         {appearance.smartPicksShowReason && (
-          <p className="line-clamp-2 text-[11px] text-muted-foreground">{item.reason}</p>
+          <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{item.reason}</p>
         )}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-primary">{formatMenuPrice(item)}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="atelier-menu-price !text-[1.1rem]">{formatMenuPrice(item)}</span>
           <button
             type="button"
             className="atelier-add !h-8 !w-8"

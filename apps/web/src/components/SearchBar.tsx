@@ -10,21 +10,22 @@ interface Props {
 
 export function SearchBar({ value, onChange, placeholder }: Props) {
   return (
-    <div className="relative">
-      <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="atelier-search relative">
+      <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-full border-border/60 bg-[color-mix(in_srgb,var(--scoop)_90%,transparent)] ps-10 pe-10 shadow-sm"
+        className="atelier-search__field ps-10 pe-10"
       />
       {value && (
         <Button
           variant="ghost"
           size="icon"
-          className="absolute end-1 top-1/2 h-8 w-8 -translate-y-1/2"
+          className="absolute end-1.5 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full"
           onClick={() => onChange('')}
+          aria-label="پاک کردن جستجو"
         >
           <X className="h-4 w-4" />
         </Button>

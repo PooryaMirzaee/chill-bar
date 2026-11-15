@@ -39,7 +39,7 @@ export function CartFab({ onClick, className }: Props) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 18 }}
             >
-              <Badge className="absolute -start-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#2c2420] px-1 text-[10px] text-white">
+              <Badge className="absolute -start-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[var(--ink)] px-1 text-[10px] text-[var(--scoop)]">
                 {count}
               </Badge>
             </motion.span>

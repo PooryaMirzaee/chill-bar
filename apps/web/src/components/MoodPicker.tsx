@@ -20,15 +20,13 @@ export function MoodPicker({ moods, copy, selected, onSelect }: Props) {
         description={copy.moodDescription}
       />
 
-      <div className="grid grid-cols-3 gap-2 px-4 sm:grid-cols-6">
+      <div className="grid grid-cols-3 gap-2.5 px-4 sm:grid-cols-6">
         {moods.map((mood, i) => (
           <motion.button
             key={mood.id}
             type="button"
-            className={cn(
-              'flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 shadow-sm transition-all',
-              selected === mood.id && 'border-primary ring-2 ring-primary/20',
-            )}
+            data-active={selected === mood.id}
+            className={cn('atelier-mood-tile')}
             onClick={() => onSelect(mood.id)}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -41,7 +39,7 @@ export function MoodPicker({ moods, copy, selected, onSelect }: Props) {
             >
               {mood.emoji}
             </span>
-            <span className="text-xs font-medium">{mood.label}</span>
+            <span className="text-xs font-semibold">{mood.label}</span>
           </motion.button>
         ))}
       </div>

@@ -34,14 +34,10 @@ export function CategoryShowcase({ categories, activeId, onSelect, header }: Pro
               <motion.button
                 key={cat.id}
                 type="button"
-                className={cn(
-                  'relative flex h-[7.5rem] w-[6.75rem] shrink-0 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[1.4rem] text-[var(--cocoa)] shadow-[0_10px_28px_color-mix(in_srgb,var(--cocoa)_10%,transparent)] transition-transform',
-                  active
-                    ? 'ring-2 ring-[var(--scoop-orange)] ring-offset-2 ring-offset-[var(--stone)]'
-                    : 'ring-1 ring-black/5',
-                )}
+                data-active={active}
+                className={cn('atelier-cat-tile')}
                 style={{
-                  background: `linear-gradient(160deg, color-mix(in srgb, ${visual.accent || '#f26522'} 28%, white), var(--scoop))`,
+                  background: `linear-gradient(160deg, color-mix(in srgb, ${visual.accent || '#f26522'} 24%, white), var(--scoop))`,
                 }}
                 onClick={() => onSelect(cat.id)}
                 initial={{ opacity: 0, scale: 0.92 }}
@@ -50,9 +46,9 @@ export function CategoryShowcase({ categories, activeId, onSelect, header }: Pro
                 whileTap={{ scale: 0.95 }}
               >
                 <span className="text-3xl drop-shadow-sm">{cat.emoji}</span>
-                <span className="px-1 text-center text-[11px] font-bold leading-tight">{cat.name}</span>
+                <span className="px-1.5 text-center text-[11px] font-bold leading-tight">{cat.name}</span>
                 {cat.showCustomBadge && (
-                  <Badge className="absolute bottom-2 bg-[var(--cocoa)]/80 text-[9px] text-white hover:bg-[var(--cocoa)]/80">
+                  <Badge className="absolute bottom-2 bg-[var(--ink)]/85 text-[9px] text-[var(--scoop)] hover:bg-[var(--ink)]/85">
                     سفارشی
                   </Badge>
                 )}

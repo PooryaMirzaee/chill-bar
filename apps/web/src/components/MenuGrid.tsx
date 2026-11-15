@@ -68,7 +68,7 @@ export function MenuGrid({
       }, {})
 
   const cardClass = cn(
-    'cursor-pointer overflow-hidden transition-shadow',
+    'atelier-card-elevated cursor-pointer overflow-hidden',
     a.cardVariant === 'minimal' && 'border-0 shadow-none bg-muted/30',
     a.cardVariant === 'elevated' && 'shadow-lg hover:shadow-xl',
     a.cardVariant === 'default' && a.cardShowShadow && 'hover:shadow-md',
@@ -144,7 +144,11 @@ export function MenuGrid({
             </CardContent>
           </>
         ) : (
-          <div className="atelier-menu-row" onClick={() => onSelect(item)} role="button" tabIndex={0}
+          <div
+            className="atelier-menu-row"
+            onClick={() => onSelect(item)}
+            role="button"
+            tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
@@ -155,13 +159,11 @@ export function MenuGrid({
             <div className="atelier-menu-thumb">
               <MenuItemMedia item={item} size="fill" />
             </div>
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <h4 className="atelier-menu-name line-clamp-2">{item.name}</h4>
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
               {a.showItemCategoryBadge && (
-                <span className="inline-block text-[11px] font-medium text-muted-foreground">
-                  {item.categoryName}
-                </span>
+                <span className="atelier-menu-meta">{item.categoryName}</span>
               )}
+              <h4 className="atelier-menu-name line-clamp-2">{item.name}</h4>
               {a.showPrice && formatMenuPrice(item) && (
                 <p className="atelier-menu-price">{formatMenuPrice(item)}</p>
               )}
@@ -217,55 +219,53 @@ export function MenuGrid({
       )}
 
       {a.showCategoryChips && (
-        <ScrollArea
-          className={cn(
-            'w-full whitespace-nowrap px-4 pb-4',
-            a.stickyCategoryBar && 'sticky top-[calc(3.5rem+1px)] z-40 bg-background/95 py-2 backdrop-blur-md',
-          )}
-        >
-          <div className="flex gap-2">
-            {a.showAllChip && (
-              <Button
-                variant={!activeCategory ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
-                size="sm"
-                className={chipClass(a.chipVariant, !activeCategory)}
-                onClick={() => onCategoryChange(null)}
-              >
-                همه
-              </Button>
-            )}
-            {categories.map((cat) => (
-              <Button
-                key={cat.id}
-                variant={activeCategory === cat.id ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
-                size="sm"
-                className={chipClass(a.chipVariant, activeCategory === cat.id)}
-                onClick={() => onCategoryChange(cat.id)}
-              >
-                {cat.emoji} {cat.name}
-              </Button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <div className={cn(a.stickyCategoryBar && 'atelier-chip-rail')}>
+          <ScrollArea className="w-full whitespace-nowrap px-4">
+            <div className="flex gap-2 pb-1">
+              {a.showAllChip && (
+                <Button
+                  variant={!activeCategory ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
+                  size="sm"
+                  className={chipClass(a.chipVariant, !activeCategory)}
+                  onClick={() => onCategoryChange(null)}
+                >
+                  همه
+                </Button>
+              )}
+              {categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={activeCategory === cat.id ? 'default' : a.chipVariant === 'outline' ? 'outline' : 'secondary'}
+                  size="sm"
+                  className={chipClass(a.chipVariant, activeCategory === cat.id)}
+                  onClick={() => onCategoryChange(cat.id)}
+                >
+                  {cat.emoji} {cat.name}
+                </Button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
       )}
 
       {Object.entries(grouped).map(([catId, catItems]) => {
         const cat = categories.find((c) => c.id === catId)
         const showHeader = !activeCategory && cat && a.categoryHeaderStyle !== 'hidden'
         return (
-          <div key={catId} className="mb-6">
+          <div key={catId} className="mb-7">
             {showHeader && cat && (
               <div className="atelier-cat-band">
                 <span className="atelier-cat-band__emoji" aria-hidden>
                   {cat.emoji}
                 </span>
                 <h3 className="atelier-cat-band__name">{cat.name}</h3>
+                <span className="atelier-cat-band__count">{catItems.length} آیتم</span>
               </div>
             )}
             <div
               className={cn(
-                a.layout === 'cards' ? 'grid px-4' : 'flex flex-col gap-2 px-4',
+                a.layout === 'cards' ? 'grid px-4' : 'flex flex-col gap-3 px-4',
                 a.layout === 'cards' && GRID_COLS[a.gridColumns],
               )}
               style={a.layout === 'cards' ? { gap: `${a.gridGap}rem` } : undefined}

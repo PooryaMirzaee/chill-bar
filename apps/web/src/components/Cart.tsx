@@ -185,9 +185,11 @@ export function Cart({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-      <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
-        <SheetHeader className="border-b px-6 py-4 text-right">
-          <SheetTitle>{titles[stage]}</SheetTitle>
+      <SheetContent side="right" className="flex w-full flex-col border-s-[color-mix(in_srgb,var(--ink)_6%,transparent)] bg-[color-mix(in_srgb,var(--marble)_40%,white)] sm:max-w-md">
+        <SheetHeader className="border-b border-[color-mix(in_srgb,var(--ink)_6%,transparent)] px-6 py-4 text-right">
+          <SheetTitle className="font-display text-[1.55rem] leading-none tracking-normal">
+            {titles[stage]}
+          </SheetTitle>
           {stage === 'cart' && count > 0 && (
             <SheetDescription>{count} آیتم در سبد</SheetDescription>
           )}
@@ -224,7 +226,7 @@ export function Cart({
                   return (
                   <li
                     key={item.cartLineId}
-                    className="space-y-3 rounded-xl border bg-card p-3 shadow-sm"
+                    className="atelier-cart-line space-y-3"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{item.emoji}</span>
@@ -284,7 +286,7 @@ export function Cart({
               </ul>
               )}
             </ScrollArea>
-            <div className="space-y-3 border-t p-4">
+            <div className="space-y-3 border-t border-[color-mix(in_srgb,var(--ink)_6%,transparent)] bg-[color-mix(in_srgb,var(--scoop)_88%,transparent)] p-4 backdrop-blur-md">
               {pendingReward && items.length > 0 && (
                 <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
                   🎁 جایزه کارت شانس در مرحله «تکمیل سفارش» به سفارش اضافه می‌شود
@@ -293,16 +295,16 @@ export function Cart({
               {items.length > 0 && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">جمع کل ({count} آیتم)</span>
-                <strong className="text-lg">{formatPrice(total)}</strong>
+                <strong className="atelier-menu-price !text-[1.35rem]">{formatPrice(total)}</strong>
               </div>
               )}
               {items.length > 0 && (
-              <Button variant="outline" className="w-full" onClick={clearCart}>
+              <Button variant="outline" className="h-11 w-full rounded-full" onClick={clearCart}>
                 خالی کردن سبد
               </Button>
               )}
               <Button
-                className="w-full"
+                className="atelier-cta w-full"
                 size="lg"
                 disabled={items.length === 0}
                 onClick={() => setStage('checkout')}

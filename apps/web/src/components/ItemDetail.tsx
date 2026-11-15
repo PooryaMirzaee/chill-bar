@@ -88,25 +88,27 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
         }
       }}
     >
-      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-2xl px-0">
+      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-[1.75rem] px-0">
         {item && (
           <>
-            <div className="relative flex h-48 items-center justify-center bg-muted">
+            <div className="atelier-detail-hero flex items-center justify-center">
               {imageSrc ? (
-                <img className="h-full w-full object-cover" src={imageSrc} alt={item.name} />
+                <img src={imageSrc} alt={item.name} />
               ) : (
-                <span className="text-7xl">{item.emoji}</span>
+                <span className="relative z-10 text-7xl">{item.emoji}</span>
               )}
             </div>
 
-            <div className="space-y-4 p-6">
-              <SheetHeader className="space-y-2 text-right">
-                <Badge variant="secondary" className="w-fit">
+            <div className="space-y-5 p-6">
+              <SheetHeader className="space-y-2.5 text-right">
+                <Badge variant="secondary" className="w-fit rounded-full px-2.5">
                   {item.categoryName}
                 </Badge>
-                <SheetTitle className="text-xl">{item.name}</SheetTitle>
+                <SheetTitle className="font-display text-[1.65rem] leading-none tracking-normal">
+                  {item.name}
+                </SheetTitle>
                 {item.description && (
-                  <SheetDescription className="text-right text-sm leading-relaxed">
+                  <SheetDescription className="text-right text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </SheetDescription>
                 )}
@@ -114,17 +116,17 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
 
               {optionPriced && unitPrice <= 0 ? (
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-primary">
-                    <span className="ml-1 text-base font-medium text-muted-foreground">از</span>
+                  <div className="font-display text-[1.85rem] leading-none text-primary">
+                    <span className="ml-1 font-sans text-base font-medium text-muted-foreground">از</span>
                     {formatPrice(startingPrice(item))}
                   </div>
                   <p className="text-xs text-muted-foreground">گزینه‌ی دلخواهت رو انتخاب کن تا قیمت نهایی رو ببینی</p>
                 </div>
               ) : (
-                <div className="text-2xl font-bold text-primary">
+                <div className="font-display text-[1.85rem] leading-none text-primary">
                   {formatPrice(unitPrice)}
                   {item.price > 0 && unitPrice !== item.price && (
-                    <span className="mr-2 text-sm font-normal text-muted-foreground line-through">
+                    <span className="mr-2 font-sans text-sm font-normal text-muted-foreground line-through">
                       {formatPrice(item.price)}
                     </span>
                   )}
@@ -160,7 +162,11 @@ export function ItemDetail({ item, pairing, pairingSectionTitle = 'پیشنها�
                 </div>
               )}
 
-              <Button className="w-full" size="lg" onClick={(e) => handleAdd(item, e)}>
+              <Button
+                className="h-12 w-full rounded-full text-base font-bold shadow-[0_12px_28px_color-mix(in_srgb,var(--scoop-orange)_35%,transparent)]"
+                size="lg"
+                onClick={(e) => handleAdd(item, e)}
+              >
                 <Plus className="h-4 w-4" />
                 افزودن به سفارش
               </Button>
